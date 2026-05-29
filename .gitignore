@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated artefakter
+backend/generated/
+
+# Logs
+*.log
+.uvicorn.log
+
+# Node (hvis vi tilføjer noget node senere)
+node_modules/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Backend lokal-specifik
+backend/.env

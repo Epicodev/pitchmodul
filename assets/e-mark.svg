@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- E-bomærke: rød firkant med E-form udskåret -->
+  <rect width="200" height="200" fill="#690F23"/>
+  <g fill="#FFFFFF">
+    <!-- Venstre vertikal stang er ikke synlig — den er bare den røde baggrund -->
+    <!-- Tre hvide bjælker der danner E'et -->
+    <rect x="50" y="40" width="110" height="22"/>
+    <rect x="50" y="89" width="78" height="22"/>
+    <rect x="50" y="138" width="110" height="22"/>
+  </g>
+</svg>

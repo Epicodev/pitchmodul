@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Epico Pitch Composer</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/composer-assets/composer.css">
+</head>
+<body class="composer-body">
+
+<header class="composer-header">
+  <div class="brand">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">Pitch Composer</div>
+  </div>
+  <div class="header-meta">
+    <span class="status-pill" id="api-status">Tjekker forbindelse...</span>
+  </div>
+</header>
+
+<div class="composer-shell">
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="brief" role="tab">
+      <span class="tab-num">01</span><span class="tab-label">Brief</span>
+    </button>
+    <button class="tab" data-tab="research" role="tab" disabled>
+      <span class="tab-num">02</span><span class="tab-label">AI-research</span>
+    </button>
+    <button class="tab" data-tab="review" role="tab" disabled>
+      <span class="tab-num">03</span><span class="tab-label">Review &amp; rediger</span>
+    </button>
+    <button class="tab" data-tab="generate" role="tab" disabled>
+      <span class="tab-num">04</span><span class="tab-label">Generer deck</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================
+       TAB 1 — BRIEF
+       ======================================================== -->
+  <section class="tab-panel is-active" data-panel="brief">
+
+    <div class="panel-intro">
+      <span class="eyebrow">Trin 01</span>
+      <h2 class="h2">Brief om kunden &amp; mødet.</h2>
+      <p class="body-lg" style="max-width:800px;margin-top:16px;">Udfyld det du ved. Du behøver ikke alt — AI-analysen fylder hullerne ud baseret på årsrapport og CVR-data.</p>
+    </div>
+
+    <form class="form-grid" id="brief-form">
+
+      <!-- KLIENT -->
+      <fieldset class="form-block">
+        <legend><span class="legend-num">A</span>Klient</legend>
+        <div class="form-row">
+          <label class="field field--lg">
+            <span class="field-label">Kundenavn <span class="required">*</span></span>
+            <input type="text" name="client_name" placeholder="fx LEGO, Mærsk, Nordea" required>
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">CVR-nummer <span class="hint">(valgfrit — vi finder det selv)</span></span>
+            <div class="field-with-action">
+              <input type="text" name="cvr_number" placeholder="8 cifre" pattern="\d{8}">
+              <button type="button" class="btn btn--ghost btn--sm" id="cvr-lookup-btn">Slå op →</button>
+            </div>
+            <div class="cvr-result" id="cvr-result" hidden></div>
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">Sælgers noter <span class="hint">(valgfrit)</span></span>
+            <textarea name="sales_notes" rows="4" placeholder="Indsigter du allerede har — fx tidligere kontakt, kendte udfordringer, jobopslag du har set, interne kilder..."></textarea>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- ÅRSRAPPORT -->
+      <fieldset class="form-block">
+        <legend><span class="legend-num">B</span>Årsrapport</legend>
+        <div class="form-row">
+          <label class="field field--upload">
+            <span class="field-label">Upload PDF <span class="hint">(jo flere sider, jo bedre AI-analyse)</span></span>
+            <div class="upload-zone" id="upload-zone">
+              <input type="file" name="annual_report" accept="application/pdf" id="upload-input">
+              <div class="upload-prompt">
+                <strong>Træk PDF hertil</strong> eller klik for at vælge
+                <span class="upload-hint">Op til 50 MB</span>
+              </div>
+              <div class="upload-selected" id="upload-selected" hidden></div>
+            </div>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- PITCH-VINKEL -->
+      <fieldset class="form-block form-block--accent">
+        <legend><span class="legend-num">C</span>Pitch-vinkel <span class="legend-hint">styrer Claude</span></legend>
+
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">Hvad skal pitchen fokusere på? <span class="hint">(valgfrit — hvis tomt vælger Claude selv ud fra årsrapporten)</span></span>
+            <textarea name="pitch_focus" rows="4" placeholder='fx "De skal rekruttere 50 udviklere på 6 mdr. pga. ny e-commerce platform. Pitch skal pege på Freelance + Nearshore som kombination, og spille på at de har svært ved at tiltrække tech-talenter til Aarhus."'></textarea>
+            <span class="field-hint">Det her er det vigtigste felt. Skriv konkret — så bliver pitchen skarp og fokuseret i stedet for bred.</span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">Services at fremhæve <span class="hint">(valgfrit — vælg dem du primært vil pitche)</span></span>
+            <div class="chip-group" id="service-chips">
+              <label class="chip"><input type="checkbox" name="services" value="Epico Freelance"><span>Freelance</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico NextGen"><span>NextGen</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico Search"><span>Search</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico Public"><span>Public</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico Nearshore"><span>Nearshore</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico Tech"><span>Tech</span></label>
+              <label class="chip"><input type="checkbox" name="services" value="Epico Dynamant"><span>Dynamant</span></label>
+            </div>
+            <span class="field-hint">Hvis du vælger et eller flere, vil Claude mappe udfordringer primært til DEM. Lad alle være umarkeret hvis du vil have AI'en til at vælge.</span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">Læg ekstra vægt på <span class="hint">(valgfrit)</span></span>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="emphasis" value="" checked><span>Balanceret (lad Claude bestemme)</span></label>
+              <label class="radio"><input type="radio" name="emphasis" value="speed"><span>Hastighed &amp; leveringskraft</span></label>
+              <label class="radio"><input type="radio" name="emphasis" value="expertise"><span>Specialisterfaring</span></label>
+              <label class="radio"><input type="radio" name="emphasis" value="cost"><span>Skalering uden vækst i fast lønsum</span></label>
+              <label class="radio"><input type="radio" name="emphasis" value="local"><span>Lokal/dansk kontekst</span></label>
+              <label class="radio"><input type="radio" name="emphasis" value="culture"><span>Match på kultur &amp; team-fit</span></label>
+            </div>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- MØDE -->
+      <fieldset class="form-block">
+        <legend><span class="legend-num">D</span>Mødet</legend>
+        <div class="form-row form-row--3">
+          <label class="field">
+            <span class="field-label">Kontaktperson <span class="required">*</span></span>
+            <input type="text" name="contact_person" placeholder="fx Mette Hansen, IT Director" required>
+          </label>
+          <label class="field">
+            <span class="field-label">By <span class="required">*</span></span>
+            <input type="text" name="city" placeholder="fx København" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Dato <span class="required">*</span></span>
+            <input type="date" name="date" required>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- TEAM -->
+      <fieldset class="form-block">
+        <legend><span class="legend-num">E</span>Dit Epico-team</legend>
+        <div class="team-cols">
+          <div class="team-col">
+            <h4 class="team-col-title">Key Account Manager</h4>
+            <div class="form-row form-row--2">
+              <label class="field">
+                <span class="field-label">Navn</span>
+                <input type="text" name="kam_name" placeholder="Fornavn Efternavn">
+              </label>
+              <label class="field">
+                <span class="field-label">Titel</span>
+                <input type="text" name="kam_title" value="Senior Key Account Manager">
+              </label>
+            </div>
+            <div class="form-row form-row--2">
+              <label class="field">
+                <span class="field-label">Telefon</span>
+                <input type="tel" name="kam_phone" placeholder="+45 00 00 00 00">
+              </label>
+              <label class="field">
+                <span class="field-label">Email</span>
+                <input type="email" name="kam_email" placeholder="navn@epico.dk">
+              </label>
+            </div>
+          </div>
+          <div class="team-col">
+            <h4 class="team-col-title">Resource Manager</h4>
+            <div class="form-row form-row--2">
+              <label class="field">
+                <span class="field-label">Navn</span>
+                <input type="text" name="rm_name" placeholder="Fornavn Efternavn">
+              </label>
+              <label class="field">
+                <span class="field-label">Titel</span>
+                <input type="text" name="rm_title" value="Resource Manager">
+              </label>
+            </div>
+            <div class="form-row form-row--2">
+              <label class="field">
+                <span class="field-label">Telefon</span>
+                <input type="tel" name="rm_phone" placeholder="+45 00 00 00 00">
+              </label>
+              <label class="field">
+                <span class="field-label">Email</span>
+                <input type="email" name="rm_email" placeholder="navn@epico.dk">
+              </label>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary btn--lg" id="run-analysis-btn">
+          Kør AI-research <span class="arrow">→</span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ========================================================
+       TAB 2 — AI RESEARCH (loading + raw results)
+       ======================================================== -->
+  <section class="tab-panel" data-panel="research">
+    <div class="panel-intro">
+      <span class="eyebrow">Trin 02</span>
+      <h2 class="h2">AI-research kører.</h2>
+    </div>
+
+    <div class="research-status" id="research-status">
+      <div class="status-step is-pending" data-step="cvr">
+        <span class="step-marker">01</span>
+        <span class="step-text">Henter CVR-data...</span>
+        <span class="step-spinner"></span>
+      </div>
+      <div class="status-step is-pending" data-step="pdf">
+        <span class="step-marker">02</span>
+        <span class="step-text">Læser årsrapport...</span>
+        <span class="step-spinner"></span>
+      </div>
+      <div class="status-step is-pending" data-step="claude">
+        <span class="step-marker">03</span>
+        <span class="step-text">Claude analyserer (typisk 20-40 sekunder)...</span>
+        <span class="step-spinner"></span>
+      </div>
+      <div class="status-step is-pending" data-step="done">
+        <span class="step-marker">04</span>
+        <span class="step-text">Klar til review!</span>
+        <span class="step-spinner"></span>
+      </div>
+    </div>
+
+    <div class="research-summary" id="research-summary" hidden></div>
+  </section>
+
+  <!-- ========================================================
+       TAB 3 — REVIEW & EDIT
+       ======================================================== -->
+  <section class="tab-panel" data-panel="review">
+    <div class="panel-intro">
+      <span class="eyebrow">Trin 03</span>
+      <h2 class="h2">Review &amp; finpuds.</h2>
+      <p class="body-lg" style="max-width:800px;margin-top:16px;">Alle felter er redigerbare. AI'en har sit bedste bud — men du kender kunden bedre.</p>
+    </div>
+
+    <div class="review-container" id="review-container">
+      <!-- Bliver fyldt af composer.js -->
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--ghost" id="back-to-brief">← Tilbage til brief</button>
+      <button type="button" class="btn btn--primary btn--lg" id="generate-deck-btn">
+        Generer deck <span class="arrow">→</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       TAB 4 — GENERATE
+       ======================================================== -->
+  <section class="tab-panel" data-panel="generate">
+    <div class="panel-intro">
+      <span class="eyebrow">Trin 04</span>
+      <h2 class="h2">Dit deck er klar.</h2>
+    </div>
+
+    <div class="generated-actions" id="generated-actions">
+      <a href="#" target="_blank" class="generated-card" id="open-deck-link">
+        <div class="generated-icon">↗</div>
+        <div>
+          <div class="generated-title">Åbn pitch deck</div>
+          <div class="generated-desc">18 slides klar til at præsentere</div>
+        </div>
+      </a>
+      <button class="generated-card" id="download-deck-btn">
+        <div class="generated-icon">↓</div>
+        <div>
+          <div class="generated-title">Download HTML</div>
+          <div class="generated-desc">Standalone fil — kan deles eller åbnes offline</div>
+        </div>
+      </button>
+      <button class="generated-card" id="restart-btn">
+        <div class="generated-icon" style="background:var(--raspberry);">↻</div>
+        <div>
+          <div class="generated-title">Lav et nyt deck</div>
+          <div class="generated-desc">Start forfra med en ny kunde</div>
+        </div>
+      </button>
+    </div>
+  </section>
+
+</div>
+
+<script src="/composer-assets/composer.js"></script>
+</body>
+</html>
