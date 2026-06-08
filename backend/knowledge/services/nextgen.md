@@ -1,55 +1,70 @@
 # Epico NextGen
 
 ## Kort beskrivelse
-Levering af nyuddannede IT-talenter med den nyeste viden fra uddannelserne. Et supplement til kundens egen HR- og graduate-funktion.
+"The missing link between IT-talent and workplaces" — Epicos program for unge IT-talenter med 0-5 års erhvervserfaring. Try-before-hire model med personlig agent til hver kandidat.
 
 ## Hvad vi leverer
-- IT-talenter med 0-2 års professionel erfaring
-- Nyuddannede med den nyeste teoretiske og praktiske viden inden for IT
-- Profiler der er screenet både fagligt og personlighedsmæssigt
-- "Try-before-hire"-model: kunden kan ansætte fast efter projektet
+- IT-talenter med **0-5 års** professionel erfaring (ikke 0-2)
+- Nyuddannede og yngre profiler med opdateret teknologi-viden fra uddannelserne
+- Kandidater der er **kontinuerligt udviklende sig professionelt**
+- Try-before-hire-model — kunden kan ansætte fast efter projektperioden
+- Personlig agent til kandidaten gennem hele processen
 
 ## Hvem servicen er til
 - Virksomheder der vil bygge intern juniorbase op uden risiko
-- IT-afdelinger der mangler kapacitet på "ikke-kritiske" opgaver
-- Kunder der ønsker fast ansættelse af unge talenter — men vil teste først
-- Virksomheder der ønsker mere diversitet i IT-organisationen
+- Organisationer der mangler kapacitet på opgaver hvor seniorprofiler er overkill
+- IT-afdelinger der ønsker friske perspektiver og nyeste teknologi-viden
+- Virksomheder der vil teste samarbejde før permanent ansættelse
+- Organisationer der ønsker mere diversitet i IT-organisationen
 
 ## Leveringsmodel
 - NextGen-kandidaten er ansat hos Epico under projektperioden
-- Kunden betaler en timepris (lavere end almindelig freelance)
-- Daglig ledelse hos kunden, men Epico følger tæt op med kandidaten
-- Efter projektperioden kan kunden ansætte kandidaten fast — ingen rekrutteringsfee
-- Mulighed for at forlænge projektperioden eller afslutte uden binding
+- Kunden betaler en timepris (lavere end seniorprofil)
+- Daglig ledelse hos kunden — Epico følger op med kandidaten
+- Personlig agent fra Epico er involveret i initiale samtaler og forbliver tilgængelig undervejs
+- Efter projektperioden kan kunden ansætte fast — ingen rekrutteringsfee
+- Mulighed for at forlænge eller afslutte uden binding
+
+## Process for kunden
+1. **Behovsanalyse**: Epico afdækker hvilken profil og hvilke kompetencer der mangler
+2. **Match fra database**: Vi finder passende kandidater fra +1.500 aktive profiler
+3. **Kandidat-kontakt**: Epico kontakter kandidaterne og afsætter agent
+4. **Interview**: 3-vejs samtale med kandidat, kunde og Epico-medarbejder
+5. **Kontrakt**: Epico hjælper med kontraktforhandling
+6. **Projektperiode**: Kandidaten arbejder hos kunden under Epico-ansættelse
+7. **Permanent (valgfrit)**: Kunden kan ansætte fast efter projekt
 
 ## Nøgletal
-- 99% hit-rate på det rigtige match
-- +60 NextGen-kandidater på kontrakt
-- 91% af kandidaterne fortsætter hos kunden efter projektet er afsluttet
-- 25% af kandidaterne i NextGen-databasen er kvinder (diversitet i fokus)
-- [VERIFICÉR] Antal kandidater i databasen totalt
+- **+1.500 aktive profiler** i NextGen-network
+- 99% hit-rate på matching
+- 91% af alle matches resulterer i permanent kontrakt mellem kandidat og kunde
+- 25% af kandidater er kvinder
+- 0-5 års erfaring (skriv aldrig "0-2 år" — det er forældet info)
 
 ## Typiske NextGen-profiler
 - Junior Software Developers (alle stacks)
 - Junior Data Analysts / Data Engineers
-- Junior Application Managers
-- Junior Software Testers
+- Application Managers
+- Software Testers (junior)
 - Document Controllers, Project Assistants
 - Junior Project Managers
-- Junior Infrastructure Engineers / Supporters
+- Infrastructure consultants
 - Junior Business Consultants / Functional Analysts
 - IT-supportere og pc-teknikere
+- Fullstack developers / iOS + Android
 
-## Typiske kunder bruger NextGen til
+## Typiske use cases
 - Supplement til intern graduate-program
 - Streamlined onboarding af unge talent uden HR-bureaukrati
 - Test af om en konkret junior-profil passer ind før fast ansættelse
 - Adgang til nyeste teknologi-viden (Cloud-native, AI, moderne frameworks)
+- Diversitet og kønsbalance i IT-organisationen
 
 ## Hvad servicen IKKE er
-- Vi leverer ikke "billige" konsulenter — det er specifikt unge talenter med kort erfaring
-- NextGen-kandidater erstatter ikke seniorer på komplekse projekter
-- Vi tager ikke rekrutteringsfee hvis kunden ansætter — det er bygget ind i modellen
+- Ikke "billige" konsulenter — det er specifikt unge talenter med kort erfaring
+- Erstatter ikke seniorer på komplekse projekter
+- Vi tager ikke rekrutteringsfee hvis kunden ansætter fast — det er bygget ind i modellen
+- IKKE 0-2 års erfaring (forældet info) — det er 0-5 år
 
 ## Prismodel
 - Timepris lavere end seniore Freelance-profiler
@@ -58,9 +73,12 @@ Levering af nyuddannede IT-talenter med den nyeste viden fra uddannelserne. Et s
 - [VERIFICÉR] Pris-eksempler
 
 ## Reference-case
-**Nuuday**: 25% af alle nye IT-ansatte hos Nuuday er NextGen-kandidater. De anser NextGen som deres primære rekrutteringskanal for IT-udviklere. Citat fra Lars Vieland Grasberger, Manager, Nuuday Mobile Partners: *"EPICO NextGen er der hvor talenterne er, hvilket er hvorfor de er vores fortsatte partner når det handler om at finde nye IT-talenter."*
+**Nuuday**: 25% af alle nye IT-ansatte hos Nuuday er NextGen-kandidater. Citat fra Lars Vieland Grasberger, Manager, Nuuday Mobile Partners — IT and Partner Operations:
+
+> "Through the past couple of years, we have received highly qualified NextGen IT talents. 25% of the new employees in our IT department are EPICO NextGen talents. We consider the EPICO NextGen concept as our primary recruitment channel for IT developers. EPICO NextGen is where the talents are, which is why they are our continuous partner when it comes to finding new IT talents."
 
 ## Beslægtede services
 - **Erfarne specialister** → Epico Freelance
 - **Permanent rekruttering af seniore profiler** → Epico Search
-- **Skalerbare teams** → Epico Nearshore
+- **Skalerbare teams (nearshore)** → Epico Nearshore
+- **Permanent test før ansættelse** → Project Recruitment (variant)

@@ -1,5 +1,17 @@
 # Messaging — Tone of voice + standardformuleringer
 
+## Tagline & overordnet position
+
+**Tagline: "Human first. Technology always."**
+
+Det betyder konkret at vi taler om:
+- Personen bag CV'et — ikke kun kompetencen
+- Match på personlighed, kultur og kommunikation — ikke kun teknisk fit
+- Langsigtede relationer — ikke transaktioner
+- Det menneskelige aspekt af IT-rekruttering og konsulent-arbejde
+
+Epico positionerer sig som **"one of the most highly trusted suppliers and brokers of IT-resources"** baseret på lange relationer og finpudsede processer over 15+ år.
+
 ## Tone of voice
 
 Epico's tone er:

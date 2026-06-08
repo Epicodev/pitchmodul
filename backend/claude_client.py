@@ -37,13 +37,13 @@ def reload_knowledge() -> int:
 # Kort service-oversigt (fallback hvis knowledge-base fejler).
 # Detaljerne ligger nu i knowledge/services/*.md
 EPICO_SERVICES = {
-    "Epico Freelance": "Hurtig levering af erfarne IT-konsulenter (+10 års erfaring).",
-    "Epico NextGen": "Nyuddannede IT-talenter (0-2 års erfaring). Try-before-hire model.",
-    "Epico Search": "Headhunting af IT-ledere og specialister til faste stillinger.",
-    "Epico Public": "Specialister i offentlige rammeaftaler (SKI). Sikkerhedsclearance håndteret.",
-    "Epico Nearshore": "Dedikerede teams i Polen, ledet fra Danmark.",
-    "Epico Tech": "Oracle, AI, AMS og Managed Technology specialister.",
-    "Epico Dynamant": "Mainframe og Cobol specialister.",
+    "Epico Freelance": "Hurtig levering af erfarne IT-konsulenter (+10 års erfaring) og hele teams.",
+    "Epico NextGen": "IT-talenter med 0-5 års erfaring. Try-before-hire model. +1.500 aktive profiler.",
+    "Epico Search": "Headhunting af IT-ledere og specialister til faste stillinger. +3.000 succesfulde rekrutteringer.",
+    "Epico Public": "Specialister via SKI 02.06, 02.14, 02.17 til offentlig sektor.",
+    "Epico Nearshore": "Dedikerede teams i Warszawa, Polen. Dansk kontrakt og team-leader.",
+    "Epico Tech": "Oracle (+20 års erfaring) og Mainframe (+25 års erfaring) specialister. Også AI og AMS.",
+    "Epico Solution": "Management services og komplette IT-løsninger med leveranceansvar.",
 }
 
 
