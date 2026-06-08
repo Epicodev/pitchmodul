@@ -154,6 +154,62 @@ ANALYSIS_TOOL = {
                 "minItems": 3,
                 "maxItems": 3,
             },
+            "service_slides": {
+                "type": "array",
+                "description": "1 slide per Epico-service som skal vises i pitch'en. HVIS sælger har angivet 'services_to_highlight' → returnér KUN slides for de services. HVIS ingen valgt → returnér alle 7 services (Freelance, NextGen, Search, Public, Nearshore, Tech, Solution). Hvert slide skal være TILPASSET KUNDENS BRANCHE (roller og kunde-referencer matches til kundens domæne).",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "service_name": {
+                            "type": "string",
+                            "description": "Eksakt service-navn fra knowledge base. Et af: Epico Freelance, Epico NextGen, Epico Search, Epico Public, Epico Nearshore, Epico Tech, Epico Solution.",
+                        },
+                        "tagline": {
+                            "type": "string",
+                            "description": "1 linje value-proposition. Max 90 tegn. Skarp og kunde-værdi-fokuseret, ikke generisk. Fx 'Erfarne IT-konsulenter på 48 timer — uden langtidsbinding'."
+                        },
+                        "what_we_deliver": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Nøjagtigt 4 bullets der konkret beskriver hvad kunden får. Max 90 tegn per bullet. Tag udgangspunkt i service-filen i knowledge base.",
+                            "minItems": 4,
+                            "maxItems": 4,
+                        },
+                        "key_stats": {
+                            "type": "array",
+                            "description": "Nøjagtigt 3 nøgletal der gør servicen troværdig. Brug KUN tal der står i knowledge base (stats.md eller services/*.md).",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "value": {"type": "string", "description": "Selve tallet, fx '+500' eller '99%' eller '+25 år'"},
+                                    "label": {"type": "string", "description": "Kort label, max 60 tegn, fx 'konsulenter på kontrakt' eller 'hit-rate på matching'"},
+                                },
+                                "required": ["value", "label"],
+                            },
+                            "minItems": 3,
+                            "maxItems": 3,
+                        },
+                        "who_its_for": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Nøjagtigt 3 bullets om hvornår denne service er det rigtige valg. Skriv 'Når I...' eller 'Hvis I...'. Tilpas til kundens situation hvor muligt.",
+                            "minItems": 3,
+                            "maxItems": 3,
+                        },
+                        "typical_roles": {
+                            "type": "string",
+                            "description": "Kommasepareret liste af 4-6 KONKRETE roller Epico kan levere via denne service. VÆLG ROLLER DER ER RELEVANTE FOR KUNDENS BRANCHE. Eksempel for finans-kunde i Search: 'CISO · Risk Manager · Senior Java Developer · Quant Developer · IT Security Architect'."
+                        },
+                        "relevant_partners": {
+                            "type": "string",
+                            "description": "Kommasepareret liste af 2-4 EPICO-PARTNERE/kunder vi kan nævne. Brug KUN navne fra knowledge base: Arla, Carlsberg, Politi.dk, Ikano Bank, KPMG, Pandora, Siemens, Aller Media. VÆLG DEM DER LIGNER KUNDENS BRANCHE MEST. Hvis ingen passer, skriv generisk fx '+1.500 kunder globalt'."
+                        },
+                    },
+                    "required": ["service_name", "tagline", "what_we_deliver", "key_stats", "who_its_for", "typical_roles", "relevant_partners"],
+                },
+                "minItems": 1,
+                "maxItems": 7,
+            },
             "case_recommendation": {
                 "type": "object",
                 "description": "En foreslået case at vise — bygget på relevans til kundens branche.",
@@ -196,6 +252,7 @@ ANALYSIS_TOOL = {
             "research_facts",
             "strategic_priorities",
             "value_mappings",
+            "service_slides",
             "next_steps",
             "case_recommendation",
         ],

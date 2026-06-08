@@ -67,6 +67,7 @@ def render_deck(
         "research_facts": analysis.get("research_facts", []),
         "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
+        "service_slides": analysis.get("service_slides", []),
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),

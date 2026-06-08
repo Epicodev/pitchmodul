@@ -290,109 +290,68 @@
   <div class="slide-footer"><span class="footer-mark"></span>11 / 18</div>
 </section>
 
-{# ============ SLIDE 12 — FREELANCE + NEXTGEN ============ #}
-<section class="slide" data-slide="12">
+{# ============ DYNAMISKE SERVICE-SLIDES (1 pr service) ============ #}
+{% for s in service_slides %}
+{% set service_idx = loop.index %}
+{% set service_total = service_slides|length %}
+<section class="slide" data-slide="service-{{ service_idx }}">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
     <div class="wordmark">Epico</div>
     <div class="divider"></div>
-    <div class="section-tag">Services 1/3</div>
+    <div class="section-tag">{{ s.service_name|replace('Epico ', '') }}</div>
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Den hurtige levering</span>
-    <h2 class="h1" style="max-width:1600px;">Freelance <span class="accent">&</span> NextGen.</h2>
+    <div class="service-hero">
+      <span class="eyebrow">Service {{ '%02d' % service_idx }} / {{ '%02d' % service_total }}</span>
+      <h2 class="h1 service-h1">{{ s.service_name }}.</h2>
+      <p class="service-tagline">{{ s.tagline }}</p>
+    </div>
 
-    <div class="service-grid">
-      <div class="service-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div><div class="name">Freelance</div></div>
-        <div class="tagline">Erfarne IT-konsulenter på dag 1.</div>
-        <div class="desc">Hurtig levering af IT-konsulenter til konkrete projekter. +600 konsulenter på kontrakt, +6000 CV'er i vores database. Alle profiler er forhåndsscreenet.</div>
-        <div class="features"><span class="badge badge--dark">Senior +10 år</span><span class="badge badge--blueberry">Alle stacks</span><span class="badge badge--raspberry">48t responstid</span></div>
+    <div class="service-body">
+      <div class="service-col">
+        <div class="col-head">Hvad I får</div>
+        <ul class="service-bullets">
+          {% for item in s.what_we_deliver %}<li>{{ item }}</li>{% endfor %}
+        </ul>
       </div>
-      <div class="service-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div><div class="name">NextGen</div></div>
-        <div class="tagline">Nyuddannet IT-talent med nyeste viden.</div>
-        <div class="desc">IT-talenter med 0–2 års erfaring. Et supplement til jeres HR-graduate-program. 99% hit-rate. 91% fortsætter hos kunden efter projektet.</div>
-        <div class="features"><span class="badge badge--kiwi">Junior 0–2 år</span><span class="badge badge--blueberry">Try-before-hire</span><span class="badge badge--blackberry">Diversitet i fokus</span></div>
+
+      <div class="service-col service-col--stats">
+        <div class="col-head">Nøgletal</div>
+        <div class="service-stats">
+          {% for stat in s.key_stats %}
+          <div class="service-stat">
+            <div class="service-stat-value">{{ stat.value }}</div>
+            <div class="service-stat-label">{{ stat.label }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="service-col">
+        <div class="col-head">Hvornår det er det rigtige valg</div>
+        <ul class="service-bullets service-bullets--accent">
+          {% for item in s.who_its_for %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-footer-meta">
+      <div class="footer-row">
+        <span class="footer-label">Typiske roller</span>
+        <span class="footer-value">{{ s.typical_roles }}</span>
+      </div>
+      <div class="footer-row">
+        <span class="footer-label">Strategiske partnere</span>
+        <span class="footer-value">{{ s.relevant_partners }}</span>
       </div>
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>12 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }}</div>
 </section>
-
-{# ============ SLIDE 13 — SEARCH + PUBLIC ============ #}
-<section class="slide" data-slide="13">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Services 2/3</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Den specialiserede levering</span>
-    <h2 class="h1" style="max-width:1600px;">Search <span class="accent">&</span> Public.</h2>
-
-    <div class="service-grid">
-      <div class="service-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div><div class="name">Search</div></div>
-        <div class="tagline">Headhunting af IT-ledere og specialister.</div>
-        <div class="desc">Rekruttering til faste stillinger inden for IT, engineering og R&D. 100% hit-rate i 2023. +3100 succesfulde rekrutteringer i alt. Vi finder også dem, der ikke selv søger.</div>
-        <div class="features"><span class="badge badge--dark">Permanent hire</span><span class="badge badge--raspberry">Passive candidates</span><span class="badge badge--mulberry">+10 års specialister</span></div>
-      </div>
-      <div class="service-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div><div class="name">Public</div></div>
-        <div class="tagline">Eksperter i offentlige rammeaftaler.</div>
-        <div class="desc">IT-konsulenter til den offentlige sektor i Danmark. Erfaring med SKI-aftaler og statslige rammeaftaler. Sikkerhedsgodkendelse håndteret af os.</div>
-        <div class="features"><span class="badge badge--blueberry">Rammeaftaler</span><span class="badge badge--dark">Sikkerhedsclearance</span><span class="badge badge--raspberry">Statslige projekter</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>13 / 18</div>
-</section>
-
-{# ============ SLIDE 14 — NEARSHORE + TECH + DYNAMANT ============ #}
-<section class="slide" data-slide="14">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Services 3/3</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Den specialiserede & skalerbare levering</span>
-    <h2 class="h1" style="max-width:1600px;">Nearshore <span class="accent">·</span> Tech <span class="accent">·</span> Dynamant.</h2>
-
-    <div class="case-grid" style="margin-top:48px;">
-      <div class="case-block">
-        <div class="case-label">Nearshore</div>
-        <div class="case-headline">Din partner i Polen — og resten af nearshore.</div>
-        <ul><li>Dedikerede teams ledet fra Danmark</li><li>Konkurrencedygtige priser, dansk kontrakt</li><li>Mulighed for office space i Warszawa</li></ul>
-      </div>
-      <div class="case-block">
-        <div class="case-label">Tech</div>
-        <div class="case-headline">Specialister inden for Oracle, AI, AMS og Managed Tech.</div>
-        <ul><li>+20 års gennemsnitserfaring</li><li>Cutting-edge Oracle DB &amp; APEX</li><li>AMS &amp; Managed Technology setup</li></ul>
-      </div>
-      <div class="case-block case-block--accent">
-        <div class="case-label">Dynamant</div>
-        <div class="case-headline">Mainframe-specialisterne, ingen andre har.</div>
-        <ul><li>+25 års erfaring i Mainframe og Cobol</li><li>Bank, forsikring, transport &amp; logistik</li><li>Mainframe as a Service</li></ul>
-      </div>
-      <div class="case-block">
-        <div class="case-label">Brancher</div>
-        <div class="case-headline">Vi forstår jeres marked, ikke bare jeres teknologi.</div>
-        <ul><li>Medtech · Pharma · Biotech</li><li>Finans · Energi · Forsyning</li><li>Retail · Public · Industri</li></ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>14 / 18</div>
-</section>
+{% endfor %}
 
 {# ============ SLIDE 15 — THE EPIC PROCESS ============ #}
 <section class="slide" data-slide="15">
