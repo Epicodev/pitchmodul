@@ -269,13 +269,83 @@ _EMPHASIS_DESCRIPTIONS = {
 }
 
 
+_MEETING_STAGE_DESCRIPTIONS = {
+    "first_touch": "Dette er **første gang** I taler med kunden. Antag intet kendskab. Vær respektfuld for deres tid og hold strukturen tydelig.",
+    "re_engage": "I har **mødtes før, men dialogen er gået kold**. Genoplive uden at gentage. Henvis subtilt til hvad I tidligere har talt om hvis relevant.",
+    "existing_customer": "Kunden er **allerede en eksisterende kunde**. Pitchen handler om at udvide samarbejdet — ikke at sælge sig ind fra bunden. Spring 'hvem er vi'-passager kort over.",
+    "renewal": "Kunden er **eksisterende og samarbejdet skal forlænges eller udvides**. Fokusér på dokumenteret værdi I har leveret + næste fase. Mindre 'sælg', mere 'optimér'.",
+}
+
+
+_TONE_DESCRIPTIONS = {
+    "balanced": "Balanceret — direkte og professionel, men menneskelig.",
+    "formal": "**Formel og strategisk**. Strammere sprog. Mere fokus på governance, KPI'er, strategi. Mindre 'vi' og mere 'organisationen'.",
+    "direct": "**Direkte og operationel**. Korte sætninger. Konkret. Tal-tunge formuleringer. Spring blødheder over.",
+    "personal": "**Personlig og konsultativ**. Som en betroet rådgiver. Brug 'I' / 'vi sammen'. Lidt mere uformel uden at miste autoritet.",
+}
+
+
 def _build_system_prompt(
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
     emphasis: Optional[str] = None,
+    seller_brief: Optional[Dict[str, Optional[str]]] = None,
+    slide_dictation: Optional[Dict[str, Optional[str]]] = None,
 ) -> str:
     # Sælger-direktiver — disse er styrende
     directives = []
+
+    # Lag 1: Strukturerede sælger-inputs (HØJESTE prioritet)
+    if seller_brief:
+        brief_parts = []
+        stage = seller_brief.get("meeting_stage")
+        if stage and stage in _MEETING_STAGE_DESCRIPTIONS:
+            brief_parts.append(f"**Mødestadie**: {_MEETING_STAGE_DESCRIPTIONS[stage]}")
+        if seller_brief.get("meeting_history"):
+            brief_parts.append(f"**Mødehistorik**: {seller_brief['meeting_history']}")
+        if seller_brief.get("personal_angle"):
+            brief_parts.append(f"**Personlig vinkel om mødedeltageren**: {seller_brief['personal_angle']}")
+        if seller_brief.get("insider_insights"):
+            brief_parts.append(f"**Insider-insights (ikke offentlige)**: {seller_brief['insider_insights']}")
+        if seller_brief.get("exclusions"):
+            brief_parts.append(f"**EKSKLUSIONER — må IKKE nævnes**: {seller_brief['exclusions']}")
+        tone = seller_brief.get("tone")
+        if tone and tone in _TONE_DESCRIPTIONS and tone != "balanced":
+            brief_parts.append(f"**Tone**: {_TONE_DESCRIPTIONS[tone]}")
+
+        if brief_parts:
+            directives.append(
+                "## 🎯 SÆLGERS BRIEF (TRUMFER ALT ANDET)\n\n"
+                "Disse oplysninger kommer fra sælgers personlige kendskab til kunden — fra netværk, "
+                "tidligere møder, LinkedIn, jobopslag eller interne kilder. **De vægter HØJERE end årsrapporten.**\n\n"
+                "Hvis sælgers brief og årsrapport peger forskelligt — vinder sælger. Brug årsrapporten som "
+                "*støtte* til sælgers narrativ, ikke som modvægt.\n\n"
+                + "\n\n".join(brief_parts)
+            )
+
+    # Lag 2: Slide-for-slide dictation
+    if slide_dictation:
+        dict_parts = []
+        if slide_dictation.get("why_meeting"):
+            dict_parts.append(f"**Slide 02 (Hvorfor vi mødes)**: Brug DENNE tekst som `client_summary` (polér gerne sprog, men hold indholdet):\n> {slide_dictation['why_meeting']}")
+        if slide_dictation.get("research_facts"):
+            dict_parts.append(f"**Slide 04 (Research-facts)**: Brug DISSE facts som `research_facts` (parser hver linje). Hvis format er '[Label]: [Værdi] | [Kilde]', så map til key/value/source. Hvis sælger har givet færre end 4 — supplér med årsrapport, men sælgers facts har prioritet:\n```\n{slide_dictation['research_facts']}\n```")
+        if slide_dictation.get("priorities"):
+            dict_parts.append(f"**Slide 05 (Strategiske prioriteter)**: Brug DISSE som `strategic_priorities` (én linje pr. prioritet, format '[Titel] — [beskrivelse]'):\n```\n{slide_dictation['priorities']}\n```")
+        if slide_dictation.get("mappings"):
+            dict_parts.append(f"**Slide 06 (Value mappings)**: Brug DISSE som `value_mappings` (én linje pr. mapping, format '[Udfordring] => [Service] : [Løsning]'):\n```\n{slide_dictation['mappings']}\n```")
+        if slide_dictation.get("next_steps"):
+            dict_parts.append(f"**Slide 17 (Næste skridt)**: Brug DISSE som `next_steps` (én linje pr. skridt, format '[Titel] | [tidsramme] — [beskrivelse]'):\n```\n{slide_dictation['next_steps']}\n```")
+
+        if dict_parts:
+            directives.append(
+                "## 📝 SÆLGER-STYREDE SLIDES (overskriv AI-output)\n\n"
+                "Sælgeren har skrevet **specifikt indhold til bestemte slides**. Du SKAL bruge sælgers tekst som "
+                "grundlaget for de pågældende felter — du må kun polere sprog, struktur og formatering. **Du må IKKE "
+                "ændre indholdets retning eller pointe.**\n\n"
+                "For slides hvor sælger IKKE har givet specifik tekst, bruger du normal analyse-logik.\n\n"
+                + "\n\n".join(dict_parts)
+            )
 
     if pitch_focus:
         directives.append(f"""## ⚠️ SÆLGERS PITCH-VINKEL (styrende)
@@ -356,7 +426,8 @@ def analyze_client(
     client_name: str,
     cvr_data: Optional[Dict[str, Any]] = None,
     annual_report_text: Optional[str] = None,
-    sales_notes: Optional[str] = None,
+    seller_brief: Optional[Dict[str, Optional[str]]] = None,
+    slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
     emphasis: Optional[str] = None,
@@ -379,8 +450,41 @@ def analyze_client(
     # Byg user message med al kontekst
     parts = [f"# Kunde: {client_name}\n"]
 
+    # SÆLGERS BRIEF kommer FØRST (højeste prioritet, før årsrapport)
+    if seller_brief and any(seller_brief.values()):
+        parts.append("## 🎯 SÆLGERS BRIEF (vægter HØJEST)\n")
+        stage = seller_brief.get("meeting_stage")
+        if stage:
+            parts.append(f"**Mødestadie**: {stage}")
+        if seller_brief.get("meeting_history"):
+            parts.append(f"**Mødehistorik**: {seller_brief['meeting_history']}")
+        if seller_brief.get("personal_angle"):
+            parts.append(f"**Personlig vinkel**: {seller_brief['personal_angle']}")
+        if seller_brief.get("insider_insights"):
+            parts.append(f"**Insider-insights**: {seller_brief['insider_insights']}")
+        if seller_brief.get("exclusions"):
+            parts.append(f"**⚠️ EKSKLUSIONER (må IKKE nævnes)**: {seller_brief['exclusions']}")
+        if seller_brief.get("tone"):
+            parts.append(f"**Tone**: {seller_brief['tone']}")
+        parts.append("")
+
+    # SLIDE-DICTATION (specifikke felter sælger har styret)
+    if slide_dictation and any(slide_dictation.values()):
+        parts.append("## 📝 SÆLGER HAR DIKTERET SPECIFIKT INDHOLD TIL DISSE SLIDES\n")
+        if slide_dictation.get("why_meeting"):
+            parts.append(f"**Slide 02 (client_summary)**:\n> {slide_dictation['why_meeting']}\n")
+        if slide_dictation.get("research_facts"):
+            parts.append(f"**Slide 04 (research_facts)** — parse hver linje, format '[Label]: [Værdi] | [Kilde]':\n```\n{slide_dictation['research_facts']}\n```\n")
+        if slide_dictation.get("priorities"):
+            parts.append(f"**Slide 05 (strategic_priorities)** — én linje pr. prioritet, format '[Titel] — [beskrivelse]':\n```\n{slide_dictation['priorities']}\n```\n")
+        if slide_dictation.get("mappings"):
+            parts.append(f"**Slide 06 (value_mappings)** — én linje pr. mapping, format '[Udfordring] => [Service] : [Løsning]':\n```\n{slide_dictation['mappings']}\n```\n")
+        if slide_dictation.get("next_steps"):
+            parts.append(f"**Slide 17 (next_steps)** — én linje pr. skridt, format '[Titel] | [tidsramme] — [beskrivelse]':\n```\n{slide_dictation['next_steps']}\n```\n")
+        parts.append("")
+
     if cvr_data:
-        parts.append("## CVR-data\n")
+        parts.append("## CVR-data (offentlig baggrund)\n")
         parts.append(f"- CVR-nummer: {cvr_data.get('cvr', '—')}")
         parts.append(f"- Branche: {cvr_data.get('industry_desc', '—')} (kode {cvr_data.get('industry_code', '—')})")
         parts.append(f"- Antal medarbejdere: {cvr_data.get('employees', '—')}")
@@ -391,24 +495,19 @@ def analyze_client(
         parts.append("")
 
     if annual_report_text:
-        # Trim hvis det er meget langt — Claude kan håndtere 200K tokens men vi vil holde det rimeligt
+        # Trim hvis det er meget langt
         max_chars = 80000
         report_excerpt = annual_report_text[:max_chars]
         truncated = len(annual_report_text) > max_chars
-        parts.append("## Årsrapport (uddrag)\n")
+        parts.append("## Årsrapport (STØTTE — sælgers brief vinder over dette)\n")
         parts.append(report_excerpt)
         if truncated:
-            parts.append(f"\n\n[BEMÆRK: Årsrapporten er blevet trunkeret. Original længde: {len(annual_report_text)} tegn.]")
+            parts.append(f"\n\n[BEMÆRK: Årsrapporten er trunkeret. Original længde: {len(annual_report_text)} tegn.]")
         parts.append("")
 
-    if sales_notes:
-        parts.append("## Sælgerens noter / kontekst\n")
-        parts.append(sales_notes)
-        parts.append("")
-
-    # Gentag fokus i user-message for ekstra vægt (system + user = strongest signal)
+    # Pitch-vinkel og services-direktiver gentages
     if pitch_focus or services_to_highlight or emphasis:
-        parts.append("## ⚠️ Husk sælgers direktiver (gentaget for tydelighed)\n")
+        parts.append("## ⚠️ Pitch-direktiver (gentaget for tydelighed)\n")
         if pitch_focus:
             parts.append(f"**Pitch-vinkel**: {pitch_focus}")
         if services_to_highlight:
@@ -418,7 +517,8 @@ def analyze_client(
         parts.append("")
 
     parts.append("---")
-    parts.append("Analysér nu kunden og returnér via `deliver_pitch_research`-værktøjet. Husk: sælgers direktiver er styrende.")
+    parts.append("Analysér nu kunden og returnér via `deliver_pitch_research`-værktøjet.")
+    parts.append("**Husk hierarkiet:** Sælgers brief + slide-dictation > pitch-vinkel + services + emphasis > årsrapport > CVR-data.")
 
     user_message = "\n".join(parts)
 
@@ -429,6 +529,8 @@ def analyze_client(
             pitch_focus=pitch_focus,
             services_to_highlight=services_to_highlight,
             emphasis=emphasis,
+            seller_brief=seller_brief,
+            slide_dictation=slide_dictation,
         ),
         tools=[ANALYSIS_TOOL],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},

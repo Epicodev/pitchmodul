@@ -369,6 +369,63 @@ body.composer-body {
   font-size: 14px;
 }
 
+/* ---------- FORM BLOCK INTRO ---------- */
+.form-block-intro {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--light-grey);
+  line-height: 1.5;
+  margin-bottom: 28px;
+  max-width: 800px;
+}
+
+.form-block-intro strong {
+  color: var(--black-currant);
+  font-weight: 700;
+}
+
+/* ---------- COLLAPSIBLE BLOCK ---------- */
+.form-block--collapsible legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.collapse-btn {
+  background: var(--alu-grey);
+  border: none;
+  padding: 8px 18px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: var(--grey);
+  cursor: pointer;
+  margin-left: auto;
+  transition: background 0.15s;
+}
+
+.collapse-btn:hover { background: var(--beige); }
+
+.collapse-btn.is-expanded {
+  background: var(--black-currant);
+  color: var(--kiwi);
+}
+
+.dictation-fields[hidden] { display: none; }
+
+/* ---------- HORIZONTAL RADIO GROUP ---------- */
+.radio-group--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.radio-group--horizontal .radio {
+  flex: 0 0 auto;
+}
+
 /* ---------- ACCENT FORM BLOCK (pitch-vinkel) ---------- */
 .form-block--accent {
   background: var(--light-silk);

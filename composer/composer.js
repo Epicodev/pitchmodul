@@ -186,14 +186,28 @@ async function runResearch(e) {
   // Indsaml form-data
   const clientName = form.client_name.value.trim();
   const cvrNumber = form.cvr_number.value.trim();
-  const salesNotes = form.sales_notes.value.trim();
   const pdfFile = form.annual_report.files[0];
+
+  // Lag 1: Sælgers brief (strukturerede inputs)
+  const meetingStage = form.querySelector('input[name="meeting_stage"]:checked')?.value || 'first_touch';
+  const meetingHistory = form.meeting_history.value.trim();
+  const personalAngle = form.personal_angle.value.trim();
+  const insiderInsights = form.insider_insights.value.trim();
+  const exclusions = form.exclusions.value.trim();
+  const tone = form.querySelector('input[name="tone"]:checked')?.value || 'balanced';
 
   // Pitch-vinkel
   const pitchFocus = form.pitch_focus.value.trim();
   const servicesChecked = Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value);
   const emphasisInput = form.querySelector('input[name="emphasis"]:checked');
   const emphasis = emphasisInput ? emphasisInput.value : '';
+
+  // Lag 2: Slide-for-slide dictation
+  const dictWhyMeeting = form.dict_why_meeting.value.trim();
+  const dictResearchFacts = form.dict_research_facts.value.trim();
+  const dictPriorities = form.dict_priorities.value.trim();
+  const dictMappings = form.dict_mappings.value.trim();
+  const dictNextSteps = form.dict_next_steps.value.trim();
 
   if (!clientName) {
     alert('Kundenavn er påkrævet.');
@@ -204,10 +218,23 @@ async function runResearch(e) {
   state.brief = {
     client_name: clientName,
     cvr_number: cvrNumber,
-    sales_notes: salesNotes,
+    // Lag 1
+    meeting_stage: meetingStage,
+    meeting_history: meetingHistory,
+    personal_angle: personalAngle,
+    insider_insights: insiderInsights,
+    exclusions: exclusions,
+    tone: tone,
+    // Pitch-vinkel
     pitch_focus: pitchFocus,
     services_to_highlight: servicesChecked,
     emphasis: emphasis,
+    // Lag 2
+    dict_why_meeting: dictWhyMeeting,
+    dict_research_facts: dictResearchFacts,
+    dict_priorities: dictPriorities,
+    dict_mappings: dictMappings,
+    dict_next_steps: dictNextSteps,
     contact_person: form.contact_person.value.trim(),
     city: form.city.value.trim(),
     date: form.date.value,
@@ -229,10 +256,23 @@ async function runResearch(e) {
 
   formData.append('client_name', clientName);
   if (cvrNumber) formData.append('cvr_number', cvrNumber);
-  if (salesNotes) formData.append('sales_notes', salesNotes);
+  // Lag 1
+  formData.append('meeting_stage', meetingStage);
+  if (meetingHistory) formData.append('meeting_history', meetingHistory);
+  if (personalAngle) formData.append('personal_angle', personalAngle);
+  if (insiderInsights) formData.append('insider_insights', insiderInsights);
+  if (exclusions) formData.append('exclusions', exclusions);
+  formData.append('tone', tone);
+  // Pitch-vinkel
   if (pitchFocus) formData.append('pitch_focus', pitchFocus);
   if (servicesChecked.length) formData.append('services_to_highlight', servicesChecked.join(','));
   if (emphasis) formData.append('emphasis', emphasis);
+  // Lag 2
+  if (dictWhyMeeting) formData.append('dict_why_meeting', dictWhyMeeting);
+  if (dictResearchFacts) formData.append('dict_research_facts', dictResearchFacts);
+  if (dictPriorities) formData.append('dict_priorities', dictPriorities);
+  if (dictMappings) formData.append('dict_mappings', dictMappings);
+  if (dictNextSteps) formData.append('dict_next_steps', dictNextSteps);
   if (pdfFile) formData.append('annual_report', pdfFile);
 
   // Skift til research tab
@@ -506,6 +546,18 @@ document.addEventListener('DOMContentLoaded', () => {
       setActiveTab(tab.dataset.tab);
     });
   });
+
+  // Collapse toggle for slide-dictation
+  const dictToggle = $('#dictation-toggle');
+  const dictFields = $('#dictation-fields');
+  if (dictToggle && dictFields) {
+    dictToggle.addEventListener('click', () => {
+      const isOpen = !dictFields.hidden;
+      dictFields.hidden = isOpen;
+      dictToggle.textContent = isOpen ? 'Vis felter ↓' : 'Skjul felter ↑';
+      dictToggle.classList.toggle('is-expanded', !isOpen);
+    });
+  }
 
   // Sæt dato til i dag som default
   const dateInput = $('input[name="date"]');

@@ -109,10 +109,23 @@ async def cvr_lookup(req: CVRLookupRequest):
 async def run_research(
     client_name: str = Form(...),
     cvr_number: Optional[str] = Form(None),
-    sales_notes: Optional[str] = Form(None),
+    # Lag 1: Strukturerede sælger-inputs
+    meeting_stage: Optional[str] = Form("first_touch"),
+    meeting_history: Optional[str] = Form(None),
+    personal_angle: Optional[str] = Form(None),
+    insider_insights: Optional[str] = Form(None),
+    exclusions: Optional[str] = Form(None),
+    tone: Optional[str] = Form("balanced"),
+    # Pitch-vinkel
     pitch_focus: Optional[str] = Form(None),
     services_to_highlight: Optional[str] = Form(None),  # Comma-separated
     emphasis: Optional[str] = Form(None),
+    # Lag 2: Slide-for-slide dictation
+    dict_why_meeting: Optional[str] = Form(None),
+    dict_research_facts: Optional[str] = Form(None),
+    dict_priorities: Optional[str] = Form(None),
+    dict_mappings: Optional[str] = Form(None),
+    dict_next_steps: Optional[str] = Form(None),
     annual_report: Optional[UploadFile] = File(None),
 ):
     """
@@ -152,13 +165,33 @@ async def run_research(
     if services_to_highlight:
         services_list = [s.strip() for s in services_to_highlight.split(",") if s.strip()]
 
+    # Saml sælgers brief (Lag 1)
+    seller_brief = {
+        "meeting_stage": meeting_stage,
+        "meeting_history": meeting_history,
+        "personal_angle": personal_angle,
+        "insider_insights": insider_insights,
+        "exclusions": exclusions,
+        "tone": tone,
+    }
+
+    # Saml slide-dictation (Lag 2)
+    slide_dictation = {
+        "why_meeting": dict_why_meeting,
+        "research_facts": dict_research_facts,
+        "priorities": dict_priorities,
+        "mappings": dict_mappings,
+        "next_steps": dict_next_steps,
+    }
+
     # Step 3: Claude analyse
     try:
         analysis = analyze_client(
             client_name=client_name,
             cvr_data=cvr_data,
             annual_report_text=annual_report_text,
-            sales_notes=sales_notes,
+            seller_brief=seller_brief,
+            slide_dictation=slide_dictation,
             pitch_focus=pitch_focus,
             services_to_highlight=services_list,
             emphasis=emphasis,

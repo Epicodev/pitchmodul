@@ -71,17 +71,63 @@
             <div class="cvr-result" id="cvr-result" hidden></div>
           </label>
         </div>
+      </fieldset>
+
+      <!-- SÆLGERS BRIEF -->
+      <fieldset class="form-block form-block--accent">
+        <legend><span class="legend-num">B</span>Din viden om kunden <span class="legend-hint">trumfer årsrapport</span></legend>
+        <p class="form-block-intro">Det her er det vigtigste afsnit. Det du skriver her vægter <strong>højere</strong> end årsrapporten. Brug det til at give AI'en din kontekst — fra netværk, tidligere møder, LinkedIn, jobopslag, interne kilder.</p>
+
         <div class="form-row">
           <label class="field">
-            <span class="field-label">Sælgers noter <span class="hint">(valgfrit)</span></span>
-            <textarea name="sales_notes" rows="4" placeholder="Indsigter du allerede har — fx tidligere kontakt, kendte udfordringer, jobopslag du har set, interne kilder..."></textarea>
+            <span class="field-label">Mødestadie</span>
+            <div class="radio-group radio-group--horizontal">
+              <label class="radio"><input type="radio" name="meeting_stage" value="first_touch" checked><span>First touch</span></label>
+              <label class="radio"><input type="radio" name="meeting_stage" value="re_engage"><span>Re-engagement</span></label>
+              <label class="radio"><input type="radio" name="meeting_stage" value="existing_customer"><span>Eksisterende kunde</span></label>
+              <label class="radio"><input type="radio" name="meeting_stage" value="renewal"><span>Renewal / udvidelse</span></label>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="field">
+            <span class="field-label">Mødehistorik <span class="hint">(hvis ikke first touch)</span></span>
+            <textarea name="meeting_history" rows="3" placeholder='fx "Vi mødtes med Lars i januar — han nævnte at deres CISO opsagde sin stilling, og at de er pressede på NIS2."'></textarea>
+          </label>
+        </div>
+
+        <div class="form-row form-row--2">
+          <label class="field">
+            <span class="field-label">Personlig vinkel om mødedeltageren</span>
+            <textarea name="personal_angle" rows="3" placeholder='fx "Mette er teknisk dygtig, ikke salgs-elsker. Vær konkret. Hun har for nylig været i pressen om deres cloud-strategi."'></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Insider-insights <span class="hint">(ting der ikke er offentlige)</span></span>
+            <textarea name="insider_insights" rows="3" placeholder='fx "Min kollega hørte på en konference at de overvejer at outsource hele Mainframe-driften."'></textarea>
+          </label>
+        </div>
+
+        <div class="form-row form-row--2">
+          <label class="field">
+            <span class="field-label">Eksklusioner <span class="hint">(hvad må vi IKKE tale om?)</span></span>
+            <textarea name="exclusions" rows="3" placeholder='fx "Undgå at nævne Nordea direkte — konkurrentforhold. Tal heller ikke om deres aktiekurs."'></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Tone i mødet</span>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="tone" value="balanced" checked><span>Balanceret (anbefalet)</span></label>
+              <label class="radio"><input type="radio" name="tone" value="formal"><span>Formel &amp; strategisk</span></label>
+              <label class="radio"><input type="radio" name="tone" value="direct"><span>Direkte &amp; operationel</span></label>
+              <label class="radio"><input type="radio" name="tone" value="personal"><span>Personlig &amp; konsultativ</span></label>
+            </div>
           </label>
         </div>
       </fieldset>
 
       <!-- ÅRSRAPPORT -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">B</span>Årsrapport</legend>
+        <legend><span class="legend-num">C</span>Årsrapport <span class="legend-hint">supplerer din viden</span></legend>
         <div class="form-row">
           <label class="field field--upload">
             <span class="field-label">Upload PDF <span class="hint">(jo flere sider, jo bedre AI-analyse)</span></span>
@@ -99,7 +145,7 @@
 
       <!-- PITCH-VINKEL -->
       <fieldset class="form-block form-block--accent">
-        <legend><span class="legend-num">C</span>Pitch-vinkel <span class="legend-hint">styrer Claude</span></legend>
+        <legend><span class="legend-num">D</span>Pitch-vinkel <span class="legend-hint">styrer Claude</span></legend>
 
         <div class="form-row">
           <label class="field">
@@ -140,9 +186,52 @@
         </div>
       </fieldset>
 
+      <!-- SLIDE DICTATION (Lag 2) -->
+      <fieldset class="form-block form-block--collapsible" id="dictation-block">
+        <legend>
+          <span class="legend-num">E</span>Sælger-styret slides
+          <span class="legend-hint">overskriv AI</span>
+          <button type="button" class="collapse-btn" id="dictation-toggle">Vis felter ↓</button>
+        </legend>
+        <p class="form-block-intro">Vil du selv skrive præcis hvad der står på en specifik slide? Udfyld feltet — så bruger AI'en din tekst i stedet for at gætte. Lad felter være tomme hvis AI'en skal bestemme.</p>
+
+        <div class="dictation-fields" id="dictation-fields" hidden>
+          <div class="form-row">
+            <label class="field">
+              <span class="field-label">Slide 02: Hvorfor vi mødes <span class="hint">(åbnings-narrativet)</span></span>
+              <textarea name="dict_why_meeting" rows="3" placeholder="Skriv den korte forklaring på hvorfor I mødes. Maks 2-3 sætninger."></textarea>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span class="field-label">Slide 04: Research-fakta <span class="hint">(4 facts du selv vil have med)</span></span>
+              <textarea name="dict_research_facts" rows="4" placeholder="Skriv 4 konkrete facts som linje-separerede. Hver linje: [Label]: [Værdi] | [Kilde]&#10;&#10;Eksempel:&#10;Omsætning 2024: 74,3 mia. DKK | Årsrapport s. 4&#10;Antal ansatte: 28.000+ globalt | LinkedIn"></textarea>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span class="field-label">Slide 05: Strategiske prioriteter <span class="hint">(3 prioriteter)</span></span>
+              <textarea name="dict_priorities" rows="4" placeholder="Skriv 3 prioriteter, hver på sin egen linje. Hver linje: [Titel] — [kort beskrivelse]&#10;&#10;Eksempel:&#10;NIS2-compliance — De skal kunne dokumentere SOC og hændelsesrespons inden Q3.&#10;CISO-rekruttering — Deres nuværende er opsagt, ny skal findes hurtigt."></textarea>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span class="field-label">Slide 06: Udfordring → løsning mapping <span class="hint">(4 mappings)</span></span>
+              <textarea name="dict_mappings" rows="4" placeholder="Skriv 4 mappings. Hver linje: [Udfordring] => [Service] : [Løsning]&#10;&#10;Eksempel:&#10;Manglende SOC-bemandig => Epico Freelance : Vi leverer SOC-specialister på 48 timer."></textarea>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span class="field-label">Slide 17: Næste skridt <span class="hint">(3 actions)</span></span>
+              <textarea name="dict_next_steps" rows="4" placeholder="Skriv 3 næste skridt. Hver linje: [Titel] | [tidsramme] — [beskrivelse]&#10;&#10;Eksempel:&#10;Workshop med IT-ledelse | 14 dage — 2-timers session i jeres lokaler.&#10;Pilot på 1-2 CISO-shortlists | 21 dage — uden binding."></textarea>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
       <!-- MØDE -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">D</span>Mødet</legend>
+        <legend><span class="legend-num">F</span>Mødet</legend>
         <div class="form-row form-row--3">
           <label class="field">
             <span class="field-label">Kontaktperson <span class="required">*</span></span>
@@ -161,7 +250,7 @@
 
       <!-- TEAM -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">E</span>Dit Epico-team</legend>
+        <legend><span class="legend-num">G</span>Dit Epico-team</legend>
         <div class="team-cols">
           <div class="team-col">
             <h4 class="team-col-title">Key Account Manager</h4>
