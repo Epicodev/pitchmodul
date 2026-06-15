@@ -56,7 +56,7 @@ ANALYSIS_TOOL = {
         "properties": {
             "client_summary": {
                 "type": "string",
-                "description": "3-5 sætninger der bliver det centrale narrativ på slide 2 ('Vi mødes ikke for at sælge'). Skal være SLAGKRAFTIG og specifik — ikke generisk corporate. Tag udgangspunkt i sælgers brief hvis muligt, ellers årsrapport. Skriv som om du taler højt til mødedeltageren. Eksempel: 'I står midt i en NIS2-transformation hvor SOC-kapacitet og CISO-rekruttering haster. Vi har hjulpet 130+ virksomheder gennem lignende kompetencegab. Vi mødes for at tale om de næste 90 dage — ikke de næste 9 måneder.' Ingen bulletliste, kun fremadrettet prosa.",
+                "description": "1-2 SÆTNINGER (max 200 tegn) der bliver vist på Hvorfor-vi-mødes-konteksten. SKAL afspejle sælgers brief, ikke kun årsrapport. Hvis sælger pitcher MOD en konkurrent → nævn det subtilt (fx 'I bruger i dag Emagine — vi vil gerne vise hvor Epico flytter nålen yderligere'). Hvis stakeholder er Procurement → tonen er forretningsmæssig, ikke teknisk. Ingen bulletliste, kun prosa.",
             },
             "industry_tag": {
                 "type": "string",
@@ -88,7 +88,7 @@ ANALYSIS_TOOL = {
             },
             "strategic_priorities": {
                 "type": "array",
-                "description": "Nøjagtigt 3 strategiske prioriteter som vi læser dem fra årsrapporten/CEO-brev. Vær konkret og kobl til IT/digitalisering hvor muligt.",
+                "description": "Nøjagtigt 3 strategiske prioriteter SOM SÆLGER VIL TALE OM I MØDET. Hvis sælgers brief nævner konkurrent (fx Emagine) eller specifik stakeholder (Procurement) → prioriteterne skal afspejle det. Eksempler: hvis stakeholder er Procurement → prioritet kan være 'Diversificering af leverandørbase' eller 'Reducere TCO på IT-konsulent-spend'. Hvis konkurrent er nævnt → prioritet kan være 'Få bedre service-niveau end nuværende leverandør'. PRIORITETER ER IKKE BARE 'læst fra årsrapport' — de er det sælger vil ARGUMENTERE for under mødet, baseret på brief + research kombineret.",
                 "items": {
                     "type": "object",
                     "properties": {
@@ -108,7 +108,7 @@ ANALYSIS_TOOL = {
             },
             "value_mappings": {
                 "type": "array",
-                "description": "Nøjagtigt 4 mappings mellem konkret kundeudfordring og specifik Epico-service.",
+                "description": "Nøjagtigt 4 mappings. HVIS SÆLGER HAR ANGIVET EN KONKURRENT i brief: hver mapping skal differentiere Epico FRA den konkurrent (fx 'Hvor Emagine sender mange CV'er, sender Epico kun forhåndsscreenede der allerede har sagt ja'). HVIS STAKEHOLDER = PROCUREMENT: mappings handler om kontraktvilkår, SLA, fleksibilitet, prismodel. HVIS STAKEHOLDER = IT-LEDELSE: mappings handler om teknisk dybde og leverancetid. Brug sælgers brief som det primære filter — IKKE 'hvad ville være generisk relevant for branchen'.",
                 "items": {
                     "type": "object",
                     "properties": {
@@ -132,7 +132,7 @@ ANALYSIS_TOOL = {
             },
             "next_steps": {
                 "type": "array",
-                "description": "Nøjagtigt 3 konkrete næste skridt skræddersyet til kunden.",
+                "description": "Nøjagtigt 3 konkrete næste skridt. SKAL MATCHE STAKEHOLDER fra brief: Procurement → 'fremsende RFP-svar', 'TCO-analyse', 'pris-benchmark'. IT-ledelse → 'arkitektur-workshop', 'tekniske use cases'. C-suite → 'executive briefing', 'strategic roadmap'. First touch → 'lære hinanden at kende' inden vi taler konkrete leverancer. Hvis konkurrent-situation: minimum ét næste skridt skal være 'parallel-pilot' eller 'sammenligning' så kunden kan teste Epico mod nuværende leverandør uden risiko.",
                 "items": {
                     "type": "object",
                     "properties": {
@@ -384,22 +384,45 @@ Lad dette farve dine formuleringer og prioritering — særligt i `value_mapping
 
 Din opgave er at læse research om en potentiel kunde og udarbejde input til et skræddersyet pitch deck.
 
-## 🎯 KURATIONS-PRINCIP — DET VIGTIGSTE
+## 🚨 START-PUNKT — SÆLGERS BRIEF DEFINERER PITCHEN
+
+**FØR du overhovedet kigger på årsrapport, web search, eller hjemmeside-data — læs sælgers brief grundigt og besvar disse spørgsmål for dig selv:**
+
+1. **Hvem mødes vi med?** (CTO, CIO, Procurement, HR, eller specifik person)
+2. **Hvad er deres aktuelle situation?** (har de allerede en leverandør? skal vi udskifte nogen? skal vi supplere?)
+3. **Hvilken konkurrent — hvis nogen — pitcher vi imod?** (Emagine, ProData, Tieto, Capgemini, internt team, m.fl.)
+4. **Hvad er sælgers KONKRETE ønske med pitchen?** (vinde rammeaftale, vinde første konsulent, åbne dør hos en ny stakeholder)
+
+**Disse 4 svar er rygraden i hele pitchen.** Hvis sælger har skrevet "vi pitcher mod Emagine til Procurement" — så er HELE pitchen om Epico-vs-Emagine fra Procurement-perspektiv. Det er IKKE en generisk LEGO-pitch der nævner SAP-migration som overskrift.
+
+**Eksempel på hvordan brief skal forvandle slides:**
+
+| Sælger skriver i brief | Det skal blive til |
+|------------------------|---------------------|
+| "Konkurrent: Emagine" | Slide 6 mappings handler om HVAD EPICO GØR BEDRE END EMAGINE (ikke generisk service-mapping). Slide 5 prioriteter inkluderer "Diversificering af leverandørbase". |
+| "Stakeholder: Procurement" | Tone bliver TCO, SLA, kontraktfleksibilitet. Næste skridt bliver "RFP-svar", ikke "executive workshop". |
+| "Stadie: First touch" | Slide 4 research er IKKE 'her er hvad I selv ved om jer selv'. Det er 'her er hvad vi har lagt mærke til som ekstern observatør'. |
+| "Insider: De har lige opsagt CISO" | Det skal være CENTRALT i pitchen — ikke en footnote. Slide 5 prioritet #1: 'Lukke CISO-gabet'. |
+
+**Hvis sælger har angivet en konkurrent**, er hver value_mapping en differentiering: "Hvor Emagine gør X, gør Epico Y — det betyder for jer at Z."
+
+**Hvis sælger har angivet en stakeholder-type**, justeres hele tonen og næste skridt: Procurement vil have priser/SLA, IT-ledelse vil have arkitektur/teknik, C-suite vil have strategi/ROI.
+
+## 🎯 KURATIONS-PRINCIP
 
 Du får MEGET data: årsrapport (60.000+ tegn), hjemmeside-tekst, web-search-resultater, CVR-data, sælgers brief. **Sælger ser KUN det du beslutter at putte i slidesne.**
 
 Din primære opgave er **KURATION, ikke COMPILATION**. Det betyder:
 
-- **Vælg det 1% der betyder noget.** Hvis årsrapporten har 50 fakta, vælg de 4 der er stærkest til DENNE pitch
-- **Signal > støj.** Brug årets store strategiske initiativ, ikke at de skiftede revisor
-- **Aktualitet > historik.** Det Atul Bhardwaj (CDO) sagde i et interview sidste måned er stærkere end et 2-årigt strategi-citat fra årsrapporten
-- **Konkret > abstract.** "Tredoblet IT-team til 1.800 ansatte" slår "Investering i digital transformation"
-- **Relevant for pitch-fokus > generelt interessant.** Hvis pitchen er om cybersecurity, og kunden også laver ESG-initiativer — så drop ESG, behold security-vinklen
+- **Sælgers brief er FILTERET.** Alt fra årsrapport/web search vurderes på "passer det ind i sælgers vinkel?" — hvis ikke: udelad det, selv hvis det er imponerende info
+- **Vælg det 1% der betyder noget.** Hvis årsrapporten har 50 fakta, vælg de 4 der støtter sælgers brief
+- **Signal > støj.** Brug det der støtter sælgers vinkel, ikke det der er generelt interessant
+- **Konkret > abstract.** "Tredoblet IT-team til 1.800 ansatte" slår "Investering i digital transformation" — MEN kun hvis det er relevant for sælgers vinkel
 
-**Kuration-tjek:** Spørg dig selv for hvert fact du putter ind:
-1. Vil sælgeren nævne dette under mødet?
-2. Vil kunden tænke "hvorfor fortæller de mig det her, det ved jeg jo godt"?
-3. Hvis svaret er "nej, kunden ved det ikke" og "ja, sælger ville nævne det" — så hører det med. Ellers udelad det.
+**Kuration-tjek:** Spørg dig selv for hvert fact:
+1. Støtter dette sælgers pitch-vinkel + konkurrent-situation + stakeholder?
+2. Vil sælgeren nævne dette under mødet?
+3. Hvis nej til en af dem → udelad. Hellere mindre og fokuseret end mere og spredt.
 
 ## 🛑 KRITISK REGEL — FAKTA OM EPICO
 
