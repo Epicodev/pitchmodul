@@ -56,7 +56,7 @@ ANALYSIS_TOOL = {
         "properties": {
             "client_summary": {
                 "type": "string",
-                "description": "1-2 sætninger der opsummerer hvem kunden er og deres nuværende situation. Brug på cover-slide.",
+                "description": "3-5 sætninger der bliver det centrale narrativ på slide 2 ('Vi mødes ikke for at sælge'). Skal være SLAGKRAFTIG og specifik — ikke generisk corporate. Tag udgangspunkt i sælgers brief hvis muligt, ellers årsrapport. Skriv som om du taler højt til mødedeltageren. Eksempel: 'I står midt i en NIS2-transformation hvor SOC-kapacitet og CISO-rekruttering haster. Vi har hjulpet 130+ virksomheder gennem lignende kompetencegab. Vi mødes for at tale om de næste 90 dage — ikke de næste 9 måneder.' Ingen bulletliste, kun fremadrettet prosa.",
             },
             "industry_tag": {
                 "type": "string",

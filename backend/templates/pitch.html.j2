@@ -49,21 +49,10 @@
     <div class="section-tag">Hvorfor vi mødes</div>
   </div>
 
-  <div class="layout-full" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
-    <div>
-      <span class="eyebrow">Vores afsæt for samtalen</span>
-      <h2 class="h1" style="margin-bottom:32px;">Vi mødes ikke <span class="accent">for at sælge.</span></h2>
-      <p class="body-lg">{{ client.summary }}</p>
-    </div>
-    <div style="background:var(--white);padding:64px 56px;border-left:4px solid var(--red);">
-      <div style="font-family:var(--font-body);font-weight:700;font-size:13px;letter-spacing:var(--kern-label);text-transform:uppercase;color:var(--raspberry);margin-bottom:24px;">Dagens dialog</div>
-      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px;">
-        <li style="font-family:var(--font-display);font-weight:500;font-size:26px;color:var(--black-currant);letter-spacing:var(--kern-medium);line-height:1.25;">Hvad vi har læst om jer</li>
-        <li style="font-family:var(--font-display);font-weight:500;font-size:26px;color:var(--black-currant);letter-spacing:var(--kern-medium);line-height:1.25;">Hvor vi tror vi kan flytte noget</li>
-        <li style="font-family:var(--font-display);font-weight:500;font-size:26px;color:var(--black-currant);letter-spacing:var(--kern-medium);line-height:1.25;">Hvad Epico konkret kan</li>
-        <li style="font-family:var(--font-display);font-weight:500;font-size:26px;color:var(--black-currant);letter-spacing:var(--kern-medium);line-height:1.25;">Hvad det næste skridt kunne være</li>
-      </ul>
-    </div>
+  <div class="layout-full" style="display:flex;flex-direction:column;justify-content:center;">
+    <span class="eyebrow">Vores afsæt for samtalen</span>
+    <h2 class="h-display" style="margin-bottom:48px;max-width:1700px;">Vi mødes ikke <span class="accent">for at sælge.</span></h2>
+    <p class="body-lg" style="font-size:32px;line-height:1.4;max-width:1600px;font-family:var(--font-display);font-weight:500;color:var(--black-currant);letter-spacing:var(--kern-medium);">{{ client.summary }}</p>
   </div>
 
   <div class="slide-footer"><span class="footer-mark"></span>Epico × {{ client.name }}</div>
