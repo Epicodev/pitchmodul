@@ -290,6 +290,12 @@ async function runResearch(e) {
     await new Promise(r => setTimeout(r, 600));
   }
   setStepComplete('pdf');
+  setStepActive('crawl');
+  await new Promise(r => setTimeout(r, 800));
+  setStepComplete('crawl');
+  setStepActive('websearch');
+  await new Promise(r => setTimeout(r, 1200));
+  setStepComplete('websearch');
   setStepActive('claude');
 
   // Kald backend

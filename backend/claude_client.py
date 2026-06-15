@@ -384,6 +384,23 @@ Lad dette farve dine formuleringer og prioritering — særligt i `value_mapping
 
 Din opgave er at læse research om en potentiel kunde og udarbejde input til et skræddersyet pitch deck.
 
+## 🎯 KURATIONS-PRINCIP — DET VIGTIGSTE
+
+Du får MEGET data: årsrapport (60.000+ tegn), hjemmeside-tekst, web-search-resultater, CVR-data, sælgers brief. **Sælger ser KUN det du beslutter at putte i slidesne.**
+
+Din primære opgave er **KURATION, ikke COMPILATION**. Det betyder:
+
+- **Vælg det 1% der betyder noget.** Hvis årsrapporten har 50 fakta, vælg de 4 der er stærkest til DENNE pitch
+- **Signal > støj.** Brug årets store strategiske initiativ, ikke at de skiftede revisor
+- **Aktualitet > historik.** Det Atul Bhardwaj (CDO) sagde i et interview sidste måned er stærkere end et 2-årigt strategi-citat fra årsrapporten
+- **Konkret > abstract.** "Tredoblet IT-team til 1.800 ansatte" slår "Investering i digital transformation"
+- **Relevant for pitch-fokus > generelt interessant.** Hvis pitchen er om cybersecurity, og kunden også laver ESG-initiativer — så drop ESG, behold security-vinklen
+
+**Kuration-tjek:** Spørg dig selv for hvert fact du putter ind:
+1. Vil sælgeren nævne dette under mødet?
+2. Vil kunden tænke "hvorfor fortæller de mig det her, det ved jeg jo godt"?
+3. Hvis svaret er "nej, kunden ved det ikke" og "ja, sælger ville nævne det" — så hører det med. Ellers udelad det.
+
 ## 🛑 KRITISK REGEL — FAKTA OM EPICO
 
 Alt du siger om **Epico** — services, processer, tal, cases, leveringsmodeller — SKAL stamme direkte fra "EPICO VIDENSBASE" sektionen nedenfor. **Du må IKKE finde på:**
@@ -426,6 +443,8 @@ def analyze_client(
     client_name: str,
     cvr_data: Optional[Dict[str, Any]] = None,
     annual_report_text: Optional[str] = None,
+    website_text: Optional[str] = None,
+    web_intelligence: Optional[str] = None,
     seller_brief: Optional[Dict[str, Optional[str]]] = None,
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     pitch_focus: Optional[str] = None,
@@ -496,13 +515,29 @@ def analyze_client(
 
     if annual_report_text:
         # Trim hvis det er meget langt
-        max_chars = 80000
+        max_chars = 60000
         report_excerpt = annual_report_text[:max_chars]
         truncated = len(annual_report_text) > max_chars
-        parts.append("## Årsrapport (STØTTE — sælgers brief vinder over dette)\n")
+        parts.append("## Årsrapport (rå tekst — sælgers brief vinder)\n")
         parts.append(report_excerpt)
         if truncated:
             parts.append(f"\n\n[BEMÆRK: Årsrapporten er trunkeret. Original længde: {len(annual_report_text)} tegn.]")
+        parts.append("")
+
+    if website_text:
+        max_chars = 30000
+        website_excerpt = website_text[:max_chars]
+        parts.append("## Kundens hjemmeside (kuratrede sider — strategi, om-os, investor)\n")
+        parts.append(website_excerpt)
+        if len(website_text) > max_chars:
+            parts.append(f"\n[Trunkeret. Original: {len(website_text)} tegn.]")
+        parts.append("")
+
+    if web_intelligence:
+        parts.append("## 🔍 Web search-resultater (aktuelle nyheder & pressemeddelelser)\n")
+        parts.append("Disse oplysninger er FRISKE — fra web search lige nu. De har høj prioritet sammen med sælgers brief.")
+        parts.append("")
+        parts.append(web_intelligence)
         parts.append("")
 
     # Pitch-vinkel og services-direktiver gentages

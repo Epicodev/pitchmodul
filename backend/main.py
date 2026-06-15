@@ -26,6 +26,8 @@ from claude_client import analyze_client, reload_knowledge
 from deck_gen import render_deck
 from pdf_reader import extract_text
 from knowledge_loader import load_summary
+from web_crawler import crawl as crawl_website
+from web_search import gather_web_intelligence
 
 
 load_dotenv(override=True)  # override=True for at trumfe tom shell-var
@@ -126,6 +128,9 @@ async def run_research(
     dict_priorities: Optional[str] = Form(None),
     dict_mappings: Optional[str] = Form(None),
     dict_next_steps: Optional[str] = Form(None),
+    # Datakilder
+    enable_web_search: Optional[str] = Form("true"),
+    enable_website_crawl: Optional[str] = Form("true"),
     annual_report: Optional[UploadFile] = File(None),
 ):
     """
@@ -160,6 +165,27 @@ async def run_research(
                 status_code=400,
             )
 
+    # Step 2b: Website-crawl (hvis tilladt og CVR fandt en hjemmeside)
+    website_data = None
+    if enable_website_crawl == "true" and cvr_data and cvr_data.get("website"):
+        try:
+            website_data = await crawl_website(cvr_data["website"], max_pages=6)
+        except Exception:
+            website_data = None  # Lad det fejle stille — ikke kritisk
+
+    # Step 2c: Web search via Anthropic (hvis tilladt)
+    web_intelligence = None
+    if enable_web_search == "true":
+        try:
+            web_intelligence = gather_web_intelligence(
+                client_name=client_name,
+                industry_hint=cvr_data.get("industry_desc") if cvr_data else None,
+                pitch_focus=pitch_focus,
+                max_searches=4,
+            )
+        except Exception:
+            web_intelligence = None  # Stille fejl
+
     # Parse services-list
     services_list = []
     if services_to_highlight:
@@ -190,6 +216,8 @@ async def run_research(
             client_name=client_name,
             cvr_data=cvr_data,
             annual_report_text=annual_report_text,
+            website_text=website_data.get("consolidated_text") if website_data else None,
+            web_intelligence=web_intelligence.get("summary") if web_intelligence else None,
             seller_brief=seller_brief,
             slide_dictation=slide_dictation,
             pitch_focus=pitch_focus,
@@ -203,6 +231,8 @@ async def run_research(
         "client_name": client_name,
         "cvr_data": cvr_data,
         "pdf_pages_parsed": annual_report_text.count("--- Side ") if annual_report_text else 0,
+        "website_pages_crawled": len(website_data["pages"]) if website_data else 0,
+        "web_searches_performed": web_intelligence.get("search_count", 0) if web_intelligence else 0,
         "analysis": analysis,
     }
 
