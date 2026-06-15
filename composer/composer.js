@@ -528,6 +528,50 @@ async function downloadDeck() {
   a.remove();
 }
 
+async function downloadPptx() {
+  const btn = $('#download-pptx-btn');
+  if (!btn || !state.analysis) return;
+
+  const originalContent = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="generated-icon">⟳</div><div><div class="generated-title">Genererer PowerPoint...</div><div class="generated-desc">Tager 2-3 sekunder</div></div>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/generate-deck-pptx`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_name: state.brief.client_name,
+        analysis: state.analysis,
+        meeting: {
+          date: state.brief.date,
+          city: state.brief.city,
+          contact_person: state.brief.contact_person,
+        },
+        team: state.brief.team,
+        included_slides: state.brief.included_slides,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `epico-pitch-${state.brief.client_name.toLowerCase().replace(/\s+/g, '-')}.pptx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert(`PPTX-eksport fejlede: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalContent;
+  }
+}
+
 // ---------- Utility ----------
 function escapeHtml(s) {
   if (s == null) return '';
@@ -549,6 +593,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#back-to-brief').addEventListener('click', () => setActiveTab('brief'));
   $('#generate-deck-btn').addEventListener('click', generateDeck);
   $('#download-deck-btn').addEventListener('click', downloadDeck);
+  const pptxBtn = $('#download-pptx-btn');
+  if (pptxBtn) pptxBtn.addEventListener('click', downloadPptx);
   $('#restart-btn').addEventListener('click', () => location.reload());
 
   // Tab clicks (kun for completed tabs)

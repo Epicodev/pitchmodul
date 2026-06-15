@@ -17,13 +17,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from cvr import lookup_by_name, lookup_by_cvr
 from claude_client import analyze_client, reload_knowledge
 from deck_gen import render_deck
+from pptx_gen import render_pptx
 from pdf_reader import extract_text
 from knowledge_loader import load_summary
 from web_crawler import crawl as crawl_website
@@ -262,6 +263,28 @@ async def generate_deck(req: GenerateDeckRequest):
         "filename": filename,
         "url": f"/generated/{filename}",
     }
+
+
+@app.post("/api/generate-deck-pptx")
+async def generate_deck_pptx(req: GenerateDeckRequest):
+    """Render det færdige pitch deck som .pptx fil og returnér til download."""
+    pptx_bytes = render_pptx(
+        client_name=req.client_name,
+        analysis=req.analysis,
+        meeting=req.meeting,
+        team=req.team,
+        included_slides=req.included_slides,
+    )
+
+    safe_name = "".join(c if c.isalnum() else "_" for c in req.client_name).lower()
+    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    filename = f"epico-pitch-{safe_name}-{timestamp}.pptx"
+
+    return Response(
+        content=pptx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 if __name__ == "__main__":
