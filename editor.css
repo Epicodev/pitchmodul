@@ -1,0 +1,581 @@
+/* ============================================================
+   EPICO DECK EDITOR — In-browser editing
+   ============================================================ */
+
+/* ---------- TOP TOOLBAR ---------- */
+.editor-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--black-currant);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease;
+  font-family: var(--font-body);
+}
+
+.editor-toolbar.is-visible {
+  transform: translateY(0);
+}
+
+.editor-toolbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: var(--kern-tight);
+}
+
+.editor-toolbar .brand .e-mark-small {
+  width: 28px;
+  height: 28px;
+  padding: 6px 5px;
+  gap: 4px;
+}
+
+.editor-toolbar .brand .e-mark-small span {
+  height: 2.5px;
+}
+
+.editor-toolbar .toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.editor-toolbar .toolbar-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.editor-toolbar .toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.editor-toolbar .toolbar-btn.is-active {
+  background: var(--kiwi);
+  border-color: var(--kiwi);
+  color: var(--black-currant);
+}
+
+.editor-toolbar .toolbar-spacer {
+  flex: 1;
+}
+
+.editor-toolbar .toolbar-btn--primary {
+  background: var(--kiwi);
+  border-color: var(--kiwi);
+  color: var(--black-currant);
+}
+
+.editor-toolbar .toolbar-btn--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.editor-toolbar .save-indicator {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  padding: 0 12px;
+}
+
+.editor-toolbar .save-indicator.is-saved::before {
+  content: "✓ ";
+  color: var(--kiwi);
+}
+
+/* ---------- THUMB SIDEBAR ---------- */
+.editor-sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  background: var(--grey);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
+  padding: 16px;
+  z-index: 150;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+
+.editor-sidebar.is-visible {
+  transform: translateX(0);
+}
+
+.editor-sidebar .sidebar-section-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 16px 0 8px;
+  padding: 0 4px;
+}
+
+.editor-sidebar .sidebar-section-label:first-child {
+  margin-top: 0;
+}
+
+.thumb {
+  position: relative;
+  background: var(--raw-silk);
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.thumb:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.thumb.is-active {
+  border-color: var(--kiwi);
+}
+
+.thumb.is-hidden {
+  opacity: 0.4;
+}
+
+.thumb.is-hidden::after {
+  content: "SKJULT";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-label);
+  background: var(--raspberry);
+  color: white;
+  padding: 4px 10px;
+  z-index: 2;
+}
+
+.thumb-preview {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--raw-silk) 0%, white 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.thumb-preview .thumb-tag {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 6px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--raspberry);
+}
+
+.thumb-preview .thumb-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.1;
+  color: var(--black-currant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.thumb.is-dark .thumb-preview {
+  background: var(--black-currant);
+}
+
+.thumb.is-dark .thumb-tag {
+  color: var(--kiwi);
+}
+
+.thumb.is-dark .thumb-title {
+  color: white;
+}
+
+.thumb.is-red .thumb-preview {
+  background: var(--red);
+}
+
+.thumb.is-red .thumb-tag, .thumb.is-red .thumb-title {
+  color: white;
+}
+
+.thumb-number {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: var(--kern-label);
+  color: var(--light-grey);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 5px;
+}
+
+.thumb.is-dark .thumb-number, .thumb.is-red .thumb-number {
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.thumb-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 3;
+}
+
+.thumb:hover .thumb-actions {
+  opacity: 1;
+}
+
+.thumb-action-btn {
+  background: rgba(27, 27, 80, 0.9);
+  color: white;
+  border: none;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-body);
+}
+
+.thumb-action-btn:hover {
+  background: var(--raspberry);
+}
+
+.thumb-action-btn--hide.is-hidden-state {
+  background: var(--kiwi);
+  color: var(--black-currant);
+}
+
+/* Add slide button between thumbs */
+.add-slide-btn {
+  background: transparent;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 12px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 12px;
+  transition: all 0.15s;
+}
+
+.add-slide-btn:hover {
+  border-color: var(--kiwi);
+  color: var(--kiwi);
+}
+
+/* ---------- EDIT MODE — VISUAL FEEDBACK ---------- */
+body.edit-mode .slide [contenteditable="true"] {
+  outline: 1px dashed transparent;
+  transition: outline 0.1s;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+body.edit-mode .slide [contenteditable="true"]:hover {
+  outline: 1px dashed var(--raspberry);
+  cursor: text;
+}
+
+body.edit-mode .slide [contenteditable="true"]:focus {
+  outline: 2px solid var(--kiwi);
+  background: rgba(76, 225, 127, 0.05);
+}
+
+body.edit-mode .deck-nav {
+  display: none;
+}
+
+body.edit-mode {
+  padding-top: 60px;
+}
+
+body.edit-mode.sidebar-visible .deck {
+  padding-left: 220px;
+}
+
+/* Hide slides marked as hidden in present-mode */
+.slide.is-hidden {
+  display: none;
+}
+
+body.edit-mode .slide.is-hidden {
+  display: block;
+  opacity: 0.4;
+  filter: grayscale(0.5);
+  position: relative;
+}
+
+body.edit-mode .slide.is-hidden::after {
+  content: "SKJULT FRA PRÆSENTATION";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 48px;
+  letter-spacing: var(--kern-label);
+  background: var(--raspberry);
+  color: white;
+  padding: 24px 48px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Slide actions overlay (top-right of each slide in edit-mode) */
+.slide-edit-actions {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: none;
+  gap: 4px;
+  z-index: 20;
+}
+
+body.edit-mode .slide-edit-actions {
+  display: flex;
+}
+
+.slide-edit-actions button {
+  background: var(--black-currant);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.slide-edit-actions button:hover {
+  background: var(--raspberry);
+}
+
+.slide-edit-actions button.is-hidden-state {
+  background: var(--kiwi);
+  color: var(--black-currant);
+}
+
+/* ---------- TEMPLATE PICKER MODAL ---------- */
+.template-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 27, 80, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.template-modal-backdrop.is-visible {
+  display: flex;
+}
+
+.template-modal {
+  background: var(--raw-silk);
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 56px;
+  position: relative;
+}
+
+.template-modal h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 48px;
+  color: var(--black-currant);
+  letter-spacing: var(--kern-tight);
+  margin: 0 0 16px;
+}
+
+.template-modal .modal-subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--light-grey);
+  margin-bottom: 40px;
+  max-width: 600px;
+}
+
+.template-modal .modal-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: 2px solid var(--alu-grey);
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--grey);
+}
+
+.template-modal .modal-close:hover {
+  background: var(--grey);
+  color: white;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.template-card {
+  background: white;
+  border: 2px solid var(--alu-grey);
+  padding: 24px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 220px;
+}
+
+.template-card:hover {
+  border-color: var(--kiwi);
+  transform: translateY(-2px);
+}
+
+.template-card .template-icon {
+  width: 100%;
+  height: 80px;
+  background: var(--raw-silk);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--raspberry);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.template-card .template-name {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--black-currant);
+  letter-spacing: var(--kern-medium);
+}
+
+.template-card .template-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+  line-height: 1.4;
+}
+
+/* Toast notification */
+.editor-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--black-currant);
+  color: white;
+  padding: 14px 24px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s;
+  border-left: 3px solid var(--kiwi);
+}
+
+.editor-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Drag-and-drop visuals */
+.thumb.is-dragging {
+  opacity: 0.4;
+}
+
+.thumb.is-drop-target {
+  border-top: 3px solid var(--kiwi);
+}
+
+/* Print: hide all editor UI */
+@media print {
+  .editor-toolbar,
+  .editor-sidebar,
+  .slide-edit-actions,
+  .template-modal-backdrop,
+  .editor-toast {
+    display: none !important;
+  }
+  .slide.is-hidden {
+    display: none !important;
+  }
+  body.edit-mode {
+    padding-top: 0 !important;
+  }
+  body.edit-mode.sidebar-visible .deck {
+    padding-left: 0 !important;
+  }
+}
