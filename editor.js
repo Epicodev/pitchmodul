@@ -27,6 +27,8 @@
     customSlides: [],   // bruger-tilføjede slides
     edits: {},          // map af slide-id → indre HTML
     slideOrder: [],     // array af slide-id'er i nuværende rækkefølge
+    presenting: false,
+    presentingIdx: 0,
   };
 
   // ---------- Persistens ----------
@@ -722,6 +724,106 @@
     }
   }
 
+  // ---------- Present mode ----------
+  function getVisibleSlides() {
+    return getSlideElements().filter(s => !s.classList.contains('is-hidden'));
+  }
+
+  function updatePresentScale() {
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.documentElement.style.setProperty('--present-scale', scale);
+  }
+
+  function showPresentSlide(idx) {
+    const visible = getVisibleSlides();
+    if (visible.length === 0) return;
+    idx = Math.max(0, Math.min(visible.length - 1, idx));
+    state.presentingIdx = idx;
+    getSlideElements().forEach(s => s.classList.remove('is-present-active'));
+    visible[idx].classList.add('is-present-active');
+    updateProgressIndicator();
+  }
+
+  function updateProgressIndicator() {
+    let prog = $('.present-progress');
+    if (!prog) {
+      prog = document.createElement('div');
+      prog.className = 'present-progress';
+      document.body.appendChild(prog);
+    }
+    const visible = getVisibleSlides();
+    prog.textContent = `${state.presentingIdx + 1} / ${visible.length}`;
+  }
+
+  function startPresentMode() {
+    if (state.editMode) toggleEditMode();
+    state.presenting = true;
+    state.presentingIdx = 0;
+    document.body.classList.add('is-presenting');
+
+    // Skjul også eventuel eksisterende deck-nav fra app.js
+    const deckNav = document.querySelector('.deck-nav');
+    if (deckNav) deckNav.style.display = 'none';
+
+    updatePresentScale();
+    showPresentSlide(0);
+
+    // Exit-hint vises i top-right og fader efter 3 sek
+    let hint = $('.present-exit-hint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.className = 'present-exit-hint';
+      hint.textContent = 'ESC for at afslutte · → for næste';
+      document.body.appendChild(hint);
+    }
+    hint.classList.remove('is-faded');
+    requestAnimationFrame(() => hint.classList.add('is-faded'));
+
+    // Request fullscreen
+    const root = document.documentElement;
+    if (root.requestFullscreen) {
+      root.requestFullscreen().catch(() => {});
+    }
+
+    // Resize handler
+    window.addEventListener('resize', updatePresentScale);
+  }
+
+  function exitPresentMode() {
+    state.presenting = false;
+    document.body.classList.remove('is-presenting');
+    getSlideElements().forEach(s => s.classList.remove('is-present-active'));
+
+    const deckNav = document.querySelector('.deck-nav');
+    if (deckNav) deckNav.style.display = '';
+
+    const hint = $('.present-exit-hint');
+    if (hint) hint.remove();
+
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+
+    window.removeEventListener('resize', updatePresentScale);
+  }
+
+  // Lyt efter fullscreen exit (fx hvis brugeren trykker ESC)
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && state.presenting) {
+      exitPresentMode();
+    }
+  });
+
+  // Klik i present-mode = næste slide (men ikke fra editor-UI eller hjælper-paneler)
+  document.addEventListener('click', (e) => {
+    if (!state.presenting) return;
+    // Ignorér klik fra elementer som ikke er en del af selve slide-canvas'et
+    if (e.target.closest('.present-exit-hint, .present-progress, .editor-toolbar, .editor-sidebar, .template-modal-backdrop')) return;
+    // Kun fremad-klik hvis vi rammer et slide
+    if (!e.target.closest('.slide')) return;
+    showPresentSlide(state.presentingIdx + 1);
+  });
+
   // ---------- Eksport ----------
   function exportHtml() {
     // Tag DOM-state, fjern editor-UI, og skab en standalone HTML
@@ -819,20 +921,39 @@
     $('#btn-reset').addEventListener('click', resetDeck);
     $('#btn-export-html').addEventListener('click', exportHtml);
     $('#btn-export-pptx').addEventListener('click', exportPptx);
-    $('#btn-present').addEventListener('click', () => {
-      // Sluk edit-mode, åbn fullscreen
-      if (state.editMode) toggleEditMode();
-      const root = document.documentElement;
-      if (root.requestFullscreen) root.requestFullscreen().catch(() => {});
-    });
+    $('#btn-present').addEventListener('click', startPresentMode);
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+      // Present-mode: pile-taster + ESC har første prioritet
+      if (state.presenting) {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          showPresentSlide(state.presentingIdx + 1);
+          return;
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          showPresentSlide(state.presentingIdx - 1);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          exitPresentMode();
+          return;
+        }
+        if (e.key === 'Home') { e.preventDefault(); showPresentSlide(0); return; }
+        if (e.key === 'End') { e.preventDefault(); showPresentSlide(getVisibleSlides().length - 1); return; }
+        return;  // I present-mode: ignorer alle andre keys
+      }
+
+      // Editor shortcuts (kun når ikke editing tekst)
       if (e.target.matches && e.target.matches('[contenteditable="true"]')) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.key === 'e' || e.key === 'E') { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); toggleEditMode(); }}
       if (e.key === 's' || e.key === 'S') { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); $('#btn-toggle-sidebar').click(); }}
       if (e.key === 'n' || e.key === 'N') { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); openTemplateModal(null); }}
+      if (e.key === 'p' || e.key === 'P') { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); startPresentMode(); }}
     });
 
     // Highlight active thumb on scroll

@@ -560,6 +560,107 @@ body.edit-mode .slide-edit-actions {
   border-top: 3px solid var(--kiwi);
 }
 
+/* ============================================================
+   PRESENT MODE — Skjul alt editor-UI, vis én slide ad gangen
+   ============================================================ */
+body.is-presenting {
+  background: #000 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  margin: 0;
+}
+
+body.is-presenting .editor-toolbar,
+body.is-presenting .editor-sidebar,
+body.is-presenting .slide-edit-actions,
+body.is-presenting .deck-nav,
+body.is-presenting .add-slide-btn,
+body.is-presenting .editor-toast,
+body.is-presenting .template-modal-backdrop {
+  display: none !important;
+}
+
+body.is-presenting .deck {
+  padding: 0 !important;
+  gap: 0 !important;
+  background: #000 !important;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  position: relative;
+}
+
+body.is-presenting .slide {
+  display: none !important;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin: 0 !important;
+  width: 1920px;
+  height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--present-scale, 0.5));
+  transform-origin: center center;
+}
+
+body.is-presenting .slide.is-present-active {
+  display: block !important;
+}
+
+body.is-presenting .slide.is-hidden {
+  display: none !important;
+}
+
+/* Subtle progress-indicator i bunden af skærmen */
+.present-progress {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 20px;
+  display: none;
+  pointer-events: none;
+}
+
+body.is-presenting .present-progress {
+  display: block;
+}
+
+.present-exit-hint {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 500;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  display: none;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 2s ease 3s;
+}
+
+body.is-presenting .present-exit-hint {
+  display: block;
+}
+
+body.is-presenting .present-exit-hint.is-faded {
+  opacity: 0;
+}
+
 /* Print: hide all editor UI */
 @media print {
   .editor-toolbar,
