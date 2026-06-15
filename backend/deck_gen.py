@@ -46,6 +46,7 @@ def render_deck(
             "it_market",
             "epico_dna",
             "services_chapter",
+            "services_overview",
             "epic_process",
             "case_study",
         ]

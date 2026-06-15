@@ -1,46 +1,71 @@
 # Epico Search
 
+## Tagline
+**"Vi finder de rette IT-specialister. Før alle andre gør."**
+
 ## Kort beskrivelse
-Headhunting og rekruttering af IT-ledere, specialister og R&D-profiler til faste stillinger. Vi finder også dem der ikke selv søger.
+Headhunting og executive search af IT-specialister, ledere og R&D-profiler til faste stillinger. Lokalt og globalt. Med dyb forretningsforståelse og +3.100 succesfulde rekrutteringer bag os.
 
 ## Hvad vi leverer
 - Rekruttering af specialister og ledere til faste stillinger inden for IT, Engineering og R&D
+- Executive search på C-niveau (CIO, CTO, CISO, CDO)
 - Lokalt og globalt rekrutteringsnetværk
 - Headhunting af passive kandidater — dem der ikke aktivt søger job
 - End-to-end proces — fra kravspecifikation til kontraktopfølgning
+- **6 måneders garanti** — vi står inde for at kandidaten er det rette match
+
+## "Det får I" — 9 konkrete værdier
+
+1. **Dybdegående match** — interview om motivation, kompetencer og kultur (ikke kun CV-screening)
+2. **6 måneders garanti** — vi står inde for at kandidaten er det rette match. Hvis ikke, erstatter vi vederlagsfrit
+3. **Løbende sparring** — tæt dialog med hiring manager, leder og HR gennem hele forløbet
+4. **Evaluering efter hvert trin** — med både kandidat og hiring team
+5. **Sparring i interviews** — vi deltager som støtte i fremtidige samtaler
+6. **Referenceindhentning** — vi tjekker og dokumenterer kandidatens baggrund
+7. **Kontraktforhandling** — administration og forhandling af tilbud
+8. **Afslag med feedback** — alle kandidater får et professionelt svar (vigtigt for jeres brand)
+9. **God kandidatoplevelse** — vi er ambassadør for jer som arbejdsgiver
+
+## Rekrutteringsprocessen — 10 trin
+
+Hvert trin er enten:
+- 🔵 Udført af **Epico Search** alene
+- 🟢 Udført **sammen med kunden**
+
+| # | Trin | Hvem |
+|---|------|------|
+| 1 | Specificering af krav | Sammen med kunden |
+| 2 | Markedsføring (LinkedIn m.fl.) | Epico Search |
+| 3 | Søgning (mapping, headhunting) | Epico Search |
+| 4 | Telefonscreening af kandidater | Epico Search |
+| 5 | Interview med kandidater | Epico Search |
+| 6 | Shortlisting | Epico Search |
+| 7 | 1. interview hos kunden | Sammen |
+| 8 | Test | Sammen |
+| 9 | 2. interview hos kunden | Sammen |
+| 10 | Kontrakt, ansættelse & opfølgning | Sammen |
+
+**Note:** Tidligere materiale nævnte 12 trin — det er forældet. Den aktuelle proces er **10 trin** som beskrevet ovenfor.
 
 ## Hvem servicen er til
 - Virksomheder med en fast stilling der skal besættes
 - Kunder med behov for hard-to-find specialister eller ledere
 - Organisationer der har prøvet selv (eller med andre bureauer) uden held
 - Virksomheder der søger passive kandidater — folk der ikke er på jobmarkedet
+- Executive search: bestyrelser og direktioner der skal besætte topstillinger
 
-## Leveringsmodel — 12-trins proces
+## Nøgletal (fra "Resultater"-slide)
 
-1. **Specification of requirements** — Epico Search definerer rollen sammen med kunden
-2. **Advertising of position** — annoncering på LinkedIn og andre relevante kanaler
-3. **Search / mapping** — proaktiv søgning efter passive kandidater i netværket
-4. **Phone screening** — Epico Search interviewer potentielle kandidater
-5. **Interview with candidates** — dybde-interview ved Epico Search
-6. **Shortlisting candidates** — Epico vælger de stærkeste matches
-7. **First interview at client's office** — kunde + Epico Search møder kandidaten
-8. **Testing** — relevant testning (faglig, personlighed)
-9. **Second interview at client's office** — sammen med kunden
-10. **Contract offer** — formelt tilbud
-11. **Employment / offer management** — Epico hjælper med onboarding-aspekter
-12. **Follow-up** — opfølgning efter ansættelse
-
-**Note:** Trin 1, 2, 3, 4, 5 og 6 udføres af Epico Search alene. Trin 7-12 sker mellem Epico Search og kunden i samarbejde.
-
-## Nøgletal
-- **+3.000 succesfulde rekrutteringer i alt** (epicogroup.com)
-- 100% hit-rate i 2023 (særlig god årgang)
-- 99% generel hit-rate
-- 100 succesfulde rekrutteringer i 2023 alene
-- +10 års branche-erfaring i recruiter-teamet
-- Typisk forløb fra start til kontrakttilbud: 4-8 uger
+| Tal | Værdi |
+|-----|-------|
+| **Hitrate på leverede shortlists** | 100% |
+| **Succesfulde rekrutteringer totalt** | +3.100 |
+| **Succesfulde rekrutteringer i 2023** | 100 |
+| **Branche-erfaring som recruiters** | +10 år |
+| Typisk forløb fra start til kontrakttilbud | 4-8 uger |
 
 ## Typiske Search-roller
+
 ### Ledere og strategi
 - CIO, CTO, CDO, CISO
 - Head of IT, Head of Engineering, Head of Data
@@ -63,8 +88,8 @@ Headhunting og rekruttering af IT-ledere, specialister og R&D-profiler til faste
 - Chemical Engineers, Robotics Engineers
 - R&D Project Managers, Test Leaders
 
-## Brancher med dyb erfaring (konkrete kunder)
-**Strategiske partnere**: Arla, Carlsberg, Politi.dk, Ikano Bank, KPMG, Pandora, Siemens, Aller Media
+## Brancher med dyb erfaring
+Strategiske partnere: **Arla, Carlsberg, Politi.dk, Ikano Bank, KPMG, Pandora, Siemens, Aller Media**
 
 - Bank og finans (Ikano Bank)
 - Pharma og biotech
@@ -74,8 +99,6 @@ Headhunting og rekruttering af IT-ledere, specialister og R&D-profiler til faste
 - Telco
 - Public sector (Politi.dk)
 - Føde- og drikkevarer (Arla, Carlsberg)
-- Konsulent/services (KPMG)
-- Medier (Aller Media)
 
 ## Hvad servicen IKKE er
 - Vi leverer ikke freelance-konsulenter via Search — det hører under Epico Freelance
@@ -85,7 +108,7 @@ Headhunting og rekruttering af IT-ledere, specialister og R&D-profiler til faste
 
 ## Prismodel
 - [VERIFICÉR] Fee-model — typisk procent af årsløn eller fast fee per rolle
-- Garanti hvis kandidaten forlader stillingen inden for [VERIFICÉR] måneder
+- **6 måneders garanti**: vederlagsfri erstatning hvis kandidat forlader inden 6 mdr
 - [VERIFICÉR] Eventuelt nedsatte priser ved volumenaftaler
 
 ## Project Recruitment — variant af Search
@@ -97,7 +120,6 @@ En særlig variant er **"Project Recruitment"** — en try-before-hire-model for
 - Kandidaten kan ansættes fast med øjeblikkelig virkning — selv før prøveperiodens slut
 - Epico håndterer alle administrative opgaver
 - Kun forhåndsinterviewede og screenede kandidater præsenteres for kunden
-- Optimal måde at afklare fremtidigt samarbejde og sikre proper match
 
 ## Reference-cases
 
@@ -106,6 +128,19 @@ Systematic havde brug for at rekruttere en permanent arkitekt inden for infrastr
 
 ### Legetøjs-industri (anonym kunde)
 +130 faste rekrutteringer på ét år. Leveret svære nicheprofiler til teknisk udfordrende roller — som ingen andre kunne finde.
+
+## Standardformuleringer der virker (fra Search-pptx)
+
+- "Vi finder de rette IT-specialister. Før alle andre gør."
+- "Med dyb forretningsforståelse og +3.100 succesfulde rekrutteringer bag os."
+- "Hele rekrutteringen, fra A til Z."
+- "Vi er ambassadør for jer som arbejdsgiver."
+- "Tallene taler for sig selv."
+
+## CTA / Næste skridt der virker
+
+- "Lad os tage en uforpligtende snak om jeres behov →"
+- "Send os jeres job-spec — vi finder de rette kandidater"
 
 ## Beslægtede services
 - **Konsulenter på timepris** → Epico Freelance

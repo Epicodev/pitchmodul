@@ -175,9 +175,9 @@ ANALYSIS_TOOL = {
                         "what_we_deliver": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "Nøjagtigt 4 bullets der konkret beskriver hvad kunden får. Max 90 tegn per bullet. Tag udgangspunkt i service-filen i knowledge base.",
+                            "description": "4-6 bullets der konkret beskriver hvad kunden får. Max 100 tegn per bullet. Tag udgangspunkt i service-filen i knowledge base — særligt 'Det får I'-afsnittet hvis det findes. Vær konkret, ikke generisk.",
                             "minItems": 4,
-                            "maxItems": 4,
+                            "maxItems": 6,
                         },
                         "key_stats": {
                             "type": "array",
@@ -207,6 +207,13 @@ ANALYSIS_TOOL = {
                         "relevant_partners": {
                             "type": "string",
                             "description": "Kommasepareret liste af 2-4 EPICO-PARTNERE/kunder vi kan nævne. Brug KUN navne fra knowledge base: Arla, Carlsberg, Politi.dk, Ikano Bank, KPMG, Pandora, Siemens, Aller Media. VÆLG DEM DER LIGNER KUNDENS BRANCHE MEST. Hvis ingen passer, skriv generisk fx '+1.500 kunder globalt'."
+                        },
+                        "process_steps": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "VALGFRI: 0 eller 5-10 trin der beskriver service-processen. Inkludér KUN for Search (10 trin fra knowledge base), Solution (RUN/BUILD-flow), Nearshore (setup) eller hvor process er en kerne-del af value-prop. Lad arrayet være tomt for services hvor process ikke giver ekstra værdi (fx Freelance, NextGen — her er process selv-forklarende). Format: '01 Specificering af krav', '02 Markedsføring (LinkedIn m.fl.)', ...",
+                            "minItems": 0,
+                            "maxItems": 10,
                         },
                     },
                     "required": ["service_name", "tagline", "what_we_deliver", "key_stats", "who_its_for", "typical_roles", "relevant_partners"],

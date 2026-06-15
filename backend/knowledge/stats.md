@@ -41,11 +41,12 @@ Kilder: epicogroup.com + master pitch deck Januar 2024. Brug KUN disse tal.
 ## Service-specifikke nøgletal
 
 ### Epico Search
-- 99% generel hit-rate (epicogroup.com)
-- 100% hit-rate i 2023 (master ppt — særlig god årgang)
-- +3.000 permanente rekrutteringer i alt
-- 100 succesfulde rekrutteringer i 2023
-- +10 års branche-erfaring i recruiter-teamet
+- **100% hitrate** på leverede shortlists (Search-pptx 2026)
+- **+3.100 succesfulde rekrutteringer** totalt
+- **100 succesfulde rekrutteringer** i 2023
+- **+10 års branche-erfaring** som recruiters
+- **6 måneders garanti** på alle rekrutteringer
+- 10-trins rekrutteringsproces (Specificering → Markedsføring → Søgning → Telefonscreening → Interview → Shortlisting → 1. interview hos kunden → Test → 2. interview hos kunden → Kontrakt)
 - Roller: IT, Engineering og R&D — specialister og ledere
 
 ### Epico NextGen

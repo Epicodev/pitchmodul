@@ -272,6 +272,71 @@
 </section>
 {% endif %}
 
+{# ============ SERVICES OVERVIEW — alle 7 i mosaic ============ #}
+{% if 'services_overview' in included_slides %}
+<section class="slide" data-slide="services-overview">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">Services overblik</div>
+  </div>
+
+  <div class="layout-full">
+    <span class="eyebrow">Alle vores services — én leverandør</span>
+    <h2 class="h1" style="max-width:1700px;">Vi finder de rette <span class="accent">IT-kompetencer.</span></h2>
+    <p class="body-lg" style="font-size:20px;color:var(--light-grey);margin-top:16px;max-width:1100px;">Uanset om I har brug for en hurtig konsulent, et nyuddannet talent, en CISO til fast ansættelse eller et helt CoE-setup — vi har servicen.</p>
+
+    <div class="services-overview-grid">
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Freelance</div>
+        <div class="overview-desc">Erfarne IT-konsulenter på 48 timer — uden binding.</div>
+        <div class="overview-meta">+500 på kontrakt · +13.000 CV'er</div>
+      </div>
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">NextGen</div>
+        <div class="overview-desc">Nyuddannet IT-talent (0-5 år). Try-before-hire.</div>
+        <div class="overview-meta">+1.500 aktive profiler · 91% bliver</div>
+      </div>
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Search</div>
+        <div class="overview-desc">Headhunting til faste stillinger. 6 mdr garanti.</div>
+        <div class="overview-meta">+3.100 hires · 100% hitrate</div>
+      </div>
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Public</div>
+        <div class="overview-desc">Specialister via SKI-rammeaftaler til offentlig sektor.</div>
+        <div class="overview-meta">SKI 02.06 · 02.14 · 02.17</div>
+      </div>
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Nearshore</div>
+        <div class="overview-desc">Dedikerede teams i Warszawa. Dansk kontrakt.</div>
+        <div class="overview-meta">EU-juridisk · Dansk team-leader</div>
+      </div>
+      <div class="service-overview-tile">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Tech</div>
+        <div class="overview-desc">Oracle &amp; Mainframe-specialister. +20 år.</div>
+        <div class="overview-meta">Oracle DB · APEX · Cobol · z/OS</div>
+      </div>
+      <div class="service-overview-tile service-overview-tile--accent">
+        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
+        <div class="overview-name">Solution</div>
+        <div class="overview-desc">CoE-styret leverance. RUN &amp; BUILD med kunde-ejerskab.</div>
+        <div class="overview-meta">Open Framework · Ejerskab hos jer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>Alle services</div>
+</section>
+{% endif %}
+
 {# ============ DYNAMISKE SERVICE-SLIDES (1 pr service) ============ #}
 {% for s in service_slides %}
 {% set service_idx = loop.index %}
@@ -333,6 +398,34 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }}</div>
 </section>
+
+{% if s.process_steps and s.process_steps|length > 0 %}
+{# Process-detail slide — kun for services hvor process er en kerne-del af value-prop #}
+<section class="slide" data-slide="service-{{ service_idx }}-process">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">{{ s.service_name|replace('Epico ', '') }} · Proces</div>
+  </div>
+
+  <div class="layout-full">
+    <span class="eyebrow">Sådan ser et samarbejde ud</span>
+    <h2 class="h1" style="max-width:1600px;">{{ s.service_name }} <span class="accent">— fra A til Z.</span></h2>
+
+    <div class="service-process-grid">
+      {% for step in s.process_steps %}
+      <div class="process-step-card">
+        <div class="step-num-large">{{ '%02d' % loop.index }}</div>
+        <div class="step-label">{{ step|replace('%02d ' % loop.index, '')|replace('%d ' % loop.index, '') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }} · Proces</div>
+</section>
+{% endif %}
 {% endfor %}
 
 {# ============ SLIDE 15 — THE EPIC PROCESS (toggle-bar) ============ #}
