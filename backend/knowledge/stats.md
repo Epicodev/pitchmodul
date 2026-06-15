@@ -57,20 +57,25 @@ Kilder: epicogroup.com + master pitch deck Januar 2024. Brug KUN disse tal.
 - 25% af kandidater er kvinder (diversitet i fokus)
 - Hver kandidat får en personlig agent hos Epico
 
-### Epico Tech
-- +20 års gennemsnitserfaring (Oracle)
-- +25 års gennemsnitserfaring (Mainframe)
-- Cutting-edge ekspertise inden for Oracle Database og Oracle APEX
+### Epico Projektansættelser
+- 6 måneders prøveperiode (typisk)
+- Permanent ansættelse mulig når som helst — også før prøveperiodens slut
+- Ingen rekrutteringsfee ved permanent ansættelse
+- Try-before-hire model for seniore profiler
+- Hurtig opstart: inden for 14 dage
 
 ### Epico Public
 - Leverandør på SKI-rammeaftalerne **02.06, 02.14 og 02.17**
 - Muliggør IT-konsulentydelser og rådgivning relateret til software ved direkte tildeling
 - +20 års gennemsnitserfaring i Public-teamet
 
-### Epico Nearshore
-- Hovedkvarter i Warszawa, Polen
-- Bredt nearshore-netværk — primært Polen, sekundært andre EU-lande
-- Konkurrencedygtige priser, dansk kontrakt og fakturering
+### Epico Solution
+- CoE (Center of Excellence)-baseret leveringsmodel
+- Open Framework med kunde-ejet arkitektur
+- RUN servicekatalog: 8 områder (Strategi, Arkitektur, Infrastruktur, Sikkerhed, Arbejdsplads, Applikationer, Levering, Drift)
+- BUILD servicekatalog: 5 områder (Team Etablering, Skalering, Specialist Teams, Produkt/Projekt-teams, Overgang til RUN)
+- Specialist-kompetencer inden for Oracle, Mainframe, Cobol, Cloud, AI, Cybersecurity m.fl. (leveret som teams via CoE)
+- Nearshore-kapacitet til BUILD (Warszawa-baseret) — som del af leverancemodellen
 
 ## Industry-stats vi citerer (om DK's IT-marked)
 

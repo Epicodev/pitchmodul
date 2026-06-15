@@ -41,13 +41,12 @@ def reload_knowledge() -> int:
 # Kort service-oversigt (fallback hvis knowledge-base fejler).
 # Detaljerne ligger nu i knowledge/services/*.md
 EPICO_SERVICES = {
-    "Epico Freelance": "Hurtig levering af erfarne IT-konsulenter (+10 års erfaring) og hele teams.",
+    "Epico Freelance": "Hurtig levering af erfarne IT-konsulenter (+10 års erfaring).",
+    "Epico Projektansættelser": "Try-before-hire — 6 måneders prøveperiode med mulighed for permanent ansættelse uden rekrutteringsfee.",
     "Epico NextGen": "IT-talenter med 0-5 års erfaring. Try-before-hire model. +1.500 aktive profiler.",
-    "Epico Search": "Headhunting af IT-ledere og specialister til faste stillinger. +3.000 succesfulde rekrutteringer.",
+    "Epico Search": "Headhunting af IT-ledere og specialister til faste stillinger. +3.100 succesfulde rekrutteringer. 6 mdr garanti.",
     "Epico Public": "Specialister via SKI 02.06, 02.14, 02.17 til offentlig sektor.",
-    "Epico Nearshore": "Dedikerede teams i Warszawa, Polen. Dansk kontrakt og team-leader.",
-    "Epico Tech": "Oracle (+20 års erfaring) og Mainframe (+25 års erfaring) specialister. Også AI og AMS.",
-    "Epico Solution": "Management services og komplette IT-løsninger med leveranceansvar.",
+    "Epico Solution": "CoE-baseret leveringsmodel — RUN & BUILD. Komplette IT-løsninger med kunde-ejet arkitektur.",
 }
 
 
@@ -122,7 +121,7 @@ ANALYSIS_TOOL = {
                         },
                         "epico_service": {
                             "type": "string",
-                            "description": "Hvilken Epico-service løser dette: Epico Freelance, Epico NextGen, Epico Search, Epico Public, Epico Nearshore, Epico Tech eller Epico Dynamant."
+                            "description": "Hvilken Epico-service løser dette: Epico Freelance, Epico Projektansættelser, Epico NextGen, Epico Search, Epico Public eller Epico Solution."
                         },
                         "solution": {
                             "type": "string",
@@ -160,13 +159,13 @@ ANALYSIS_TOOL = {
             },
             "service_slides": {
                 "type": "array",
-                "description": "1 slide per Epico-service som skal vises i pitch'en. HVIS sælger har angivet 'services_to_highlight' → returnér KUN slides for de services. HVIS ingen valgt → returnér alle 7 services (Freelance, NextGen, Search, Public, Nearshore, Tech, Solution). Hvert slide skal være TILPASSET KUNDENS BRANCHE (roller og kunde-referencer matches til kundens domæne).",
+                "description": "1 slide per Epico-service som skal vises i pitch'en. HVIS sælger har angivet 'services_to_highlight' → returnér KUN slides for de services. HVIS ingen valgt → returnér alle 6 services (Freelance, Projektansættelser, NextGen, Search, Public, Solution). Hvert slide skal være TILPASSET KUNDENS BRANCHE (roller og kunde-referencer matches til kundens domæne).",
                 "items": {
                     "type": "object",
                     "properties": {
                         "service_name": {
                             "type": "string",
-                            "description": "Eksakt service-navn fra knowledge base. Et af: Epico Freelance, Epico NextGen, Epico Search, Epico Public, Epico Nearshore, Epico Tech, Epico Solution.",
+                            "description": "Eksakt service-navn fra knowledge base. Et af: Epico Freelance, Epico Projektansættelser, Epico NextGen, Epico Search, Epico Public, Epico Solution.",
                         },
                         "tagline": {
                             "type": "string",

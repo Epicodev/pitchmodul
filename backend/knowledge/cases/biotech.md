@@ -30,7 +30,7 @@ Nearshoring leading to lower costs — fra 5 til 12 eksperter i polsk team
 - Kunden valgte Epico som nearshore-partner og udvidede deres netværksteam markant
 
 ## Hvilke Epico-services var i spil
-- **Epico Nearshore** (primær service)
+- **Epico Solution** (primær service — BUILD-team-leverance via CoE, nearshore-kapacitet fra Polen)
 - Eventuelt sammen med **Epico Freelance** for komplettere danske profiler
 
 ## Hvorfor case er relevant

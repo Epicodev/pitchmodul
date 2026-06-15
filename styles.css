@@ -822,12 +822,16 @@ html, body {
   margin-top: auto;
 }
 
-/* SERVICES OVERVIEW (alle 7 services i mosaic) */
+/* SERVICES OVERVIEW (alle 6 services i mosaic) */
 .services-overview-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--gap-mosaic);
   margin-top: 56px;
+}
+
+.services-overview-grid--6 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .service-overview-tile {

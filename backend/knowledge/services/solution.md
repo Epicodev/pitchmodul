@@ -162,10 +162,11 @@ Solution-leverancer bemandes af:
 
 ## Beslægtede services
 - **Konsulent-kapacitet uden CoE** → Epico Freelance
-- **Hele teams til BUILD-fase** → Epico Nearshore (kan integreres i Solution-CoE)
-- **Specifikke senior-specialister** → Epico Tech
+- **Try-before-hire seniore** → Epico Projektansættelser
 - **Permanent rekruttering** → Epico Search
+- **Unge IT-talenter** → Epico NextGen
+- **Offentlig sektor** → Epico Public
 
 ## Note om navne-anvendelse
 
-**Servicen hedder "Epico Solution"** — ikke "Epico Tech" eller "Epico Solutions". Sørg for at bruge det korrekte navn i alle pitches.
+**Servicen hedder "Epico Solution"** — ikke "Epico Tech", "Epico Nearshore" eller "Epico Solutions". Sørg for at bruge det korrekte navn i alle pitches. Oracle-, Mainframe- og nearshore-kapaciteter er kapabiliteter inde i Solution's RUN/BUILD-katalog, ikke separate services.

@@ -30,7 +30,7 @@ Høj kvalitet via +9 års samarbejde sikrede stor tillid, volumen og effektivite
 ## Hvilke Epico-services var i spil
 - **Epico Freelance** (volumen-konsulent-levering)
 - **Epico Search** [VERIFICÉR — sandsynligvis sammen med permanent recruitment]
-- **Epico Tech** [VERIFICÉR — hvis Oracle/AMS-relevant]
+- **Epico Solution** [VERIFICÉR — hvis CoE-setup eller RUN/BUILD-leverance er en del af casen]
 
 ## Hvorfor case er relevant
 Vis denne case når kunden:

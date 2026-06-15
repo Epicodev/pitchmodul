@@ -79,7 +79,7 @@ Brancher vi har leveret freelance-konsulenter til:
 Hvis kunden også overvejer:
 - **Fast ansættelse** → Epico Search
 - **Nyuddannede IT-talenter** → Epico NextGen
-- **Hele teams til lavere pris** → Epico Nearshore
-- **Specifik Oracle/Mainframe-ekspertise** → Epico Tech
-- **Komplette IT-løsninger** → Epico Solution
-- **Try-before-hire**: NextGen (juniorer) eller Project Recruitment (seniore)
+- **Hele teams + governance** → Epico Solution (CoE-baseret, RUN/BUILD)
+- **Oracle/Mainframe/specialist-teams** → Epico Solution (specialist-teams)
+- **Try-before-hire seniore** → Epico Projektansættelser
+- **Try-before-hire junior** → Epico NextGen

@@ -49,7 +49,7 @@ Disse kan Claude bruge ordret hvor det giver mening:
 
 ## Vi taler IKKE om
 
-- **"AI-drevne løsninger"** medmindre det er specifikt AI-engineers fra Epico Tech
+- **"AI-drevne løsninger"** medmindre det er specifikt AI-konsulenter leveret via Epico Freelance eller Solution
 - **"Best-in-class"** — for cliché
 - **"Disruption"** — for buzz-orienteret
 - **"Synergi"** — for corporate

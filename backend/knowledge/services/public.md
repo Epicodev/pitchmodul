@@ -92,4 +92,4 @@ Disse aftaler muliggør **direkte tildeling** og fjerner kompleksiteten i miniud
 - **Privat sektor freelance** → Epico Freelance
 - **Unge talenter** → Epico NextGen (kan også bruges via Public)
 - **Permanent rekruttering** → Epico Search
-- **Nearshore-supplement** → Epico Nearshore (kræver dansk juridisk leverance via Epico DK)
+- **Komplette IT-leverancer med CoE** → Epico Solution (kun hvor rammeaftalen tillader)

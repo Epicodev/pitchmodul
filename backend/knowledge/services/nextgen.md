@@ -80,5 +80,5 @@
 ## Beslægtede services
 - **Erfarne specialister** → Epico Freelance
 - **Permanent rekruttering af seniore profiler** → Epico Search
-- **Skalerbare teams (nearshore)** → Epico Nearshore
+- **Skalerbare teams + governance** → Epico Solution (CoE)
 - **Permanent test før ansættelse** → Project Recruitment (variant)
