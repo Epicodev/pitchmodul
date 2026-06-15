@@ -19,8 +19,12 @@ MODEL = "claude-sonnet-4-6"
 _KNOWLEDGE_CACHE: Optional[str] = None
 
 
-def _get_knowledge() -> str:
-    """Load knowledge base lazy + cache i memory."""
+def _get_knowledge(stakeholder_key: Optional[str] = None) -> str:
+    """Load knowledge base — inkl. stakeholder-profil hvis angivet."""
+    # Når en stakeholder er angivet, load fresh (knowledge ændrer sig per pitch)
+    if stakeholder_key:
+        return load_knowledge(stakeholder_key)
+    # Default: cache uden stakeholder
     global _KNOWLEDGE_CACHE
     if _KNOWLEDGE_CACHE is None:
         _KNOWLEDGE_CACHE = load_knowledge()
@@ -291,6 +295,7 @@ def _build_system_prompt(
     emphasis: Optional[str] = None,
     seller_brief: Optional[Dict[str, Optional[str]]] = None,
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
+    stakeholder_key: Optional[str] = None,
 ) -> str:
     # Sælger-direktiver — disse er styrende
     directives = []
@@ -377,36 +382,41 @@ Lad dette farve dine formuleringer og prioritering — særligt i `value_mapping
 
     directive_block = "\n\n".join(directives) if directives else "## Frihed til at vælge\n\nSælgeren har ikke angivet specifik retning. Brug din bedste dømmekraft baseret på årsrapport og CVR-data."
 
-    # Knowledge base — hele Epico's vidensbase
-    knowledge = _get_knowledge()
+    # Knowledge base — hele Epico's vidensbase (inkl. stakeholder-profil hvis angivet)
+    knowledge = _get_knowledge(stakeholder_key)
 
     return f"""Du er en strategisk analytiker hos Epico, et af Nordens største IT-konsulenthuse.
 
 Din opgave er at læse research om en potentiel kunde og udarbejde input til et skræddersyet pitch deck.
 
-## 🚨 START-PUNKT — SÆLGERS BRIEF DEFINERER PITCHEN
+## 🚨 START-PUNKT — STAKEHOLDER + SÆLGERS BRIEF DEFINERER PITCHEN
 
-**FØR du overhovedet kigger på årsrapport, web search, eller hjemmeside-data — læs sælgers brief grundigt og besvar disse spørgsmål for dig selv:**
+**FØR du overhovedet kigger på årsrapport, web search, eller hjemmeside-data — læs stakeholder-profilen ovenfor og sælgers brief grundigt, og besvar disse spørgsmål for dig selv:**
 
-1. **Hvem mødes vi med?** (CTO, CIO, Procurement, HR, eller specifik person)
-2. **Hvad er deres aktuelle situation?** (har de allerede en leverandør? skal vi udskifte nogen? skal vi supplere?)
-3. **Hvilken konkurrent — hvis nogen — pitcher vi imod?** (Emagine, ProData, Tieto, Capgemini, internt team, m.fl.)
-4. **Hvad er sælgers KONKRETE ønske med pitchen?** (vinde rammeaftale, vinde første konsulent, åbne dør hos en ny stakeholder)
+1. **Hvem mødes vi med (stakeholder-type)?** Procurement / IT-leder / HR / CFO / CEO / Tech Lead / Forretningsleder
+2. **Hvad bekymrer denne person sig IKKE om?** Disse temaer skal aktivt DROPPES fra pitchen
+3. **Hvad er deres aktuelle situation?** (har de allerede en leverandør? skal vi udskifte nogen? skal vi supplere?)
+4. **Hvilken konkurrent — hvis nogen — er nævnt i sælgers brief?**
+5. **Hvad er sælgers KONKRETE ønske med pitchen?**
 
-**Disse 4 svar er rygraden i hele pitchen.** Hvis sælger har skrevet "vi pitcher mod Emagine til Procurement" — så er HELE pitchen om Epico-vs-Emagine fra Procurement-perspektiv. Det er IKKE en generisk LEGO-pitch der nævner SAP-migration som overskrift.
+**Disse svar er rygraden i hele pitchen.** En Procurement-pitch og en CIO-pitch til samme kunde skal være vidt forskellige.
 
-**Eksempel på hvordan brief skal forvandle slides:**
+**Vigtigt om stakeholder-tilpasning:**
 
-| Sælger skriver i brief | Det skal blive til |
-|------------------------|---------------------|
-| "Konkurrent: Emagine" | Slide 6 mappings handler om HVAD EPICO GØR BEDRE END EMAGINE (ikke generisk service-mapping). Slide 5 prioriteter inkluderer "Diversificering af leverandørbase". |
-| "Stakeholder: Procurement" | Tone bliver TCO, SLA, kontraktfleksibilitet. Næste skridt bliver "RFP-svar", ikke "executive workshop". |
-| "Stadie: First touch" | Slide 4 research er IKKE 'her er hvad I selv ved om jer selv'. Det er 'her er hvad vi har lagt mærke til som ekstern observatør'. |
-| "Insider: De har lige opsagt CISO" | Det skal være CENTRALT i pitchen — ikke en footnote. Slide 5 prioritet #1: 'Lukke CISO-gabet'. |
+Hver stakeholder-profil i vidensbasen lister:
+- Hvilke slides der MEDTAGES (omformuleret)
+- Hvilke slides der UDELADES (drop dem!)
+- Tone der virker
+- Nøgletal at fremhæve
+- Næste skridt der appellerer
 
-**Hvis sælger har angivet en konkurrent**, er hver value_mapping en differentiering: "Hvor Emagine gør X, gør Epico Y — det betyder for jer at Z."
+**Du SKAL respektere disse anvisninger.** Hvis profilen siger "Drop research-slide for denne stakeholder" → så gør det. Hvis den siger "Næste skridt skal være RFP-svar, ikke executive workshop" → så gør det.
 
-**Hvis sælger har angivet en stakeholder-type**, justeres hele tonen og næste skridt: Procurement vil have priser/SLA, IT-ledelse vil have arkitektur/teknik, C-suite vil have strategi/ROI.
+**Konkurrent-håndtering:**
+
+Hvis sælger har angivet en konkurrent i sit brief (fx "de bruger ProData", "de er på rammeaftale med Tieto"), så skal value_mappings differentiere mod den specifikke konkurrent. Ikke generisk service-mapping.
+
+Hvis ingen konkurrent er nævnt — så er det ikke en konkurrence-pitch. **Nævn ikke konkurrenter på fri hånd.** Drop helt "alternativ-til"-vinklen og fokusér på Epico's egne styrker.
 
 ## 🎯 KURATIONS-PRINCIP
 
@@ -473,6 +483,7 @@ def analyze_client(
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
     emphasis: Optional[str] = None,
+    stakeholder_key: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -589,6 +600,7 @@ def analyze_client(
             emphasis=emphasis,
             seller_brief=seller_brief,
             slide_dictation=slide_dictation,
+            stakeholder_key=stakeholder_key,
         ),
         tools=[ANALYSIS_TOOL],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},

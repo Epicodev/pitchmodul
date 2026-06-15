@@ -115,6 +115,7 @@ async def run_research(
     cvr_number: Optional[str] = Form(None),
     # Lag 1: Strukturerede sælger-inputs
     meeting_stage: Optional[str] = Form("first_touch"),
+    meeting_stakeholder: Optional[str] = Form(None),
     meeting_history: Optional[str] = Form(None),
     personal_angle: Optional[str] = Form(None),
     insider_insights: Optional[str] = Form(None),
@@ -225,6 +226,7 @@ async def run_research(
             pitch_focus=pitch_focus,
             services_to_highlight=services_list,
             emphasis=emphasis,
+            stakeholder_key=meeting_stakeholder,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Claude-analyse fejlede: {e}")

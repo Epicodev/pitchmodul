@@ -80,6 +80,22 @@
 
         <div class="form-row">
           <label class="field">
+            <span class="field-label">Hvem mødes vi med? <span class="hint">(stillingstype — afgør hele pitch-strukturen)</span></span>
+            <div class="radio-group radio-group--horizontal">
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="procurement"><span>Procurement / Indkøb</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="it-leader"><span>IT-direktør / CIO</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="tech-lead"><span>Tech Lead / Eng. Manager</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="hr-leader"><span>HR / People</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="cfo"><span>CFO / Økonomi</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="executive" checked><span>CEO / Executive</span></label>
+              <label class="radio"><input type="radio" name="meeting_stakeholder" value="business-leader"><span>Forretningsleder</span></label>
+            </div>
+            <span class="field-hint">Hver stakeholder-type har andre prioriteter. Procurement vil have TCO/SLA — IT-ledere vil have teknisk dybde. AI'en tilpasser slides, tone og næste skridt herefter.</span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="field">
             <span class="field-label">Mødestadie</span>
             <div class="radio-group radio-group--horizontal">
               <label class="radio"><input type="radio" name="meeting_stage" value="first_touch" checked><span>First touch</span></label>

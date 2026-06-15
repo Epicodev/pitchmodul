@@ -4,18 +4,40 @@ Knowledge loader. Indlæser hele knowledge/-mappen som strukturet kontekst til C
 Strategien er: alle filer i knowledge/ er den eneste sandhed Claude må bruge om Epico.
 """
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 
 KNOWLEDGE_DIR = Path(__file__).parent / "knowledge"
 
 
-def load_knowledge() -> str:
+def load_stakeholder_profile(stakeholder_key: Optional[str]) -> str:
+    """
+    Load knowledge om en specifik stakeholder-type.
+    stakeholder_key er en af: procurement, it-leader, hr-leader, executive,
+    cfo, tech-lead, business-leader, eller None.
+    """
+    if not stakeholder_key:
+        return ""
+    safe = stakeholder_key.strip().lower().replace("_", "-")
+    f = KNOWLEDGE_DIR / "stakeholders" / f"{safe}.md"
+    if not f.exists():
+        return ""
+    text = f.read_text(encoding="utf-8").strip()
+    return (
+        f"# 🎯 STAKEHOLDER-PROFIL — DEN PERSON VI MØDES MED\n\n"
+        f"Dette afsnit definerer HVEM sælger mødes med. Hele pitchen skal tilpasses denne person.\n"
+        f"Slides, tone, formuleringer og næste skridt SKAL respektere stakeholder-profilen herunder.\n\n"
+        f"{text}"
+    )
+
+
+def load_knowledge(stakeholder_key: Optional[str] = None) -> str:
     """
     Load alle markdown-filer i knowledge/ og returnér som én samlet streng,
     klar til indsætning i Claude's system prompt.
 
     Strukturen i output:
+    - STAKEHOLDER (kun den valgte type, hvis angivet)
     - SERVICES (alle 7)
     - CASES (alle)
     - BOUNDARIES (det Epico IKKE leverer)
@@ -23,6 +45,12 @@ def load_knowledge() -> str:
     - STATS (nøgletal)
     """
     sections = []
+
+    # Stakeholder-profil ØVERST (kritisk — den vægter højest)
+    if stakeholder_key:
+        profile = load_stakeholder_profile(stakeholder_key)
+        if profile:
+            sections.append(profile)
 
     # Services
     services_dir = KNOWLEDGE_DIR / "services"

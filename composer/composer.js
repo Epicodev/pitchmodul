@@ -189,6 +189,7 @@ async function runResearch(e) {
   const pdfFile = form.annual_report.files[0];
 
   // Lag 1: Sælgers brief (strukturerede inputs)
+  const meetingStakeholder = form.querySelector('input[name="meeting_stakeholder"]:checked')?.value || '';
   const meetingStage = form.querySelector('input[name="meeting_stage"]:checked')?.value || 'first_touch';
   const meetingHistory = form.meeting_history.value.trim();
   const personalAngle = form.personal_angle.value.trim();
@@ -222,6 +223,7 @@ async function runResearch(e) {
     client_name: clientName,
     cvr_number: cvrNumber,
     // Lag 1
+    meeting_stakeholder: meetingStakeholder,
     meeting_stage: meetingStage,
     meeting_history: meetingHistory,
     personal_angle: personalAngle,
@@ -261,6 +263,7 @@ async function runResearch(e) {
   formData.append('client_name', clientName);
   if (cvrNumber) formData.append('cvr_number', cvrNumber);
   // Lag 1
+  if (meetingStakeholder) formData.append('meeting_stakeholder', meetingStakeholder);
   formData.append('meeting_stage', meetingStage);
   if (meetingHistory) formData.append('meeting_history', meetingHistory);
   if (personalAngle) formData.append('personal_angle', personalAngle);
