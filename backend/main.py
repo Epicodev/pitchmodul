@@ -65,6 +65,7 @@ class GenerateDeckRequest(BaseModel):
     analysis: dict
     meeting: Optional[dict] = None
     team: Optional[dict] = None
+    included_slides: Optional[list] = None
 
 
 # ---------- Routes ----------
@@ -245,6 +246,7 @@ async def generate_deck(req: GenerateDeckRequest):
         analysis=req.analysis,
         meeting=req.meeting,
         team=req.team,
+        included_slides=req.included_slides,
         asset_base="/static",
     )
 

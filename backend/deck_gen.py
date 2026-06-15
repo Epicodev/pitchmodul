@@ -18,6 +18,7 @@ def render_deck(
     analysis: Dict[str, Any],
     meeting: Optional[Dict[str, str]] = None,
     team: Optional[Dict[str, Dict[str, str]]] = None,
+    included_slides: Optional[list] = None,
     asset_base: str = "..",
 ) -> str:
     """
@@ -37,6 +38,17 @@ def render_deck(
     """
     meeting = meeting or {}
     team = team or {}
+    # Default: alle toggle-bare slides er med
+    if included_slides is None:
+        included_slides = [
+            "epico_intro_chapter",
+            "epico_stats",
+            "it_market",
+            "epico_dna",
+            "services_chapter",
+            "epic_process",
+            "case_study",
+        ]
 
     context = {
         "client": {
@@ -71,6 +83,7 @@ def render_deck(
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),
+        "included_slides": included_slides,
         "asset_base": asset_base,
     }
 

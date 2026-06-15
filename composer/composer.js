@@ -209,6 +209,9 @@ async function runResearch(e) {
   const dictMappings = form.dict_mappings.value.trim();
   const dictNextSteps = form.dict_next_steps.value.trim();
 
+  // Slide-toggles (hvilke "om Epico"-slides skal med)
+  const includedSlides = Array.from(form.querySelectorAll('input[name="slide_includes"]:checked')).map(c => c.value);
+
   if (!clientName) {
     alert('Kundenavn er påkrævet.');
     return;
@@ -235,6 +238,7 @@ async function runResearch(e) {
     dict_priorities: dictPriorities,
     dict_mappings: dictMappings,
     dict_next_steps: dictNextSteps,
+    included_slides: includedSlides,
     contact_person: form.contact_person.value.trim(),
     city: form.city.value.trim(),
     date: form.date.value,
@@ -273,6 +277,7 @@ async function runResearch(e) {
   if (dictPriorities) formData.append('dict_priorities', dictPriorities);
   if (dictMappings) formData.append('dict_mappings', dictMappings);
   if (dictNextSteps) formData.append('dict_next_steps', dictNextSteps);
+  if (includedSlides.length) formData.append('included_slides', includedSlides.join(','));
   if (pdfFile) formData.append('annual_report', pdfFile);
 
   // Skift til research tab
@@ -490,6 +495,7 @@ async function generateDeck() {
           contact_person: state.brief.contact_person,
         },
         team: state.brief.team,
+        included_slides: state.brief.included_slides,
       }),
     });
 

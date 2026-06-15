@@ -40,25 +40,7 @@
   </div>
 </section>
 
-{# ============ SLIDE 2 — HVORFOR VI MØDES ============ #}
-<section class="slide" data-slide="2">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Hvorfor vi mødes</div>
-  </div>
-
-  <div class="layout-full" style="display:flex;flex-direction:column;justify-content:center;">
-    <span class="eyebrow">Vores afsæt for samtalen</span>
-    <h2 class="h-display" style="margin-bottom:48px;max-width:1700px;">Vi mødes ikke <span class="accent">for at sælge.</span></h2>
-    <p class="body-lg" style="font-size:32px;line-height:1.4;max-width:1600px;font-family:var(--font-display);font-weight:500;color:var(--black-currant);letter-spacing:var(--kern-medium);">{{ client.summary }}</p>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>Epico × {{ client.name }}</div>
-</section>
-
-{# ============ SLIDE 3 — AGENDA ============ #}
+{# ============ SLIDE 2 — AGENDA ============ #}
 <section class="slide" data-slide="3">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -170,7 +152,8 @@
   <div class="slide-footer"><span class="footer-mark"></span>06 / 18</div>
 </section>
 
-{# ============ SLIDE 7 — DIVIDER: DETTE ER EPICO ============ #}
+{# ============ SLIDE 7 — DIVIDER: DETTE ER EPICO (toggle-bar) ============ #}
+{% if 'epico_intro_chapter' in included_slides %}
 <section class="slide slide--dark" data-slide="7">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -187,8 +170,10 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>07 / 18</div>
 </section>
+{% endif %}
 
-{# ============ SLIDE 8 — EPICO I TAL ============ #}
+{# ============ SLIDE 8 — EPICO I TAL (toggle-bar) ============ #}
+{% if 'epico_stats' in included_slides %}
 <section class="slide slide--dark" data-slide="8">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -212,8 +197,10 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>08 / 18</div>
 </section>
+{% endif %}
 
-{# ============ SLIDE 9 — DK's IT-MARKED ============ #}
+{# ============ SLIDE 9 — DK's IT-MARKED (toggle-bar) ============ #}
+{% if 'it_market' in included_slides %}
 <section class="slide" data-slide="9">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -236,8 +223,10 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>09 / 18</div>
 </section>
+{% endif %}
 
-{# ============ SLIDE 10 — VORES DNA ============ #}
+{# ============ SLIDE 10 — VORES DNA (toggle-bar) ============ #}
+{% if 'epico_dna' in included_slides %}
 <section class="slide" data-slide="10">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -260,8 +249,10 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>10 / 18</div>
 </section>
+{% endif %}
 
-{# ============ SLIDE 11 — DIVIDER: DET VI LEVERER ============ #}
+{# ============ SLIDE 11 — DIVIDER: DET VI LEVERER (toggle-bar) ============ #}
+{% if 'services_chapter' in included_slides %}
 <section class="slide slide--red" data-slide="11">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -278,6 +269,7 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>11 / 18</div>
 </section>
+{% endif %}
 
 {# ============ DYNAMISKE SERVICE-SLIDES (1 pr service) ============ #}
 {% for s in service_slides %}
@@ -342,7 +334,8 @@
 </section>
 {% endfor %}
 
-{# ============ SLIDE 15 — THE EPIC PROCESS ============ #}
+{# ============ SLIDE 15 — THE EPIC PROCESS (toggle-bar) ============ #}
+{% if 'epic_process' in included_slides %}
 <section class="slide" data-slide="15">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -373,8 +366,10 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>15 / 18</div>
 </section>
+{% endif %}
 
-{# ============ SLIDE 16 — RELEVANT CASE ============ #}
+{# ============ SLIDE 16 — RELEVANT CASE (toggle-bar) ============ #}
+{% if 'case_study' in included_slides %}
 <section class="slide" data-slide="16">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -410,6 +405,7 @@
 
   <div class="slide-footer"><span class="footer-mark"></span>16 / 18</div>
 </section>
+{% endif %}
 
 {# ============ SLIDE 17 — NÆSTE SKRIDT ============ #}
 <section class="slide" data-slide="17">

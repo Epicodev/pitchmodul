@@ -229,9 +229,67 @@
         </div>
       </fieldset>
 
+      <!-- SLIDE-KONFIGURATION -->
+      <fieldset class="form-block">
+        <legend><span class="legend-num">F</span>Slide-konfiguration <span class="legend-hint">vælg hvad der skal med</span></legend>
+        <p class="form-block-intro">Klient-specifikke slides (research, prioriteter, mapping, case, næste skridt) er <strong>altid med</strong>. Her kan du toggle de generiske "om Epico"-slides. Default: alle med.</p>
+
+        <div class="slide-toggle-grid">
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="epico_intro_chapter" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">Kapitel: "Dette er Epico"</span>
+              <span class="slide-toggle-desc">Section-divider — overgang til Epico-præsentation</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="epico_stats" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">Epico i tal</span>
+              <span class="slide-toggle-desc">Stats hero: omsætning, konsulenter, lande, kunder</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="it_market" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">DK's IT-marked</span>
+              <span class="slide-toggle-desc">"4 ud af 5 virksomheder mangler IT-specialister..." kontekst</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="epico_dna" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">Vores DNA</span>
+              <span class="slide-toggle-desc">4 værdier: hastighed, match, relation, ekspertise</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="services_chapter" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">Kapitel: "Det vi leverer"</span>
+              <span class="slide-toggle-desc">Section-divider før service-slides</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="epic_process" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">The Epic Process</span>
+              <span class="slide-toggle-desc">7-trins timeline: Request → Search → ... → Kontrakt</span>
+            </span>
+          </label>
+          <label class="slide-toggle">
+            <input type="checkbox" name="slide_includes" value="case_study" checked>
+            <span class="slide-toggle-content">
+              <span class="slide-toggle-name">Relevant case</span>
+              <span class="slide-toggle-desc">Konkret case fra kundens branche (What/Why/Result/Value)</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
       <!-- MØDE -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">F</span>Mødet</legend>
+        <legend><span class="legend-num">G</span>Mødet</legend>
         <div class="form-row form-row--3">
           <label class="field">
             <span class="field-label">Kontaktperson <span class="required">*</span></span>
@@ -250,7 +308,7 @@
 
       <!-- TEAM -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">G</span>Dit Epico-team</legend>
+        <legend><span class="legend-num">H</span>Dit Epico-team</legend>
         <div class="team-cols">
           <div class="team-col">
             <h4 class="team-col-title">Key Account Manager</h4>

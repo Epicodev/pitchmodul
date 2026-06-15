@@ -549,6 +549,72 @@ body.composer-body {
   color: var(--grey);
 }
 
+/* ---------- SLIDE TOGGLE GRID ---------- */
+.slide-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.slide-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--raw-silk);
+  border: 2px solid var(--alu-grey);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.slide-toggle:hover {
+  border-color: var(--black-currant);
+}
+
+.slide-toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--kiwi);
+  cursor: pointer;
+}
+
+.slide-toggle-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slide-toggle-name {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--black-currant);
+  letter-spacing: var(--kern-medium);
+}
+
+.slide-toggle-desc {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+  line-height: 1.4;
+}
+
+.slide-toggle:has(input:checked) {
+  background: var(--white);
+  border-color: var(--kiwi);
+}
+
+.slide-toggle:has(input:not(:checked)) .slide-toggle-name {
+  color: var(--light-grey);
+  text-decoration: line-through;
+}
+
+.slide-toggle:has(input:not(:checked)) .slide-toggle-desc {
+  opacity: 0.5;
+}
+
 /* ---------- TEAM ---------- */
 .team-cols {
   display: grid;
