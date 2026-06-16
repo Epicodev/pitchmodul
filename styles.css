@@ -779,6 +779,178 @@ html, body {
   gap: 6px;
 }
 
+/* SOLUTION LEVERANCE-KONCEPTER (4 cards) */
+.solution-concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-mosaic);
+  margin-top: 56px;
+}
+
+.concept-card {
+  background: var(--white);
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 480px;
+  position: relative;
+  border-top: 6px solid var(--alu-grey);
+}
+
+.concept-card--teal { border-top-color: #2D6A6A; }
+.concept-card--red { border-top-color: var(--raspberry); }
+.concept-card--grey { border-top-color: var(--light-grey); }
+.concept-card--dark { border-top-color: var(--red); background: var(--raw-silk); }
+
+.concept-card .concept-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 0.9;
+  letter-spacing: var(--kern-tight);
+  color: var(--alu-grey);
+}
+
+.concept-card--teal .concept-num { color: #2D6A6A; opacity: 0.4; }
+.concept-card--red .concept-num { color: var(--raspberry); opacity: 0.4; }
+.concept-card--grey .concept-num { color: var(--light-grey); }
+.concept-card--dark .concept-num { color: var(--red); opacity: 0.4; }
+
+.concept-card .concept-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: var(--kern-medium);
+  color: var(--black-currant);
+}
+
+.concept-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.concept-card li {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--grey);
+  padding-left: 16px;
+  position: relative;
+}
+
+.concept-card li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 2px;
+  background: var(--raspberry);
+}
+
+.concept-card--teal li::before { background: #2D6A6A; }
+.concept-card--grey li::before { background: var(--light-grey); }
+.concept-card--dark li::before { background: var(--red); }
+
+/* UDVALGTE KOMPETENCER (4 kort per slide × 2 slides) */
+.competences-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-mosaic);
+  margin-top: 56px;
+}
+
+.competence-card {
+  background: var(--white);
+  padding: 40px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 520px;
+  position: relative;
+}
+
+.competence-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  background: var(--red);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.competence-card .competence-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 18px;
+  color: white;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.competence-card .competence-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: var(--kern-medium);
+  color: var(--black-currant);
+  margin-top: 28px;
+  text-align: center;
+}
+
+.competence-card .competence-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.competence-card .competence-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--raspberry);
+}
+
+.competence-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.competence-card li {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--grey);
+  padding-left: 12px;
+  position: relative;
+}
+
+.competence-card li::before {
+  content: "·";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  color: var(--raspberry);
+  font-weight: 700;
+}
+
 /* SERVICE PROCESS DETAIL (10-step grid, fx Search) */
 .service-process-grid {
   display: grid;

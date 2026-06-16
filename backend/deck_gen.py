@@ -47,6 +47,7 @@ def render_deck(
             "epico_dna",
             "services_chapter",
             "services_overview",
+            "competences",
             "epic_process",
             "case_study",
         ]

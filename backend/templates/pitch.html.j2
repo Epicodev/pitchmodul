@@ -420,7 +420,244 @@
   <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }} · Proces</div>
 </section>
 {% endif %}
+
+{# Hvis Solution: tilføj ekstra slide med 4 leverance-koncepter #}
+{% if s.service_name == "Epico Solution" %}
+<section class="slide" data-slide="service-{{ service_idx }}-concepts">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">Solution · Leverance-koncepter</div>
+  </div>
+
+  <div class="layout-full">
+    <span class="eyebrow">Hvad I kan benytte gennem Solution</span>
+    <h2 class="h1" style="max-width:1700px;">Fire måder vi <span class="accent">leverer på.</span></h2>
+
+    <div class="solution-concepts-grid">
+      <div class="concept-card concept-card--teal">
+        <div class="concept-num">01</div>
+        <div class="concept-name">Standard konsulent-leverance</div>
+        <ul>
+          <li>Vi identificerer, screener og leverer enhver IT-kompetence I har brug for</li>
+          <li>Konkurrencedygtige priser</li>
+          <li>Eksempler: udviklere, testere, infrastruktur-arkitekter, projektledere</li>
+          <li>Strømlinet hiring-proces — fra request til kontrakt på 7-14 dage</li>
+          <li>Loyale konsulenter — typisk længere kontraktlængder</li>
+        </ul>
+      </div>
+      <div class="concept-card concept-card--red">
+        <div class="concept-num">02</div>
+        <div class="concept-name">Specialist-teams</div>
+        <ul>
+          <li>Levering af komplette teams (udviklere, ops, business consultants)</li>
+          <li>Konkurrencedygtige priser — også nearshore via Warszawa</li>
+          <li>Loyale konsulenter med opfølgning</li>
+          <li>Dedikeret team-leder som jeres kontaktperson</li>
+          <li>Mulighed for kontorplads gennem Epico (Warszawa)</li>
+        </ul>
+      </div>
+      <div class="concept-card concept-card--grey">
+        <div class="concept-num">03</div>
+        <div class="concept-name">Management &amp; services</div>
+        <ul>
+          <li>Nearshore-setup ledet fra Danmark</li>
+          <li>Vi leverer dedikeret team-leader baseret i DK</li>
+          <li>Stærkt team af IT-eksperter i Polen (eller andre EU-lande)</li>
+          <li>Konkurrencedygtige priser med dansk juridisk leverance</li>
+          <li>Vi dækker enhver IT-kompetence I efterspørger</li>
+        </ul>
+      </div>
+      <div class="concept-card concept-card--dark">
+        <div class="concept-num">04</div>
+        <div class="concept-name">NextGen-talenter</div>
+        <ul>
+          <li>Nyuddannede IT-talenter med 0-5 års erfaring</li>
+          <li>Konkurrencedygtige priser ift. seniore profiler</li>
+          <li>Initial ansættelse via Epico — try-before-hire</li>
+          <li>Mulighed for direkte ansættelse efter projekt</li>
+          <li>Daglig ledelse hos jer · tæt opfølgning fra Epico</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>Epico Solution · Leverance-koncepter</div>
+</section>
+{% endif %}
 {% endfor %}
+
+{# ============ KOMPETENCE-SLIDES (toggle-bar, 2 slides) ============ #}
+{% if 'competences' in included_slides %}
+<section class="slide" data-slide="competences-1">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">Kompetencer · 1/2</div>
+  </div>
+
+  <div class="layout-full">
+    <span class="eyebrow">Hvad vi leverer hver dag</span>
+    <h2 class="h1" style="max-width:1700px;">Udvalgte <span class="accent">kompetencer.</span></h2>
+
+    <div class="competences-grid">
+      <div class="competence-card">
+        <div class="competence-icon">🛡</div>
+        <div class="competence-name">Security &amp; Network</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul><li>Architect · Designer · Developer · Maintenance · NextGen</li></ul>
+        </div>
+        <div class="competence-section">
+          <div class="competence-label">Teknologi</div>
+          <ul>
+            <li>Network Security · Information Security · Cyber Security</li>
+            <li>Identity &amp; Access Management · Cloud Networking</li>
+            <li>Network Virtualization · Monitoring &amp; Troubleshooting</li>
+            <li>Routing &amp; Switching · Wireless · NIS2</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">☁</div>
+        <div class="competence-name">Infrastructure</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · NextGen</li></ul>
+        </div>
+        <div class="competence-section">
+          <div class="competence-label">Teknologi</div>
+          <ul>
+            <li>Unix, Solaris · HP-UX, AIX, Linux · Windows Server</li>
+            <li>SAN, NAS · Server, Storage, Back-up · Virtualizing</li>
+            <li>Oracle, MS SQL · Azure · AWS</li>
+            <li>Citrix, Terminal Services · Exchange, AD</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">🖥</div>
+        <div class="competence-name">Modern Workplace</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · NextGen</li></ul>
+        </div>
+        <div class="competence-section">
+          <div class="competence-label">Teknologi</div>
+          <ul>
+            <li>Microsoft 365 · Office 365 · Cloud Services</li>
+            <li>Modern endpoint management · Device &amp; Identity management</li>
+            <li>OneDrive, SharePoint · Collaboration · M365 Adoption</li>
+            <li>Webex Meetings · ChatGPT · ISV</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">⟨/⟩</div>
+        <div class="competence-name">Development</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · Test Lead · Tester · NextGen</li></ul>
+        </div>
+        <div class="competence-section">
+          <div class="competence-label">Teknologi</div>
+          <ul>
+            <li>Java · .NET · C, C++, C# · Cobol</li>
+            <li>HTML, XML · JavaScript · CSS</li>
+            <li>PHP front-/backend · Ajax, SQL</li>
+            <li>Eclipse · Jbuilder, Jdeveloper</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>Kompetencer 1/2</div>
+</section>
+
+<section class="slide" data-slide="competences-2">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">Kompetencer · 2/2</div>
+  </div>
+
+  <div class="layout-full">
+    <span class="eyebrow">Bredt spektrum af profiler</span>
+    <h2 class="h1" style="max-width:1700px;">Udvalgte <span class="accent">kompetencer.</span></h2>
+
+    <div class="competences-grid">
+      <div class="competence-card">
+        <div class="competence-icon">⚙</div>
+        <div class="competence-name">Program- &amp; Project Manager</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul>
+            <li>Scrum Master · Project Manager · Program Manager</li>
+            <li>Change Manager · Quality Control Manager</li>
+            <li>Risk Management · Steering Committee Manager</li>
+            <li>Portfolio Manager · Resource Manager</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">📊</div>
+        <div class="competence-name">Business Application</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul><li>Architect · Designer · Developer · Maintenance</li></ul>
+        </div>
+        <div class="competence-section">
+          <div class="competence-label">Teknologi</div>
+          <ul>
+            <li>SAP · Salesforce · SAS · Microsoft · Oracle</li>
+            <li>Crystal Reports · Qlik View · Hyperion · ETL</li>
+            <li>Business Object · Sybase · Informix · Informatica</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">⚒</div>
+        <div class="competence-name">Engineering</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul>
+            <li>Civil Engineering · Process Engineering</li>
+            <li>Automation Engineering · Mechanical Engineering</li>
+            <li>CAD Designers · Marine Engineering</li>
+            <li>Chemical Engineering · Robotics Engineer</li>
+            <li>Project Managers · Site Managers</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="competence-card">
+        <div class="competence-icon">👥</div>
+        <div class="competence-name">Management</div>
+        <div class="competence-section">
+          <div class="competence-label">Roller</div>
+          <ul>
+            <li>Project Manager · IT Director · Technical Program Manager</li>
+            <li>Process Analyst · Test Leader · Requirement Analyst</li>
+            <li>Change Management · Change Leader</li>
+            <li>Business Developer / BA · Management Consultant</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>Kompetencer 2/2</div>
+</section>
+{% endif %}
 
 {# ============ SLIDE 15 — THE EPIC PROCESS (toggle-bar) ============ #}
 {% if 'epic_process' in included_slides %}
