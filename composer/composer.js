@@ -188,6 +188,9 @@ async function runResearch(e) {
   const cvrNumber = form.cvr_number.value.trim();
   const pdfFile = form.annual_report.files[0];
 
+  // Pitch-længde
+  const pitchLength = form.querySelector('input[name="pitch_length"]:checked')?.value || 'medium';
+
   // Lag 1: Sælgers brief (strukturerede inputs)
   const meetingStakeholder = form.querySelector('input[name="meeting_stakeholder"]:checked')?.value || '';
   const meetingStage = form.querySelector('input[name="meeting_stage"]:checked')?.value || 'first_touch';
@@ -222,6 +225,7 @@ async function runResearch(e) {
   state.brief = {
     client_name: clientName,
     cvr_number: cvrNumber,
+    pitch_length: pitchLength,
     // Lag 1
     meeting_stakeholder: meetingStakeholder,
     meeting_stage: meetingStage,
@@ -262,6 +266,7 @@ async function runResearch(e) {
 
   formData.append('client_name', clientName);
   if (cvrNumber) formData.append('cvr_number', cvrNumber);
+  formData.append('pitch_length', pitchLength);
   // Lag 1
   if (meetingStakeholder) formData.append('meeting_stakeholder', meetingStakeholder);
   formData.append('meeting_stage', meetingStage);
@@ -605,6 +610,21 @@ document.addEventListener('DOMContentLoaded', () => {
     tab.addEventListener('click', () => {
       if (tab.disabled) return;
       setActiveTab(tab.dataset.tab);
+    });
+  });
+
+  // Pitch-længde preset → auto-toggle slides
+  const PITCH_LENGTH_PRESETS = {
+    short: ['case_study'],
+    medium: ['epico_intro_chapter', 'epico_stats', 'epico_dna', 'services_chapter', 'services_overview', 'epic_process', 'case_study'],
+    long: ['epico_intro_chapter', 'epico_stats', 'it_market', 'epico_dna', 'services_chapter', 'services_overview', 'competences', 'epic_process', 'case_study'],
+  };
+  $$('input[name="pitch_length"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const preset = PITCH_LENGTH_PRESETS[e.target.value] || PITCH_LENGTH_PRESETS.medium;
+      $$('input[name="slide_includes"]').forEach(cb => {
+        cb.checked = preset.includes(cb.value);
+      });
     });
   });
 

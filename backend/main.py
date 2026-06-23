@@ -113,6 +113,7 @@ async def cvr_lookup(req: CVRLookupRequest):
 async def run_research(
     client_name: str = Form(...),
     cvr_number: Optional[str] = Form(None),
+    pitch_length: Optional[str] = Form("medium"),
     # Lag 1: Strukturerede sælger-inputs
     meeting_stage: Optional[str] = Form("first_touch"),
     meeting_stakeholder: Optional[str] = Form(None),
@@ -227,6 +228,7 @@ async def run_research(
             services_to_highlight=services_list,
             emphasis=emphasis,
             stakeholder_key=meeting_stakeholder,
+            pitch_length=pitch_length,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Claude-analyse fejlede: {e}")

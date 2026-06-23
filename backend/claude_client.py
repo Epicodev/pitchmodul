@@ -485,6 +485,40 @@ _MEETING_STAGE_DESCRIPTIONS = {
 }
 
 
+_PITCH_LENGTH_DESCRIPTIONS = {
+    "short": """**Pitch-længde: KORT** (15-20 min møde, 8-10 slides total).
+
+- Hold ALLE bullets UNDER 80 tegn. Tagline-style.
+- Drop adjektiver. Hver sætning skal kunne læses på 3 sekunder.
+- `what_we_deliver`: præcis 3 bullets pr service-slide (ikke 4-6).
+- `client_summary`: max 1 sætning, max 120 tegn.
+- Strategic priorities: titel max 50 tegn, description max 120 tegn.
+- Value mappings: challenge max 80 tegn, solution max 100 tegn.
+- Case-intro: 1 sætning.
+- Næste skridt: 1 sætning per description.
+- Returnér KUN de TOP-2 mest relevante services i service_slides (ikke alle 6).
+- Drop process_steps på alle services (selv Search) — for langt til kort pitch.""",
+
+    "medium": """**Pitch-længde: MEDIUM** (30-45 min møde, 13-15 slides total). Default.
+
+- Normal dybde. 80-100 tegn per bullet.
+- `what_we_deliver`: 4 bullets per service-slide.
+- `client_summary`: 1-2 sætninger.
+- Op til 4 services i service_slides hvis sælger ikke har valgt specifikke.
+- process_steps kun for Search (10 trin) hvor det er kerne-værdi.""",
+
+    "long": """**Pitch-længde: LANG** (60+ min deep-dive, 20+ slides).
+
+- Maks dybde. 100-130 tegn per bullet.
+- `what_we_deliver`: 5-6 bullets per service-slide. Brug det ekstra bullet-rum til konkrete eksempler og branche-tilpasninger.
+- `client_summary`: 2-3 sætninger med konkret kontekst.
+- Inkludér ALLE services sælger har valgt (eller alle 6 hvis ingen valgt).
+- process_steps med 5-10 trin for Search og Solution hvor det giver dybde.
+- Strategic priorities: brug op til 200 tegn per description til at uddybe.
+- Value mappings: solution kan være op til 180 tegn med konkret reasoning.""",
+}
+
+
 _TONE_DESCRIPTIONS = {
     "balanced": "Balanceret — direkte og professionel, men menneskelig.",
     "formal": "**Formel og strategisk**. Strammere sprog. Mere fokus på governance, KPI'er, strategi. Mindre 'vi' og mere 'organisationen'.",
@@ -500,9 +534,17 @@ def _build_system_prompt(
     seller_brief: Optional[Dict[str, Optional[str]]] = None,
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     stakeholder_key: Optional[str] = None,
+    pitch_length: Optional[str] = "medium",
 ) -> str:
     # Sælger-direktiver — disse er styrende
     directives = []
+
+    # Pitch-længde (styrer dybde og antal bullets)
+    if pitch_length and pitch_length in _PITCH_LENGTH_DESCRIPTIONS:
+        directives.append(
+            "## 📏 PITCH-LÆNGDE (styrer dybde)\n\n"
+            + _PITCH_LENGTH_DESCRIPTIONS[pitch_length]
+        )
 
     # Lag 1: Strukturerede sælger-inputs (HØJESTE prioritet)
     if seller_brief:
@@ -688,6 +730,7 @@ def analyze_client(
     services_to_highlight: Optional[List[str]] = None,
     emphasis: Optional[str] = None,
     stakeholder_key: Optional[str] = None,
+    pitch_length: Optional[str] = "medium",
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -805,6 +848,7 @@ def analyze_client(
             seller_brief=seller_brief,
             slide_dictation=slide_dictation,
             stakeholder_key=stakeholder_key,
+            pitch_length=pitch_length,
         ),
         tools=[ANALYSIS_TOOL],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},

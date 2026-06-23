@@ -80,6 +80,18 @@
 
         <div class="form-row">
           <label class="field">
+            <span class="field-label">Pitch-længde <span class="hint">(matcher mødetid — auto-tilpasser slides og dybde)</span></span>
+            <div class="radio-group radio-group--horizontal">
+              <label class="radio"><input type="radio" name="pitch_length" value="short"><span>🟢 Kort (15-20 min · 8-10 slides)</span></label>
+              <label class="radio"><input type="radio" name="pitch_length" value="medium" checked><span>🟡 Medium (30-45 min · 13-15 slides)</span></label>
+              <label class="radio"><input type="radio" name="pitch_length" value="long"><span>🔴 Lang (60+ min · 20+ slides)</span></label>
+            </div>
+            <span class="field-hint">Vælger du Kort, deselectes 'om Epico'-slides automatisk og Claude skriver i tagline-style. Lang giver maks dybde og alle slides.</span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="field">
             <span class="field-label">Hvem mødes vi med? <span class="hint">(stillingstype — afgør hele pitch-strukturen)</span></span>
             <div class="radio-group radio-group--horizontal">
               <label class="radio"><input type="radio" name="meeting_stakeholder" value="procurement"><span>Procurement / Indkøb</span></label>
