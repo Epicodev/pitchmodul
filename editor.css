@@ -525,6 +525,162 @@ body.edit-mode .slide-edit-actions {
   line-height: 1.4;
 }
 
+/* ---------- REFINE-BUTTON (Skærp slide) ---------- */
+.slide-edit-actions .refine-btn {
+  background: var(--kiwi) !important;
+  color: var(--black-currant) !important;
+}
+
+.slide-edit-actions .refine-btn:hover {
+  background: white !important;
+  color: var(--red) !important;
+}
+
+/* ---------- REFINE MODAL ---------- */
+.refine-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 27, 80, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 350;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.refine-modal-backdrop.is-visible {
+  display: flex;
+}
+
+.refine-modal {
+  background: var(--raw-silk);
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 48px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.refine-modal h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 36px;
+  color: var(--black-currant);
+  letter-spacing: var(--kern-tight);
+  margin: 0 0 8px;
+  line-height: 1.1;
+}
+
+.refine-modal .refine-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--light-grey);
+  margin: 0 0 20px;
+  line-height: 1.4;
+}
+
+.refine-modal .modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: 2px solid var(--alu-grey);
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--grey);
+}
+
+.refine-modal .modal-close:hover {
+  background: var(--grey);
+  color: white;
+}
+
+.refine-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.refine-preset {
+  background: white;
+  border: 2px solid var(--alu-grey);
+  padding: 12px 14px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--black-currant);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.refine-preset:hover {
+  border-color: var(--kiwi);
+  background: var(--light-silk);
+}
+
+.refine-modal .field textarea {
+  background: white;
+  border: 2px solid var(--alu-grey);
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  width: 100%;
+  border-radius: 0;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.refine-modal .field textarea:focus {
+  outline: none;
+  border-color: var(--black-currant);
+}
+
+.refine-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.refine-actions .btn {
+  padding: 12px 24px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.refine-actions .btn--primary {
+  background: var(--kiwi);
+  color: var(--black-currant);
+}
+
+.refine-actions .btn--ghost {
+  background: transparent;
+  color: var(--grey);
+  border: 2px solid var(--alu-grey);
+}
+
+.refine-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Toast notification */
 .editor-toast {
   position: fixed;

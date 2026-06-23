@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from cvr import lookup_by_name, lookup_by_cvr
-from claude_client import analyze_client, reload_knowledge
+from claude_client import analyze_client, reload_knowledge, refine_slide
 from deck_gen import render_deck
 from pptx_gen import render_pptx
 from pdf_reader import extract_text
@@ -265,6 +265,30 @@ async def generate_deck(req: GenerateDeckRequest):
         "filename": filename,
         "url": f"/generated/{filename}",
     }
+
+
+class RefineSlideRequest(BaseModel):
+    slide_type: str
+    current_content: object
+    directive: str
+    client_name: Optional[str] = None
+    stakeholder_key: Optional[str] = None
+
+
+@app.post("/api/refine-slide")
+async def refine_slide_endpoint(req: RefineSlideRequest):
+    """Skærp et specifikt slide via Claude. Returnér forbedret indhold."""
+    try:
+        refined = refine_slide(
+            slide_type=req.slide_type,
+            current_content=req.current_content,
+            directive=req.directive,
+            client_name=req.client_name,
+            stakeholder_key=req.stakeholder_key,
+        )
+        return {"refined_content": refined}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Slide-skærpning fejlede: {e}")
 
 
 @app.post("/api/generate-deck-pptx")

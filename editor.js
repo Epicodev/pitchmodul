@@ -390,9 +390,12 @@
     getSlideElements().forEach(slide => {
       if (slide.querySelector('.slide-edit-actions')) return;
       const isHidden = state.hiddenSlides.has(slide.dataset.slideId);
+      const refineType = getRefineTypeForSlide(slide);
+
       const actions = document.createElement('div');
       actions.className = 'slide-edit-actions';
       actions.innerHTML = `
+        ${refineType ? '<button data-action="refine" class="refine-btn">✦ Skærp</button>' : ''}
         <button data-action="hide" class="${isHidden ? 'is-hidden-state' : ''}">${isHidden ? '👁 Vis igen' : '⊘ Skjul'}</button>
         <button data-action="delete">× Slet</button>
         <button data-action="add-after">＋ Indsæt slide efter</button>
@@ -408,7 +411,287 @@
       actions.querySelector('[data-action="add-after"]').addEventListener('click', () =>
         openTemplateModal(slide.dataset.slideId)
       );
+      if (refineType) {
+        actions.querySelector('[data-action="refine"]').addEventListener('click', () =>
+          openRefineModal(slide, refineType)
+        );
+      }
     });
+  }
+
+  // ---------- Skærp slide ----------
+  // Identificér hvilke slides der kan skærpes (skal være AI-genereret)
+  function getRefineTypeForSlide(slide) {
+    const id = slide.dataset.slideId || '';
+    const num = parseInt(id.replace('slide-', ''), 10);
+    if (num === 4) return 'research_facts';      // Research
+    if (num === 5) return 'strategic_priorities'; // Prioriteter
+    if (num === 6) return 'value_mappings';       // Mapping
+    if (num === 16) return 'case_recommendation'; // Case
+    if (num === 17) return 'next_steps';          // Næste skridt
+    if (id.startsWith('service-') && !id.includes('-process') && !id.includes('-concepts')) {
+      return 'service_slide';
+    }
+    return null;
+  }
+
+  function openRefineModal(slide, refineType) {
+    let modal = $('.refine-modal-backdrop');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.className = 'refine-modal-backdrop';
+      modal.innerHTML = `
+        <div class="refine-modal">
+          <button class="modal-close" id="refine-close">×</button>
+          <span class="eyebrow" style="margin-bottom:8px;">Skærp denne slide</span>
+          <h2 id="refine-title">Hvordan skal sliden skærpes?</h2>
+          <p class="refine-subtitle">Claude regenererer kun denne slide ud fra din direktive. Resten af pitchen er uændret.</p>
+
+          <div class="refine-presets">
+            <button class="refine-preset" data-directive="Gør indholdet markant mere konkret — erstat generiske formuleringer med specifikke tal, navne og eksempler.">📊 Mere konkret</button>
+            <button class="refine-preset" data-directive="Tilpas tonen til Procurement: TCO, SLA, kontraktvilkår, kommercielle vilkår. Drop strategisk/visionært sprog.">💼 Mere kommerciel</button>
+            <button class="refine-preset" data-directive="Løft niveauet til strategisk/executive — forretningsoutcome, vækst-impact, partnerskab. Drop operationelle detaljer.">🎯 Mere strategisk</button>
+            <button class="refine-preset" data-directive="Mere teknisk dybde — stack-specifik, senior-erfaring, specifikke teknologier. Drop blød corporate-snak.">⚙️ Mere teknisk</button>
+            <button class="refine-preset" data-directive="Mere assertiv og direkte. Drop hedging-ord som 'kan', 'måske', 'typisk'. Stå ved hvad vi gør.">⚡ Mere direkte</button>
+            <button class="refine-preset" data-directive="Tilføj mere kunde-specifik kontekst. Brug kundens navn, branche-jargon og deres situation aktivt.">👤 Mere personlig</button>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Eller skriv din egen direktive</span>
+            <textarea id="refine-directive-text" rows="3" placeholder="fx 'fokuser kun på cybersecurity-vinklen og drop andre temaer' eller 'gør den kortere og skarpere'"></textarea>
+          </label>
+
+          <div class="refine-actions">
+            <button class="btn btn--ghost" id="refine-cancel">Annullér</button>
+            <button class="btn btn--primary" id="refine-submit">✦ Skærp slide</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeRefineModal(); });
+      $('#refine-close').addEventListener('click', closeRefineModal);
+      $('#refine-cancel').addEventListener('click', closeRefineModal);
+      $('#refine-submit').addEventListener('click', submitRefine);
+      $$('.refine-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          $('#refine-directive-text').value = btn.dataset.directive;
+        });
+      });
+    }
+
+    modal._targetSlide = slide;
+    modal._refineType = refineType;
+    $('#refine-directive-text').value = '';
+    modal.classList.add('is-visible');
+  }
+
+  function closeRefineModal() {
+    const modal = $('.refine-modal-backdrop');
+    if (modal) modal.classList.remove('is-visible');
+  }
+
+  async function submitRefine() {
+    const modal = $('.refine-modal-backdrop');
+    const slide = modal._targetSlide;
+    const refineType = modal._refineType;
+    const directive = $('#refine-directive-text').value.trim();
+
+    if (!directive) {
+      alert('Vælg en preset eller skriv din egen direktive.');
+      return;
+    }
+
+    // Indsaml nuværende slide-indhold via DOM-traversal
+    const currentContent = extractSlideContent(slide, refineType);
+    if (!currentContent) {
+      alert('Kunne ikke læse slide-indhold.');
+      return;
+    }
+
+    const submitBtn = $('#refine-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⟳ Claude skærper...';
+
+    try {
+      const res = await fetch(`${window.location.origin}/api/refine-slide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slide_type: refineType,
+          current_content: currentContent,
+          directive: directive,
+          client_name: extractClientName(),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Ukendt fejl');
+      }
+
+      const data = await res.json();
+      const refined = data.refined_content;
+
+      // Anvend det nye indhold på sliden
+      applySlideContent(slide, refineType, refined);
+      saveState();
+      closeRefineModal();
+      showToast('Slide skærpet ✦');
+    } catch (e) {
+      alert(`Skærpning fejlede: ${e.message}`);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✦ Skærp slide';
+    }
+  }
+
+  function extractClientName() {
+    const h1 = document.querySelector('.layout-cover h1');
+    return h1 ? h1.textContent.trim().replace(/×.*$/s, '').trim() : 'Kunden';
+  }
+
+  function extractSlideContent(slide, refineType) {
+    if (refineType === 'research_facts') {
+      return Array.from(slide.querySelectorAll('.research-tile')).map(tile => ({
+        key: tile.querySelector('.key')?.textContent.trim() || '',
+        value: tile.querySelector('.value')?.textContent.trim() || '',
+        source: (tile.querySelector('.source')?.textContent.trim() || '').replace(/^Kilde:\s*/, ''),
+      }));
+    }
+    if (refineType === 'strategic_priorities') {
+      return Array.from(slide.querySelectorAll('.priority-item')).map(item => ({
+        title: item.querySelector('.priority-title')?.textContent.trim() || '',
+        description: item.querySelector('.priority-desc')?.textContent.trim() || '',
+      }));
+    }
+    if (refineType === 'value_mappings') {
+      return Array.from(slide.querySelectorAll('.mapping .row')).map(row => {
+        const cells = row.querySelectorAll('.cell');
+        return {
+          challenge: cells[0]?.textContent.trim() || '',
+          epico_service: '',
+          solution: cells[1]?.textContent.trim() || '',
+        };
+      });
+    }
+    if (refineType === 'next_steps') {
+      return Array.from(slide.querySelectorAll('.step-block')).map(block => ({
+        title: block.querySelector('.step-title')?.textContent.trim() || '',
+        description: block.querySelector('.step-desc')?.textContent.trim() || '',
+        when: block.querySelector('.step-when')?.textContent.trim() || '',
+      }));
+    }
+    if (refineType === 'case_recommendation') {
+      const blocks = slide.querySelectorAll('.case-block');
+      return {
+        headline: slide.querySelector('.h1')?.textContent.trim() || '',
+        intro: slide.querySelector('.body-lg')?.textContent.trim() || '',
+        what: Array.from(blocks[0]?.querySelectorAll('li') || []).map(li => li.textContent.trim()),
+        why: Array.from(blocks[1]?.querySelectorAll('li') || []).map(li => li.textContent.trim()),
+        result: Array.from(blocks[2]?.querySelectorAll('li') || []).map(li => li.textContent.trim()),
+        value: Array.from(blocks[3]?.querySelectorAll('li') || []).map(li => li.textContent.trim()),
+      };
+    }
+    if (refineType === 'service_slide') {
+      return {
+        service_name: slide.querySelector('.service-h1')?.textContent.trim().replace(/\.$/, '') || '',
+        tagline: slide.querySelector('.service-tagline')?.textContent.trim() || '',
+        what_we_deliver: Array.from(slide.querySelectorAll('.service-col:nth-of-type(1) .service-bullets li')).map(li => li.textContent.trim()),
+        key_stats: Array.from(slide.querySelectorAll('.service-stat')).map(s => ({
+          value: s.querySelector('.service-stat-value')?.textContent.trim() || '',
+          label: s.querySelector('.service-stat-label')?.textContent.trim() || '',
+        })),
+        who_its_for: Array.from(slide.querySelectorAll('.service-col:nth-of-type(3) .service-bullets li')).map(li => li.textContent.trim()),
+        typical_roles: slide.querySelectorAll('.footer-row .footer-value')[0]?.textContent.trim() || '',
+        relevant_partners: slide.querySelectorAll('.footer-row .footer-value')[1]?.textContent.trim() || '',
+      };
+    }
+    return null;
+  }
+
+  function applySlideContent(slide, refineType, refined) {
+    if (refineType === 'research_facts' && Array.isArray(refined)) {
+      slide.querySelectorAll('.research-tile').forEach((tile, i) => {
+        const fact = refined[i];
+        if (!fact) return;
+        const key = tile.querySelector('.key');
+        const value = tile.querySelector('.value');
+        const source = tile.querySelector('.source');
+        if (key) key.textContent = fact.key || '';
+        if (value) value.textContent = fact.value || '';
+        if (source) source.textContent = 'Kilde: ' + (fact.source || '');
+      });
+    }
+    else if (refineType === 'strategic_priorities' && Array.isArray(refined)) {
+      slide.querySelectorAll('.priority-item').forEach((item, i) => {
+        const p = refined[i];
+        if (!p) return;
+        const title = item.querySelector('.priority-title');
+        const desc = item.querySelector('.priority-desc');
+        if (title) title.textContent = p.title || '';
+        if (desc) desc.textContent = p.description || '';
+      });
+    }
+    else if (refineType === 'value_mappings' && Array.isArray(refined)) {
+      slide.querySelectorAll('.mapping .row').forEach((row, i) => {
+        const m = refined[i];
+        if (!m) return;
+        const cells = row.querySelectorAll('.cell');
+        if (cells[0]) cells[0].textContent = m.challenge || '';
+        if (cells[1]) cells[1].innerHTML = `<strong>${m.epico_service || ''}:</strong> ${m.solution || ''}`;
+      });
+    }
+    else if (refineType === 'next_steps' && Array.isArray(refined)) {
+      slide.querySelectorAll('.step-block').forEach((block, i) => {
+        const s = refined[i];
+        if (!s) return;
+        const title = block.querySelector('.step-title');
+        const desc = block.querySelector('.step-desc');
+        const when = block.querySelector('.step-when');
+        if (title) title.textContent = s.title || '';
+        if (desc) desc.textContent = s.description || '';
+        if (when) when.textContent = s.when || '';
+      });
+    }
+    else if (refineType === 'case_recommendation') {
+      const blocks = slide.querySelectorAll('.case-block');
+      const headlineEl = slide.querySelector('.h1');
+      const introEl = slide.querySelector('.body-lg');
+      if (headlineEl && refined.headline) headlineEl.textContent = refined.headline;
+      if (introEl && refined.intro) introEl.textContent = refined.intro;
+      ['what', 'why', 'result', 'value'].forEach((key, i) => {
+        const items = refined[key];
+        if (Array.isArray(items) && blocks[i]) {
+          const ul = blocks[i].querySelector('ul');
+          if (ul) {
+            ul.innerHTML = items.map(it => `<li>${it}</li>`).join('');
+          }
+        }
+      });
+    }
+    else if (refineType === 'service_slide') {
+      const taglineEl = slide.querySelector('.service-tagline');
+      if (taglineEl && refined.tagline) taglineEl.textContent = refined.tagline;
+      const whatBullets = slide.querySelectorAll('.service-col:nth-of-type(1) .service-bullets li');
+      (refined.what_we_deliver || []).forEach((b, i) => { if (whatBullets[i]) whatBullets[i].textContent = b; });
+      const whoBullets = slide.querySelectorAll('.service-col:nth-of-type(3) .service-bullets li');
+      (refined.who_its_for || []).forEach((b, i) => { if (whoBullets[i]) whoBullets[i].textContent = b; });
+      const stats = slide.querySelectorAll('.service-stat');
+      (refined.key_stats || []).forEach((s, i) => {
+        if (stats[i]) {
+          const v = stats[i].querySelector('.service-stat-value');
+          const l = stats[i].querySelector('.service-stat-label');
+          if (v) v.textContent = s.value || '';
+          if (l) l.textContent = s.label || '';
+        }
+      });
+    }
+
+    // Gem ændringer i edits state så de overlever reload
+    const slideId = slide.dataset.slideId;
+    if (!state.edits[slideId]) state.edits[slideId] = {};
+    // Save full innerHTML as backup
+    state.edits[slideId]['__refined_at'] = String(Date.now());
   }
 
   function unmountSlideEditActions() {

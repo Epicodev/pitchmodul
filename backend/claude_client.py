@@ -38,6 +38,148 @@ def reload_knowledge() -> int:
     return len(_KNOWLEDGE_CACHE)
 
 
+_SLIDE_REFINE_SYSTEM_PROMPT = """Du er Epico's pitch-redaktør. Sælger har bedt dig om at SKÆRPE et specifikt slide-indhold med en bestemt direktive.
+
+Modtag:
+- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation / service_slide / client_summary)
+- Nuværende indhold (JSON)
+- Sælgers direktive (fritekst, fx "mere konkret", "mere kommerciel tone", "fokus på cybersecurity")
+
+Returnér en FORBEDRET version af samme slide i samme JSON-struktur via `refine_slide`-værktøjet.
+
+**Vigtige regler:**
+- Behold STRUKTUREN (samme antal facts/items, samme felter)
+- Tilpas TONE og INDHOLD efter direktivet
+- Hvis direktivet er "mere konkret": erstat generiske bullets med specifikke tal og navne
+- Hvis "mere kommerciel": tilpas tonen til TCO/SLA/ROI-sprog
+- Hvis "mere strategisk": løft niveauet til forretningsoutcome
+- Hvis "mindre sælgende": fjern blødt corporate-snak
+- Hold dig til knowledge base — find IKKE på nye fakta om Epico
+- Hvis indholdet allerede er godt: lav små, præcise justeringer
+
+Returnér ALTID via `refine_slide`-værktøjet."""
+
+
+_REFINE_TOOL = {
+    "name": "refine_slide",
+    "description": "Returnér det forbedrede slide-indhold i samme struktur som input.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "refined_content": {
+                "description": "Det forbedrede indhold. Strukturen SKAL matche input (samme nøgler, samme antal items).",
+            },
+        },
+        "required": ["refined_content"],
+    },
+}
+
+
+def refine_slide(
+    slide_type: str,
+    current_content: Any,
+    directive: str,
+    client_name: Optional[str] = None,
+    stakeholder_key: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> Any:
+    """
+    Skærp et specifikt slide-indhold baseret på sælgers direktive.
+
+    Args:
+        slide_type: 'research_facts' | 'strategic_priorities' | 'value_mappings' |
+                    'next_steps' | 'case_recommendation' | 'client_summary' | 'service_slide'
+        current_content: Nuværende JSON-indhold for sliden
+        directive: Sælgers ønske ("mere konkret", "mere kommerciel", "fokus på security", osv.)
+        client_name: For kontekst
+        stakeholder_key: For tone-tilpasning
+
+    Returns:
+        Forbedret indhold i samme struktur
+    """
+    import json
+    client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
+
+    knowledge = _get_knowledge(stakeholder_key)
+
+    parts = [
+        f"## Kunde: {client_name or 'kunden'}\n",
+        f"## Slide-type: {slide_type}\n",
+        f"## Sælgers direktive:\n{directive}\n",
+        "## Nuværende indhold:\n```json",
+        json.dumps(current_content, indent=2, ensure_ascii=False),
+        "```\n",
+        "\n## EPICO VIDENSBASE (kun fakta fra denne må bruges om Epico):\n",
+        knowledge,
+        "\n\n---\nSkærp ovenstående slide-indhold efter direktivet. Returnér samme struktur via `refine_slide`-værktøjet.",
+    ]
+    user_message = "\n".join(parts)
+
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=4000,
+        system=_SLIDE_REFINE_SYSTEM_PROMPT,
+        tools=[_REFINE_TOOL],
+        tool_choice={"type": "tool", "name": "refine_slide"},
+        messages=[{"role": "user", "content": user_message}],
+    )
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "refine_slide":
+            return block.input.get("refined_content")
+
+    return current_content  # Fallback
+
+
+def _critique_and_refine(
+    initial_analysis: Dict[str, Any],
+    original_brief_text: str,
+    stakeholder_key: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Stage 2: Claude læser sit eget udkast med kritisk blik og leverer en forbedret version.
+
+    Args:
+        initial_analysis: Output fra første Claude-kald
+        original_brief_text: Den oprindelige brief sælger gav (kontekst Claude skal huske)
+        stakeholder_key: For kontekst om tone
+
+    Returns:
+        Forbedret JSON i samme struktur som input
+    """
+    import json
+    client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
+
+    # Bygger user-message: brief + udkast
+    parts = [
+        "## SÆLGERS BRIEF (kontekst for kritikken)\n",
+        original_brief_text,
+        "\n\n## UDKAST DER SKAL KRITISERES OG FORBEDRES\n",
+        "```json",
+        json.dumps(initial_analysis, indent=2, ensure_ascii=False),
+        "```",
+        "\n\nLæs udkastet KRITISK og lever en forbedret version. Bevar hvad der er stærkt. Skarp det der er svagt. Returnér via `deliver_pitch_research`.",
+    ]
+    user_message = "\n".join(parts)
+
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=8000,
+        system=_CRITIQUE_SYSTEM_PROMPT,
+        tools=[ANALYSIS_TOOL],
+        tool_choice={"type": "tool", "name": "deliver_pitch_research"},
+        messages=[{"role": "user", "content": user_message}],
+    )
+
+    for block in response.content:
+        if block.type == "tool_use" and block.name == "deliver_pitch_research":
+            return block.input
+
+    # Fallback hvis critique fejler — returnér original
+    return initial_analysis
+
+
 # Kort service-oversigt (fallback hvis knowledge-base fejler).
 # Detaljerne ligger nu i knowledge/services/*.md
 EPICO_SERVICES = {
@@ -268,6 +410,62 @@ ANALYSIS_TOOL = {
         ],
     },
 }
+
+
+_CRITIQUE_SYSTEM_PROMPT = """Du er en KRITISK pitch-anmelder hos Epico — som en erfaren Procurement-direktør eller CIO der har set tusindvis af konsulenthus-pitches.
+
+Du modtager:
+1. Original sælger-brief (kontekst om kunden, stakeholder, fokus)
+2. Et udkast til pitch-research (JSON med facts, priorities, mappings, service-slides, case, next steps)
+
+Din opgave: Vurdér udkastet kritisk og lever en FORBEDRET version.
+
+## Kritiske checkpunkter
+
+For hver del af udkastet, spørg:
+
+**Research-facts (slide 4):**
+- Er hver fact konkret og verificerbar, eller generisk? ('Stor digital transformation' → blød. '$1.4B digital investering frem mod 2025' → konkret.)
+- Citerer vi kilden specifikt nok? ('Årsrapport' → blød. 'Årsrapport 2024, s. 12' → konkret.)
+- Bringer hver fact NYHEDSVÆRDI for kunden, eller er det noget de selv ved?
+
+**Strategic priorities (slide 5):**
+- Er hver prioritet specifik for DENNE stakeholder, eller kunne den genbruges på enhver kunde?
+- Læser den som noget kunden selv ville sige, eller som corporate-snak?
+- Kobler den til konkrete observationer fra årsrapport/web/brief?
+
+**Value mappings (slide 6):**
+- Er udfordringen formuleret konkret nok? (Ikke 'behov for IT-konsulenter', men 'akut behov for Oracle-DBA til S/4HANA-migration i Q3')
+- Differentierer løsningen Epico, eller kunne en anden leverandør sige det samme?
+- Hvis sælger har angivet konkurrent: skubber mapping mod hvorfor VI er bedre end DEM?
+
+**Service-slides:**
+- Er 'tagline' skarp og memorable, eller corporate?
+- Er bullets i 'what_we_deliver' konkrete eller generiske?
+- Matcher 'who_its_for' faktisk denne specifikke kundes situation?
+- Er 'relevant_partners' branche-relevante?
+
+**Case (slide 16):**
+- Er headline slagkraftig?
+- Er resultaterne kvantitative (tal, %, antal)?
+- Er case-branchen sammenlignelig med kundens?
+
+**Next steps (slide 17):**
+- Er hvert næste skridt EKSEKVERBART (konkret action, ikke 'tag en dialog')?
+- Matcher det stakeholder-typen? (Procurement → RFP. IT-leder → workshop.)
+- Er der en logisk progression (lille commitment → større)?
+
+## Generelle regler for forbedring
+
+- **Tal trumfer ord.** Hvis du kan udskifte et adjektiv med et tal, gør det.
+- **Specifik > generisk.** "Java-udvikler med Spring Boot 3.2 + Kubernetes" slår "senior backend-udvikler".
+- **Konsekvent tone.** Hvis stakeholder er Procurement, må ingen bullet falde tilbage til strategisk-CEO-tone.
+- **Drop fyld.** Hver bullet skal kunne forsvares som "dette ville sælgeren faktisk sige højt".
+- **Tjek eksklusioner.** Hvis sælger har skrevet 'undgå Nordea-reference' og du nævner Nordea — fjern det.
+
+Returnér en KOMPLET forbedret version i samme JSON-struktur som input. Behold det der var godt; forbedre kun det der ikke holder vand.
+
+Returnér ALTID via `deliver_pitch_research`-værktøjet."""
 
 
 _EMPHASIS_DESCRIPTIONS = {
@@ -613,9 +811,26 @@ def analyze_client(
         messages=[{"role": "user", "content": user_message}],
     )
 
-    # Uddrag tool_use blokken
+    # Uddrag tool_use blokken (Stage 1 — initial draft)
+    initial_analysis = None
     for block in response.content:
         if block.type == "tool_use" and block.name == "deliver_pitch_research":
-            return block.input
+            initial_analysis = block.input
+            break
 
-    raise RuntimeError("Claude returnerede ikke struktureret data via tool-use.")
+    if initial_analysis is None:
+        raise RuntimeError("Claude returnerede ikke struktureret data via tool-use.")
+
+    # Stage 2 — Self-critique og refinement
+    # Brug original user_message som "brief" så Claude kan sammenholde brief og udkast
+    try:
+        refined = _critique_and_refine(
+            initial_analysis=initial_analysis,
+            original_brief_text=user_message,
+            stakeholder_key=stakeholder_key,
+            api_key=api_key,
+        )
+        return refined
+    except Exception:
+        # Hvis critique fejler, fald tilbage til initial analyse
+        return initial_analysis
