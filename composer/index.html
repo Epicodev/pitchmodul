@@ -136,19 +136,11 @@
           </label>
         </div>
 
-        <div class="form-row form-row--2">
+        <div class="form-row">
           <label class="field">
             <span class="field-label">Eksklusioner <span class="hint">(hvad må vi IKKE tale om?)</span></span>
             <textarea name="exclusions" rows="3" placeholder='fx "Undgå at nævne Nordea direkte — konkurrentforhold. Tal heller ikke om deres aktiekurs."'></textarea>
-          </label>
-          <label class="field">
-            <span class="field-label">Tone i mødet</span>
-            <div class="radio-group">
-              <label class="radio"><input type="radio" name="tone" value="balanced" checked><span>Balanceret (anbefalet)</span></label>
-              <label class="radio"><input type="radio" name="tone" value="formal"><span>Formel &amp; strategisk</span></label>
-              <label class="radio"><input type="radio" name="tone" value="direct"><span>Direkte &amp; operationel</span></label>
-              <label class="radio"><input type="radio" name="tone" value="personal"><span>Personlig &amp; konsultativ</span></label>
-            </div>
+            <span class="field-hint">Stakeholder-typen styrer allerede tone (Procurement = TCO/SLA-sprog, IT-leder = teknisk dybde osv.) — så det behøver du ikke vælge særskilt.</span>
           </label>
         </div>
       </fieldset>
@@ -198,19 +190,6 @@
           </label>
         </div>
 
-        <div class="form-row">
-          <label class="field">
-            <span class="field-label">Læg ekstra vægt på <span class="hint">(valgfrit)</span></span>
-            <div class="radio-group">
-              <label class="radio"><input type="radio" name="emphasis" value="" checked><span>Balanceret (lad Claude bestemme)</span></label>
-              <label class="radio"><input type="radio" name="emphasis" value="speed"><span>Hastighed &amp; leveringskraft</span></label>
-              <label class="radio"><input type="radio" name="emphasis" value="expertise"><span>Specialisterfaring</span></label>
-              <label class="radio"><input type="radio" name="emphasis" value="cost"><span>Skalering uden vækst i fast lønsum</span></label>
-              <label class="radio"><input type="radio" name="emphasis" value="local"><span>Lokal/dansk kontekst</span></label>
-              <label class="radio"><input type="radio" name="emphasis" value="culture"><span>Match på kultur &amp; team-fit</span></label>
-            </div>
-          </label>
-        </div>
       </fieldset>
 
       <!-- SLIDE DICTATION (Lag 2) -->

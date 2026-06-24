@@ -198,13 +198,10 @@ async function runResearch(e) {
   const personalAngle = form.personal_angle.value.trim();
   const insiderInsights = form.insider_insights.value.trim();
   const exclusions = form.exclusions.value.trim();
-  const tone = form.querySelector('input[name="tone"]:checked')?.value || 'balanced';
 
   // Pitch-vinkel
   const pitchFocus = form.pitch_focus.value.trim();
   const servicesChecked = Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value);
-  const emphasisInput = form.querySelector('input[name="emphasis"]:checked');
-  const emphasis = emphasisInput ? emphasisInput.value : '';
 
   // Lag 2: Slide-for-slide dictation
   const dictWhyMeeting = form.dict_why_meeting.value.trim();
@@ -233,11 +230,9 @@ async function runResearch(e) {
     personal_angle: personalAngle,
     insider_insights: insiderInsights,
     exclusions: exclusions,
-    tone: tone,
     // Pitch-vinkel
     pitch_focus: pitchFocus,
     services_to_highlight: servicesChecked,
-    emphasis: emphasis,
     // Lag 2
     dict_why_meeting: dictWhyMeeting,
     dict_research_facts: dictResearchFacts,
@@ -274,11 +269,9 @@ async function runResearch(e) {
   if (personalAngle) formData.append('personal_angle', personalAngle);
   if (insiderInsights) formData.append('insider_insights', insiderInsights);
   if (exclusions) formData.append('exclusions', exclusions);
-  formData.append('tone', tone);
   // Pitch-vinkel
   if (pitchFocus) formData.append('pitch_focus', pitchFocus);
   if (servicesChecked.length) formData.append('services_to_highlight', servicesChecked.join(','));
-  if (emphasis) formData.append('emphasis', emphasis);
   // Lag 2
   if (dictWhyMeeting) formData.append('dict_why_meeting', dictWhyMeeting);
   if (dictResearchFacts) formData.append('dict_research_facts', dictResearchFacts);

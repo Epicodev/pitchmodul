@@ -5,6 +5,7 @@ til de 5 klient-specifikke slides i pitch decket.
 """
 import os
 import json
+import copy
 from typing import Optional, Dict, Any, List
 from anthropic import Anthropic
 
@@ -131,43 +132,273 @@ def refine_slide(
     return current_content  # Fallback
 
 
+_BRIEF_CONTRACT_TOOL = {
+    "name": "deliver_pitch_contract",
+    "description": "Returnér den eksplicitte pitch-kontrakt der binder Claude til sælgers intent.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "core_intent": {
+                "type": "string",
+                "description": "Én sætning (max 200 tegn): Hvad ER denne pitch egentlig om? Skriv det som om du forklarer pitchen til en kollega.",
+            },
+            "tone_directive": {
+                "type": "string",
+                "description": "Kort beskrivelse af tonen baseret på stakeholder + længde. Max 150 tegn. Eksempel: 'Procurement-tone: TCO, SLA, kontraktvilkår — drop strategisk/visionært sprog.'",
+            },
+            "must_include": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "3-5 punkter pitchen SKAL inkludere. Tag fra sælgers brief + de mest relevante datapunkter fra research.",
+                "minItems": 3,
+                "maxItems": 5,
+            },
+            "must_exclude": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "3-5 temaer pitchen SKAL undgå. Tag fra sælgers eksklusioner + temaer der ikke matcher stakeholder/længde/fokus (selv hvis interessante).",
+                "minItems": 3,
+                "maxItems": 5,
+            },
+            "research_priorities": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "3-5 specifikke fakta/observationer fra årsrapport, web search eller crawl der UNDERSTØTTER pitchen. Disse er de KUN ting Claude må trække fra det store research-materiale.",
+                "minItems": 3,
+                "maxItems": 5,
+            },
+            "next_steps_style": {
+                "type": "string",
+                "description": "1 sætning: Hvad slags næste skridt skal Claude foreslå? (RFP-svar, executive workshop, teknisk pilot, parallel-test, osv.) — baseret på stakeholder.",
+            },
+            "expected_slide_count": {
+                "type": "string",
+                "description": "Fx '8-10 slides' (kort), '13-15 slides' (medium), '20+ slides' (lang).",
+            },
+        },
+        "required": ["core_intent", "tone_directive", "must_include", "must_exclude", "research_priorities", "next_steps_style", "expected_slide_count"],
+    },
+}
+
+
+_BRIEF_CONTRACT_SYSTEM = """Du er Epico's pitch-strateg. Sælger har givet dig en masse input om en kunde og et møde. Din opgave NU er at producere en KONTRAKT der binder den kommende pitch til sælgers intent.
+
+Du skal IKKE generere pitch-indhold endnu. Du skal beslutte og kommunikere — på 300 ord — HVAD pitchen handler om, hvad den SKAL inkludere, hvad den IKKE må indeholde, og hvilke datapunkter fra det enorme research-materiale der er relevante.
+
+Tænk som en redaktør der briefer en journalist: "Her er rammerne. Hold dig inden for dem."
+
+Vigtige principper:
+- Sælgers brief vinder over årsrapport/web-data
+- Stakeholder-type styrer tone og næste-skridt
+- Pitch-længde styrer hvor mange detaljer der må med
+- Hvis sælger har angivet en konkurrent: pitchen handler om differentiering — ikke generisk salg
+- Hvis sælger har angivet eksklusioner: respektér dem ABSOLUT
+
+Returnér via `deliver_pitch_contract`-værktøjet."""
+
+
+def _build_pitch_contract(
+    client_name: str,
+    cvr_data: Optional[Dict[str, Any]] = None,
+    annual_report_text: Optional[str] = None,
+    website_text: Optional[str] = None,
+    web_intelligence: Optional[str] = None,
+    seller_brief: Optional[Dict[str, Optional[str]]] = None,
+    slide_dictation: Optional[Dict[str, Optional[str]]] = None,
+    pitch_focus: Optional[str] = None,
+    services_to_highlight: Optional[List[str]] = None,
+    stakeholder_key: Optional[str] = None,
+    pitch_length: Optional[str] = "medium",
+    api_key: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Stage 0: Generer eksplicit pitch-kontrakt FØR slides-generering.
+    Claude bindes til denne kontrakt i Stage 1 + Stage 2.
+    """
+    client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
+
+    parts = [f"# Kunde: {client_name}\n"]
+
+    # Sælgers brief (vigtigst)
+    if seller_brief and any(seller_brief.values()):
+        parts.append("## 🎯 SÆLGERS BRIEF (vigtigste input)\n")
+        if seller_brief.get("meeting_stakeholder"):
+            parts.append(f"**Stakeholder-type**: {seller_brief['meeting_stakeholder']}")
+        if seller_brief.get("meeting_stage"):
+            parts.append(f"**Mødestadie**: {seller_brief['meeting_stage']}")
+        for key, label in [
+            ("meeting_history", "Mødehistorik"),
+            ("personal_angle", "Personlig vinkel/stakeholder"),
+            ("insider_insights", "Insider-insights/konkurrent-situation"),
+            ("exclusions", "⚠️ EKSKLUSIONER (må IKKE nævnes)"),
+        ]:
+            if seller_brief.get(key):
+                parts.append(f"**{label}**: {seller_brief[key]}")
+        parts.append("")
+
+    # Pitch-vinkel + længde
+    parts.append("## Pitch-direktiver\n")
+    parts.append(f"**Pitch-længde**: {pitch_length} ({_short_length_label(pitch_length)})")
+    if pitch_focus:
+        parts.append(f"**Pitch-fokus**: {pitch_focus}")
+    if services_to_highlight:
+        parts.append(f"**Services at fremhæve**: {', '.join(services_to_highlight)}")
+    parts.append("")
+
+    # Slide-dictation (tvinger specifikt indhold)
+    if slide_dictation and any(slide_dictation.values()):
+        parts.append("## Slide-dictation (specifikt indhold sælger har skrevet)\n")
+        for k, v in slide_dictation.items():
+            if v:
+                parts.append(f"- {k}: {v[:200]}")
+        parts.append("")
+
+    # CVR
+    if cvr_data:
+        parts.append("## CVR-data (offentlig baggrund)\n")
+        parts.append(f"- Branche: {cvr_data.get('industry_desc', '—')}")
+        parts.append(f"- Ansatte: {cvr_data.get('employees', '—')}")
+        parts.append(f"- Hjemmeside: {cvr_data.get('website', '—')}")
+        parts.append("")
+
+    # Research-materiale (FOR Claude at vælge fra — Claude vælger 3-5 prioriteter)
+    if annual_report_text:
+        excerpt = annual_report_text[:30000]  # Halvér ift Stage 1 — kontrakten skal være hurtig
+        parts.append("## Årsrapport (uddrag — vælg de mest relevante fakta)\n")
+        parts.append(excerpt)
+        parts.append("")
+
+    if web_intelligence:
+        parts.append("## Web search-resultater (aktuelle nyheder)\n")
+        parts.append(web_intelligence[:8000])
+        parts.append("")
+
+    if website_text:
+        parts.append("## Hjemmeside (kuratede sider)\n")
+        parts.append(website_text[:8000])
+        parts.append("")
+
+    parts.append("---")
+    parts.append("Producer pitch-kontrakten via `deliver_pitch_contract`-værktøjet. Vær KONKRET og SPECIFIK — ingen vage formuleringer.")
+
+    user_message = "\n".join(parts)
+
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=2000,
+            system=_BRIEF_CONTRACT_SYSTEM,
+            tools=[_BRIEF_CONTRACT_TOOL],
+            tool_choice={"type": "tool", "name": "deliver_pitch_contract"},
+            messages=[{"role": "user", "content": user_message}],
+        )
+
+        for block in response.content:
+            if block.type == "tool_use" and block.name == "deliver_pitch_contract":
+                return block.input
+    except Exception:
+        return None
+
+    return None
+
+
+def _short_length_label(pitch_length: Optional[str]) -> str:
+    return {
+        "short": "8-10 slides, max 80 tegn pr bullet",
+        "medium": "13-15 slides, normal dybde",
+        "long": "20+ slides, maks dybde",
+    }.get(pitch_length or "medium", "13-15 slides")
+
+
+def _format_contract_for_prompt(contract: Dict[str, Any]) -> str:
+    """Format pitch-kontrakten som en kompakt prompt-blok."""
+    if not contract:
+        return ""
+    parts = [
+        "## 🔒 AUTORITATIV PITCH-KONTRAKT (denne trumfer alt andet)",
+        "",
+        f"**Kerne-intent**: {contract.get('core_intent', '')}",
+        f"**Tone**: {contract.get('tone_directive', '')}",
+        f"**Slide-antal**: {contract.get('expected_slide_count', '')}",
+        f"**Næste skridt-stil**: {contract.get('next_steps_style', '')}",
+        "",
+        "**SKAL inkluderes:**",
+    ]
+    for item in contract.get("must_include", []):
+        parts.append(f"- {item}")
+    parts.append("\n**SKAL UNDGÅS:**")
+    for item in contract.get("must_exclude", []):
+        parts.append(f"- {item}")
+    parts.append("\n**Research-prioriteter** (de eneste fakta fra research-materialet du må trække fra):")
+    for item in contract.get("research_priorities", []):
+        parts.append(f"- {item}")
+    parts.append("\nDu SKAL respektere kontrakten i alt output.")
+    return "\n".join(parts)
+
+
 def _critique_and_refine(
     initial_analysis: Dict[str, Any],
     original_brief_text: str,
     stakeholder_key: Optional[str] = None,
+    pitch_contract: Optional[Dict[str, Any]] = None,
+    pitch_length: Optional[str] = "medium",
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Stage 2: Claude læser sit eget udkast med kritisk blik og leverer en forbedret version.
+    Stage 2: Claude læser sit eget udkast med kritisk blik MOD pitch-kontrakten
+    og leverer en forbedret version. Kontrakten trumfer Claude's egne præferencer.
 
     Args:
         initial_analysis: Output fra første Claude-kald
-        original_brief_text: Den oprindelige brief sælger gav (kontekst Claude skal huske)
-        stakeholder_key: For kontekst om tone
+        original_brief_text: Den oprindelige brief sælger gav
+        stakeholder_key: For tone-tilpasning
+        pitch_contract: Stage 0-kontrakt — autoritativ
+        pitch_length: For dynamisk schema
 
     Returns:
         Forbedret JSON i samme struktur som input
     """
-    import json
     client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
 
-    # Bygger user-message: brief + udkast
-    parts = [
-        "## SÆLGERS BRIEF (kontekst for kritikken)\n",
-        original_brief_text,
-        "\n\n## UDKAST DER SKAL KRITISERES OG FORBEDRES\n",
-        "```json",
-        json.dumps(initial_analysis, indent=2, ensure_ascii=False),
-        "```",
-        "\n\nLæs udkastet KRITISK og lever en forbedret version. Bevar hvad der er stærkt. Skarp det der er svagt. Returnér via `deliver_pitch_research`.",
-    ]
+    contract_block = _format_contract_for_prompt(pitch_contract) if pitch_contract else ""
+
+    # Bygger user-message: kontrakt + udkast
+    parts = []
+    if contract_block:
+        parts.append(contract_block)
+        parts.append("\n---\n")
+
+    parts.append("## UDKAST DER SKAL TJEKKES MOD KONTRAKTEN OG FORBEDRES\n")
+    parts.append("```json")
+    parts.append(json.dumps(initial_analysis, indent=2, ensure_ascii=False))
+    parts.append("```")
+
+    parts.append("""
+## DIN OPGAVE
+
+Læs udkastet IGENNEM mod kontrakten. Tjek SPECIFIKT:
+
+1. **Slide-antal**: Matcher service_slides + andre arrays kontraktens 'expected_slide_count'?
+2. **Tone**: Er hver bullet i den tone kontrakten beskriver?
+3. **MUST_INCLUDE**: Er hver punkt fra kontrakten dækket et sted i pitchen?
+4. **MUST_EXCLUDE**: Er nogen af de forbudte temaer sneget med ind?
+5. **Research-prioriteter**: Bruger pitchen KUN de research-prioriteter kontrakten godkendte?
+6. **Næste skridt**: Matcher de kontraktens 'next_steps_style'?
+
+Hvis du finder problemer — TILBAGE-RUL. Kontraktens vilje trumfer dine egne præferencer for hvad der er pitch-mæssigt 'pænt'.
+
+Returnér forbedret JSON via `deliver_pitch_research`.""")
+
     user_message = "\n".join(parts)
+
+    # Brug samme dynamiske schema som Stage 1 — pitch_length skal respekteres
+    analysis_tool = _build_analysis_tool(pitch_length or "medium")
 
     response = client.messages.create(
         model=MODEL,
         max_tokens=8000,
         system=_CRITIQUE_SYSTEM_PROMPT,
-        tools=[ANALYSIS_TOOL],
+        tools=[analysis_tool],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},
         messages=[{"role": "user", "content": user_message}],
     )
@@ -190,6 +421,74 @@ EPICO_SERVICES = {
     "Epico Public": "Specialister via SKI 02.06, 02.14, 02.17 til offentlig sektor.",
     "Epico Solution": "CoE-baseret leveringsmodel — RUN & BUILD. Komplette IT-løsninger med kunde-ejet arkitektur.",
 }
+
+
+# Schema-størrelser pr pitch-længde
+# Kort = færre items, lang = flere — Claude tvinges fysisk til at respektere længden
+_SCHEMA_SIZES = {
+    "short": {
+        "facts": (2, 3), "priorities": (2, 3), "mappings": (2, 3),
+        "services": (1, 2), "what_we_deliver": (3, 4), "key_stats": (2, 3),
+        "who_its_for": (2, 3), "case_bullets": (2, 3), "next_steps": (2, 3),
+    },
+    "medium": {
+        "facts": (4, 4), "priorities": (3, 3), "mappings": (4, 4),
+        "services": (1, 4), "what_we_deliver": (4, 5), "key_stats": (3, 3),
+        "who_its_for": (3, 3), "case_bullets": (3, 3), "next_steps": (3, 3),
+    },
+    "long": {
+        "facts": (4, 5), "priorities": (3, 4), "mappings": (4, 5),
+        "services": (1, 6), "what_we_deliver": (5, 6), "key_stats": (3, 4),
+        "who_its_for": (3, 4), "case_bullets": (3, 4), "next_steps": (3, 4),
+    },
+}
+
+
+def _build_analysis_tool(pitch_length: str = "medium") -> Dict[str, Any]:
+    """Generer schema dynamisk baseret på pitch_length så Claude TVINGES til
+    at respektere antal items (kort = færre, lang = flere)."""
+    sizes = _SCHEMA_SIZES.get(pitch_length, _SCHEMA_SIZES["medium"])
+    fmin, fmax = sizes["facts"]
+    pmin, pmax = sizes["priorities"]
+    mmin, mmax = sizes["mappings"]
+    smin, smax = sizes["services"]
+    wmin, wmax = sizes["what_we_deliver"]
+    ksmin, ksmax = sizes["key_stats"]
+    womin, womax = sizes["who_its_for"]
+    cbmin, cbmax = sizes["case_bullets"]
+    nsmin, nsmax = sizes["next_steps"]
+
+    tool = json.loads(json.dumps(ANALYSIS_TOOL))  # deep copy
+    props = tool["input_schema"]["properties"]
+
+    props["research_facts"]["minItems"] = fmin
+    props["research_facts"]["maxItems"] = fmax
+    props["strategic_priorities"]["minItems"] = pmin
+    props["strategic_priorities"]["maxItems"] = pmax
+    props["value_mappings"]["minItems"] = mmin
+    props["value_mappings"]["maxItems"] = mmax
+    props["service_slides"]["minItems"] = smin
+    props["service_slides"]["maxItems"] = smax
+    props["next_steps"]["minItems"] = nsmin
+    props["next_steps"]["maxItems"] = nsmax
+
+    # Service-slide indre arrays
+    sprops = props["service_slides"]["items"]["properties"]
+    sprops["what_we_deliver"]["minItems"] = wmin
+    sprops["what_we_deliver"]["maxItems"] = wmax
+    sprops["key_stats"]["minItems"] = ksmin
+    sprops["key_stats"]["maxItems"] = ksmax
+    sprops["who_its_for"]["minItems"] = womin
+    sprops["who_its_for"]["maxItems"] = womax
+
+    # Case-bullets
+    cprops = props["case_recommendation"]["properties"]
+    for key in ("what", "why", "result", "value"):
+        if key in cprops:
+            cprops[key]["minItems"] = cbmin
+            cprops[key]["maxItems"] = cbmax
+
+    return tool
 
 
 # Tool schema som Claude skal returnere data i
@@ -415,10 +714,12 @@ ANALYSIS_TOOL = {
 _CRITIQUE_SYSTEM_PROMPT = """Du er en KRITISK pitch-anmelder hos Epico — som en erfaren Procurement-direktør eller CIO der har set tusindvis af konsulenthus-pitches.
 
 Du modtager:
-1. Original sælger-brief (kontekst om kunden, stakeholder, fokus)
+1. En **AUTORITATIV PITCH-KONTRAKT** der definerer hvad pitchen SKAL og IKKE må indeholde
 2. Et udkast til pitch-research (JSON med facts, priorities, mappings, service-slides, case, next steps)
 
-Din opgave: Vurdér udkastet kritisk og lever en FORBEDRET version.
+Din opgave: Tjek udkastet MOD kontrakten og lever en forbedret version der respekterer kontrakten 100%.
+
+**KONTRAKTEN TRUMFER ALT.** Hvis du synes pitchen kunne være "pænere" på en måde der bryder kontrakten — så lad være. Sælgers intent vinder over din egen smag.
 
 ## Kritiske checkpunkter
 
@@ -747,8 +1048,33 @@ def analyze_client(
     """
     client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
 
+    # ===== STAGE 0: Pitch-kontrakt =====
+    # Claude læser ALT input og producerer en kompakt kontrakt der binder
+    # Stage 1 + Stage 2 til sælgers intent. Kontrakten trumfer alle andre signals.
+    pitch_contract = _build_pitch_contract(
+        client_name=client_name,
+        cvr_data=cvr_data,
+        annual_report_text=annual_report_text,
+        website_text=website_text,
+        web_intelligence=web_intelligence,
+        seller_brief=seller_brief,
+        slide_dictation=slide_dictation,
+        pitch_focus=pitch_focus,
+        services_to_highlight=services_to_highlight,
+        stakeholder_key=stakeholder_key,
+        pitch_length=pitch_length,
+        api_key=api_key,
+    )
+    contract_block = _format_contract_for_prompt(pitch_contract) if pitch_contract else ""
+
+    # ===== STAGE 1: Initial draft =====
     # Byg user message med al kontekst
     parts = [f"# Kunde: {client_name}\n"]
+
+    # Pitch-kontrakt ØVERST i Stage 1
+    if contract_block:
+        parts.append(contract_block)
+        parts.append("\n---\n")
 
     # SÆLGERS BRIEF kommer FØRST (højeste prioritet, før årsrapport)
     if seller_brief and any(seller_brief.values()):
@@ -838,6 +1164,7 @@ def analyze_client(
 
     user_message = "\n".join(parts)
 
+    analysis_tool = _build_analysis_tool(pitch_length or "medium")
     response = client.messages.create(
         model=MODEL,
         max_tokens=8000,
@@ -850,7 +1177,7 @@ def analyze_client(
             stakeholder_key=stakeholder_key,
             pitch_length=pitch_length,
         ),
-        tools=[ANALYSIS_TOOL],
+        tools=[analysis_tool],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},
         messages=[{"role": "user", "content": user_message}],
     )
@@ -866,12 +1193,14 @@ def analyze_client(
         raise RuntimeError("Claude returnerede ikke struktureret data via tool-use.")
 
     # Stage 2 — Self-critique og refinement
-    # Brug original user_message som "brief" så Claude kan sammenholde brief og udkast
+    # Send pitch-kontrakten med så critique kan tjekke om Stage 1 respekterede den
     try:
         refined = _critique_and_refine(
             initial_analysis=initial_analysis,
             original_brief_text=user_message,
             stakeholder_key=stakeholder_key,
+            pitch_contract=pitch_contract,
+            pitch_length=pitch_length,
             api_key=api_key,
         )
         return refined
