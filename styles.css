@@ -515,7 +515,7 @@ html, body {
 
 /* FULL CONTENT */
 .layout-full {
-  padding: 200px var(--pad-section-x) var(--pad-section-y);
+  padding: 168px var(--pad-section-x) 72px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -787,6 +787,57 @@ html, body {
   max-width: 1600px;
 }
 
+/* Overskrifter skal være læsbare på mørk og rød baggrund */
+.slide--dark .lib-heading,
+.slide--red .lib-heading,
+.slide--dark .h1,
+.slide--red .h1,
+.slide--dark .h2,
+.slide--red .h2 {
+  color: white;
+}
+
+/* ---------- VERTIKAL BALANCE ----------
+   Indholdsblokke strækker sig ned i den ledige plads i stedet for at
+   klumpe sig i toppen. Uden dette står halvdelen af sliden tom. */
+.layout-full > .lib-cards,
+.layout-full > .lib-service-body,
+.layout-full > .competences-grid,
+.layout-full > .stats-hero,
+.layout-full > .lib-two-col,
+.layout-full > .services-overview-grid,
+.layout-full > .solution-concepts-grid,
+.layout-full > .research-grid,
+.layout-full > .priority-list,
+.layout-full > .steps-grid,
+.layout-full > .case-grid,
+.layout-full > .dna-grid,
+.layout-full > .service-process-grid {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Bullet-lister fordeles jævnt i den ledige højde */
+.layout-full > .lib-bullets,
+.layout-full > .facts-list,
+.layout-full > .agenda-list {
+  flex: 1;
+  justify-content: center;
+  gap: 28px;
+}
+
+/* Efter en stats-række skal bullets ikke spredes ud i hele resthøjden */
+.lib-stats-row + .lib-bullets {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  margin-top: 40px;
+}
+
+.layout-full > .mapping {
+  flex: 1;
+  align-content: space-evenly;
+}
+
 .lib-subheading {
   font-family: var(--font-body);
   font-size: 22px;
@@ -854,9 +905,11 @@ html, body {
 /* ---------- STATS ROW (vandret) ---------- */
 .lib-stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 0.5fr));
+  justify-content: start;
   gap: var(--gap-mosaic);
   margin-top: 48px;
+  flex: 0 0 auto;
 }
 
 .lib-stat {
@@ -911,7 +964,7 @@ html, body {
   flex-direction: column;
   gap: 14px;
   min-height: 260px;
-  border-top: 3px solid transparent;
+  border-top: 4px solid var(--red);
   transition: border-top-color 0.2s;
 }
 
@@ -986,11 +1039,26 @@ html, body {
   min-height: 400px;
   display: flex;
   flex-direction: column;
+  border-top: 4px solid var(--red);
 }
 
 .lib-service-col--stats {
   background: var(--black-currant);
   color: white;
+  border-top-color: var(--kiwi);
+}
+
+/* Alle tre kolonner starter indholdet lige under labelen */
+.lib-service-col .service-bullets {
+  flex: 1;
+  justify-content: flex-start;
+  gap: 22px;
+}
+
+.lib-service-col .service-stats {
+  flex: 1;
+  justify-content: flex-start;
+  gap: 34px;
 }
 
 .lib-service-col .col-head {
@@ -1148,6 +1216,7 @@ html, body {
 
 .competence-card {
   background: var(--white);
+  border-top: 4px solid var(--red);
   padding: 40px 28px 32px;
   display: flex;
   flex-direction: column;
@@ -1891,19 +1960,20 @@ html, body {
 /* STATS HERO GRID */
 .stats-hero {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--gap-mosaic);
-  margin-top: 80px;
+  margin-top: 56px;
 }
 
 .stats-hero .stat {
   background: rgba(255,255,255,0.04);
-  border-left: 2px solid var(--kiwi);
-  padding: 40px 32px;
-  min-height: 220px;
+  border-left: 3px solid var(--kiwi);
+  padding: 48px 28px;
+  min-height: 260px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 16px;
 }
 
 .stats-hero .stat:nth-child(2n) { border-left-color: var(--raspberry); }
@@ -1911,14 +1981,20 @@ html, body {
 
 .stats-hero .stat-number {
   color: var(--white);
-  font-size: 64px;
+  font-size: 58px;
+  line-height: 0.95;
+  white-space: nowrap;
 }
 
+/* Færre tal → større tal */
+.stats-hero:has(.stat:nth-child(-n+3):last-child) .stat-number { font-size: 76px; }
+.stats-hero:has(.stat:nth-child(4):last-child) .stat-number { font-size: 66px; }
+
 .stats-hero .stat-label {
-  font-size: 14px;
+  font-size: 16px;
   color: rgba(255,255,255,0.65);
   letter-spacing: var(--kern-medium);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 /* CONTACT slide */
