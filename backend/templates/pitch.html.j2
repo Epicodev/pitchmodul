@@ -10,8 +10,12 @@
 <body>
 <div class="deck" id="deck">
 
-{# ============ SLIDE 1 — COVER ============ #}
-<section class="slide slide--dark" data-slide="1">
+{# ============================================================
+   DEL 1 — KUNDE-SLIDES (AI-genereret, unikke pr. pitch)
+   ============================================================ #}
+
+{# ---------- COVER ---------- #}
+<section class="slide slide--dark" data-slide="cover">
   <div class="layout-cover">
     <div class="cover-meta">
       <div style="display:flex;align-items:center;gap:20px;">
@@ -41,8 +45,8 @@
   </div>
 </section>
 
-{# ============ SLIDE 2 — AGENDA ============ #}
-<section class="slide" data-slide="3">
+{# ---------- AGENDA ---------- #}
+<section class="slide" data-slide="agenda">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
     <div class="wordmark">Epico</div>
@@ -51,22 +55,22 @@
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Sådan bruger vi de næste 45 minutter</span>
+    <span class="eyebrow">Sådan bruger vi tiden</span>
     <h2 class="h1" style="margin-bottom:48px;max-width:1400px;">Agenda</h2>
 
     <div class="agenda-list">
-      <div class="agenda-item"><span class="num">01</span><span class="label">Vores research om {{ client.name }}</span><span class="duration">8 min</span></div>
-      <div class="agenda-item"><span class="num">02</span><span class="label">Jeres strategiske prioriteter — sådan som vi læser dem</span><span class="duration">10 min</span></div>
-      <div class="agenda-item"><span class="num">03</span><span class="label">Hvor Epico kan flytte nålen for jer</span><span class="duration">10 min</span></div>
-      <div class="agenda-item"><span class="num">04</span><span class="label">Hvem vi er, og hvad vi leverer</span><span class="duration">10 min</span></div>
-      <div class="agenda-item"><span class="num">05</span><span class="label">Næste skridt — hvis vi er enige</span><span class="duration">7 min</span></div>
+      <div class="agenda-item"><span class="num">01</span><span class="label">Vores research om {{ client.name }}</span><span class="duration">{{ agenda_timings[0] }}</span></div>
+      <div class="agenda-item"><span class="num">02</span><span class="label">Jeres strategiske prioriteter — sådan som vi læser dem</span><span class="duration">{{ agenda_timings[1] }}</span></div>
+      <div class="agenda-item"><span class="num">03</span><span class="label">Hvor Epico kan flytte nålen for jer</span><span class="duration">{{ agenda_timings[2] }}</span></div>
+      <div class="agenda-item"><span class="num">04</span><span class="label">Hvem vi er, og hvad vi leverer</span><span class="duration">{{ agenda_timings[3] }}</span></div>
+      <div class="agenda-item"><span class="num">05</span><span class="label">Næste skridt — hvis vi er enige</span><span class="duration">{{ agenda_timings[4] }}</span></div>
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>03 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Epico × {{ client.name }}</div>
 </section>
 
-{# ============ SLIDE 4 — RESEARCH FACTS ============ #}
+{# ---------- RESEARCH FACTS ---------- #}
 <section class="slide" data-slide="4">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -90,10 +94,10 @@
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>04 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Research</div>
 </section>
 
-{# ============ SLIDE 5 — STRATEGISKE PRIORITETER ============ #}
+{# ---------- STRATEGISKE PRIORITETER ---------- #}
 <section class="slide" data-slide="5">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -104,7 +108,7 @@
 
   <div class="layout-full">
     <span class="eyebrow">Sådan læser vi jeres retning</span>
-    <h2 class="h1" style="max-width:1600px;">3 strategiske prioriteter <span class="accent">vi vil tale ind i.</span></h2>
+    <h2 class="h1" style="max-width:1600px;">{{ strategic_priorities|length }} strategiske prioriteter <span class="accent">vi vil tale ind i.</span></h2>
 
     <div class="priority-list">
       {% for p in strategic_priorities %}
@@ -119,10 +123,10 @@
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>05 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Jeres prioriteter</div>
 </section>
 
-{# ============ SLIDE 6 — VALUE MAPPING ============ #}
+{# ---------- VALUE MAPPING ---------- #}
 <section class="slide" data-slide="6">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -150,12 +154,18 @@
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>06 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Udfordring → løsning</div>
 </section>
 
-{# ============ SLIDE 7 — DIVIDER: DETTE ER EPICO (toggle-bar) ============ #}
-{% if 'epico_intro_chapter' in included_slides %}
-<section class="slide slide--dark" data-slide="7">
+{# ============================================================
+   DEL 2 — SLIDE-BIBLIOTEK (statisk Epico-indhold)
+   Filtreret på pitch-længde + valgte services.
+   Redigeres af marketing i backend/slide_library/*.md
+   ============================================================ #}
+
+{% if library_slides and pitch_length != 'short' %}
+{# Kapitel-divider — droppes ved kort pitch for at spare tid #}
+<section class="slide slide--dark" data-slide="chapter-epico">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
     <div class="wordmark">Epico</div>
@@ -169,532 +179,20 @@
     <h2 class="divider-title">Dette er <span class="accent">Epico.</span></h2>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>07 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Dette er Epico</div>
 </section>
 {% endif %}
 
-{# ============ SLIDE 8 — EPICO I TAL (toggle-bar) ============ #}
-{% if 'epico_stats' in included_slides %}
-<section class="slide slide--dark" data-slide="8">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Epico i tal</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">2025</span>
-    <h2 class="h1" style="color:white;max-width:1600px;">Et af Nordens største <span class="accent">IT-konsulenthuse.</span></h2>
-
-    <div class="stats-hero">
-      <div class="stat"><div class="stat-number">+700<span class="unit"> mio.</span></div><div class="stat-label">DKK i omsætning · 2024</div></div>
-      <div class="stat"><div class="stat-number">+600</div><div class="stat-label">Konsulenter på kontrakt globalt</div></div>
-      <div class="stat"><div class="stat-number">+6000</div><div class="stat-label">CV'er i database</div></div>
-      <div class="stat"><div class="stat-number">12</div><div class="stat-label">Lande med Epico-konsulenter</div></div>
-      <div class="stat"><div class="stat-number">2009</div><div class="stat-label">Året vi blev grundlagt</div></div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>08 / 18</div>
-</section>
-{% endif %}
-
-{# ============ SLIDE 9 — DK's IT-MARKED (toggle-bar) ============ #}
-{% if 'it_market' in included_slides %}
-<section class="slide" data-slide="9">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Markedet</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Hvorfor I ikke står alene med problemet</span>
-    <h2 class="h1" style="max-width:1600px;">DK's IT-marked <span class="accent">i tal.</span></h2>
-
-    <div class="facts-list">
-      <div class="fact-row"><span class="fact-figure">200.000</span><span class="fact-text">IT-specialister vil DK mangle <strong>i 2030</strong>.</span></div>
-      <div class="fact-row"><span class="fact-figure">4 af 5</span><span class="fact-text">virksomheder har <strong>problemer med at rekruttere</strong> IT-specialister.</span></div>
-      <div class="fact-row"><span class="fact-figure">92%</span><span class="fact-text">af virksomhederne <strong>mangler kvalificerede ansøgere</strong> med relevante IT-kvalifikationer.</span></div>
-      <div class="fact-row"><span class="fact-figure">71,4%</span><span class="fact-text">af danske IT-leverandører ser kompetencemangel som <strong>den største vækstbarriere</strong>.</span></div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>09 / 18</div>
-</section>
-{% endif %}
-
-{# ============ SLIDE 10 — VORES DNA (toggle-bar) ============ #}
-{% if 'epico_dna' in included_slides %}
-<section class="slide" data-slide="10">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Vores DNA</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Det vi måles på — hver dag</span>
-    <h2 class="h1" style="max-width:1500px;">Fire ting, vi <span class="accent">ikke går på kompromis med.</span></h2>
-
-    <div class="dna-grid">
-      <div class="dna-tile"><div class="dna-num">01</div><div class="dna-title">Hastighed</div><div class="dna-body">Vi leverer typisk relevante CV'er inden for 48 timer. Vi har et globalt netværk, der allerede er screenet.</div></div>
-      <div class="dna-tile"><div class="dna-num">02</div><div class="dna-title">Det rette match</div><div class="dna-body">Kvalifikationer alene løser ikke et projekt. Vi matcher også på kultur, kommunikation og tempo.</div></div>
-      <div class="dna-tile"><div class="dna-num">03</div><div class="dna-title">Personlig relation</div><div class="dna-body">I får én dedikeret Key Account Manager og én Resource Manager. Ikke et ticket-system.</div></div>
-      <div class="dna-tile"><div class="dna-num">04</div><div class="dna-title">Ekspertise</div><div class="dna-body">+12 års dyb branche-erfaring inden for IT-konsulenthus. Vi forstår både teknologien og forretningen.</div></div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>10 / 18</div>
-</section>
-{% endif %}
-
-{# ============ SLIDE 11 — DIVIDER: DET VI LEVERER (toggle-bar) ============ #}
-{% if 'services_chapter' in included_slides %}
-<section class="slide slide--red" data-slide="11">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Kapitel 03</div>
-  </div>
-
-  <div class="layout-divider">
-    <div class="divider-num" style="color:rgba(255,255,255,0.1);">03</div>
-    <div class="divider-tag" style="color:white;">Kapitel 03</div>
-    <h2 class="divider-title">Det vi <span style="color:rgba(255,255,255,0.55);">leverer.</span></h2>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>11 / 18</div>
-</section>
-{% endif %}
-
-{# ============ SERVICES OVERVIEW — alle 7 i mosaic ============ #}
-{% if 'services_overview' in included_slides %}
-<section class="slide" data-slide="services-overview">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Services overblik</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Alle vores services — én leverandør</span>
-    <h2 class="h1" style="max-width:1700px;">Vi finder de rette <span class="accent">IT-kompetencer.</span></h2>
-    <p class="body-lg" style="font-size:20px;color:var(--light-grey);margin-top:16px;max-width:1100px;">Uanset om I har brug for en hurtig konsulent, et nyuddannet talent, en CISO til fast ansættelse eller et helt CoE-setup — vi har servicen.</p>
-
-    <div class="services-overview-grid services-overview-grid--6">
-      <div class="service-overview-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">Freelance</div>
-        <div class="overview-desc">Erfarne IT-konsulenter på 48 timer — uden binding.</div>
-        <div class="overview-meta">+500 på kontrakt · +13.000 CV'er</div>
-      </div>
-      <div class="service-overview-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">Projektansættelser</div>
-        <div class="overview-desc">Try-before-hire — test før I forpligter jer.</div>
-        <div class="overview-meta">6 mdr prøveperiode · Ingen rekrutteringsfee</div>
-      </div>
-      <div class="service-overview-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">NextGen</div>
-        <div class="overview-desc">Nyuddannet IT-talent (0-5 år). Try-before-hire.</div>
-        <div class="overview-meta">+1.500 aktive profiler · 91% bliver</div>
-      </div>
-      <div class="service-overview-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">Search</div>
-        <div class="overview-desc">Headhunting til faste stillinger. 6 mdr garanti.</div>
-        <div class="overview-meta">+3.100 hires · 100% hitrate</div>
-      </div>
-      <div class="service-overview-tile">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">Public</div>
-        <div class="overview-desc">Specialister via SKI-rammeaftaler til offentlig sektor.</div>
-        <div class="overview-meta">SKI 02.06 · 02.14 · 02.17</div>
-      </div>
-      <div class="service-overview-tile service-overview-tile--accent">
-        <div class="tile-mark"><div class="e-tile"><span></span><span></span><span></span></div></div>
-        <div class="overview-name">Solution</div>
-        <div class="overview-desc">CoE-styret leverance. RUN &amp; BUILD med kunde-ejerskab.</div>
-        <div class="overview-meta">Open Framework · Ejerskab hos jer</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>Alle services</div>
-</section>
-{% endif %}
-
-{# ============ DYNAMISKE SERVICE-SLIDES (1 pr service) ============ #}
-{% for s in service_slides %}
-{% set service_idx = loop.index %}
-{% set service_total = service_slides|length %}
-<section class="slide" data-slide="service-{{ service_idx }}">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">{{ s.service_name|replace('Epico ', '') }}</div>
-  </div>
-
-  <div class="layout-full">
-    <div class="service-hero">
-      <span class="eyebrow">Service {{ '%02d' % service_idx }} / {{ '%02d' % service_total }}</span>
-      <h2 class="h1 service-h1">{{ s.service_name }}.</h2>
-      <p class="service-tagline">{{ s.tagline }}</p>
-    </div>
-
-    <div class="service-body">
-      <div class="service-col">
-        <div class="col-head">Hvad I får</div>
-        <ul class="service-bullets">
-          {% for item in s.what_we_deliver %}<li>{{ item }}</li>{% endfor %}
-        </ul>
-      </div>
-
-      <div class="service-col service-col--stats">
-        <div class="col-head">Nøgletal</div>
-        <div class="service-stats">
-          {% for stat in s.key_stats %}
-          <div class="service-stat">
-            <div class="service-stat-value">{{ stat.value }}</div>
-            <div class="service-stat-label">{{ stat.label }}</div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="service-col">
-        <div class="col-head">Hvornår det er det rigtige valg</div>
-        <ul class="service-bullets service-bullets--accent">
-          {% for item in s.who_its_for %}<li>{{ item }}</li>{% endfor %}
-        </ul>
-      </div>
-    </div>
-
-    <div class="service-footer-meta">
-      <div class="footer-row">
-        <span class="footer-label">Typiske roller</span>
-        <span class="footer-value">{{ s.typical_roles }}</span>
-      </div>
-      <div class="footer-row">
-        <span class="footer-label">Strategiske partnere</span>
-        <span class="footer-value">{{ s.relevant_partners }}</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }}</div>
-</section>
-
-{% if s.process_steps and s.process_steps|length > 0 %}
-{# Process-detail slide — kun for services hvor process er en kerne-del af value-prop #}
-<section class="slide" data-slide="service-{{ service_idx }}-process">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">{{ s.service_name|replace('Epico ', '') }} · Proces</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Sådan ser et samarbejde ud</span>
-    <h2 class="h1" style="max-width:1600px;">{{ s.service_name }} <span class="accent">— fra A til Z.</span></h2>
-
-    <div class="service-process-grid">
-      {% for step in s.process_steps %}
-      <div class="process-step-card">
-        <div class="step-num-large">{{ '%02d' % loop.index }}</div>
-        <div class="step-label">{{ step|replace('%02d ' % loop.index, '')|replace('%d ' % loop.index, '') }}</div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>{{ s.service_name }} · Proces</div>
-</section>
-{% endif %}
-
-{# Hvis Solution: tilføj ekstra slide med 4 leverance-koncepter #}
-{% if s.service_name == "Epico Solution" %}
-<section class="slide" data-slide="service-{{ service_idx }}-concepts">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Solution · Leverance-koncepter</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Hvad I kan benytte gennem Solution</span>
-    <h2 class="h1" style="max-width:1700px;">Fire måder vi <span class="accent">leverer på.</span></h2>
-
-    <div class="solution-concepts-grid">
-      <div class="concept-card concept-card--teal">
-        <div class="concept-num">01</div>
-        <div class="concept-name">Standard konsulent-leverance</div>
-        <ul>
-          <li>Vi identificerer, screener og leverer enhver IT-kompetence I har brug for</li>
-          <li>Konkurrencedygtige priser</li>
-          <li>Eksempler: udviklere, testere, infrastruktur-arkitekter, projektledere</li>
-          <li>Strømlinet hiring-proces — fra request til kontrakt på 7-14 dage</li>
-          <li>Loyale konsulenter — typisk længere kontraktlængder</li>
-        </ul>
-      </div>
-      <div class="concept-card concept-card--red">
-        <div class="concept-num">02</div>
-        <div class="concept-name">Specialist-teams</div>
-        <ul>
-          <li>Levering af komplette teams (udviklere, ops, business consultants)</li>
-          <li>Konkurrencedygtige priser — også nearshore via Warszawa</li>
-          <li>Loyale konsulenter med opfølgning</li>
-          <li>Dedikeret team-leder som jeres kontaktperson</li>
-          <li>Mulighed for kontorplads gennem Epico (Warszawa)</li>
-        </ul>
-      </div>
-      <div class="concept-card concept-card--grey">
-        <div class="concept-num">03</div>
-        <div class="concept-name">Management &amp; services</div>
-        <ul>
-          <li>Nearshore-setup ledet fra Danmark</li>
-          <li>Vi leverer dedikeret team-leader baseret i DK</li>
-          <li>Stærkt team af IT-eksperter i Polen (eller andre EU-lande)</li>
-          <li>Konkurrencedygtige priser med dansk juridisk leverance</li>
-          <li>Vi dækker enhver IT-kompetence I efterspørger</li>
-        </ul>
-      </div>
-      <div class="concept-card concept-card--dark">
-        <div class="concept-num">04</div>
-        <div class="concept-name">NextGen-talenter</div>
-        <ul>
-          <li>Nyuddannede IT-talenter med 0-5 års erfaring</li>
-          <li>Konkurrencedygtige priser ift. seniore profiler</li>
-          <li>Initial ansættelse via Epico — try-before-hire</li>
-          <li>Mulighed for direkte ansættelse efter projekt</li>
-          <li>Daglig ledelse hos jer · tæt opfølgning fra Epico</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>Epico Solution · Leverance-koncepter</div>
-</section>
-{% endif %}
+{% for s in library_slides %}
+{% include 'library_slide.html.j2' %}
 {% endfor %}
 
-{# ============ KOMPETENCE-SLIDES (toggle-bar, 2 slides) ============ #}
-{% if 'competences' in included_slides %}
-<section class="slide" data-slide="competences-1">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Kompetencer · 1/2</div>
-  </div>
+{# ============================================================
+   DEL 3 — KUNDE-SLIDES (afslutning)
+   ============================================================ #}
 
-  <div class="layout-full">
-    <span class="eyebrow">Hvad vi leverer hver dag</span>
-    <h2 class="h1" style="max-width:1700px;">Udvalgte <span class="accent">kompetencer.</span></h2>
-
-    <div class="competences-grid">
-      <div class="competence-card">
-        <div class="competence-icon">🛡</div>
-        <div class="competence-name">Security &amp; Network</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul><li>Architect · Designer · Developer · Maintenance · NextGen</li></ul>
-        </div>
-        <div class="competence-section">
-          <div class="competence-label">Teknologi</div>
-          <ul>
-            <li>Network Security · Information Security · Cyber Security</li>
-            <li>Identity &amp; Access Management · Cloud Networking</li>
-            <li>Network Virtualization · Monitoring &amp; Troubleshooting</li>
-            <li>Routing &amp; Switching · Wireless · NIS2</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">☁</div>
-        <div class="competence-name">Infrastructure</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · NextGen</li></ul>
-        </div>
-        <div class="competence-section">
-          <div class="competence-label">Teknologi</div>
-          <ul>
-            <li>Unix, Solaris · HP-UX, AIX, Linux · Windows Server</li>
-            <li>SAN, NAS · Server, Storage, Back-up · Virtualizing</li>
-            <li>Oracle, MS SQL · Azure · AWS</li>
-            <li>Citrix, Terminal Services · Exchange, AD</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">🖥</div>
-        <div class="competence-name">Modern Workplace</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · NextGen</li></ul>
-        </div>
-        <div class="competence-section">
-          <div class="competence-label">Teknologi</div>
-          <ul>
-            <li>Microsoft 365 · Office 365 · Cloud Services</li>
-            <li>Modern endpoint management · Device &amp; Identity management</li>
-            <li>OneDrive, SharePoint · Collaboration · M365 Adoption</li>
-            <li>Webex Meetings · ChatGPT · ISV</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">⟨/⟩</div>
-        <div class="competence-name">Development</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul><li>Architect · Designer · Developer · Maintenance · Helpdesk · Test Lead · Tester · NextGen</li></ul>
-        </div>
-        <div class="competence-section">
-          <div class="competence-label">Teknologi</div>
-          <ul>
-            <li>Java · .NET · C, C++, C# · Cobol</li>
-            <li>HTML, XML · JavaScript · CSS</li>
-            <li>PHP front-/backend · Ajax, SQL</li>
-            <li>Eclipse · Jbuilder, Jdeveloper</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>Kompetencer 1/2</div>
-</section>
-
-<section class="slide" data-slide="competences-2">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Kompetencer · 2/2</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Bredt spektrum af profiler</span>
-    <h2 class="h1" style="max-width:1700px;">Udvalgte <span class="accent">kompetencer.</span></h2>
-
-    <div class="competences-grid">
-      <div class="competence-card">
-        <div class="competence-icon">⚙</div>
-        <div class="competence-name">Program- &amp; Project Manager</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul>
-            <li>Scrum Master · Project Manager · Program Manager</li>
-            <li>Change Manager · Quality Control Manager</li>
-            <li>Risk Management · Steering Committee Manager</li>
-            <li>Portfolio Manager · Resource Manager</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">📊</div>
-        <div class="competence-name">Business Application</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul><li>Architect · Designer · Developer · Maintenance</li></ul>
-        </div>
-        <div class="competence-section">
-          <div class="competence-label">Teknologi</div>
-          <ul>
-            <li>SAP · Salesforce · SAS · Microsoft · Oracle</li>
-            <li>Crystal Reports · Qlik View · Hyperion · ETL</li>
-            <li>Business Object · Sybase · Informix · Informatica</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">⚒</div>
-        <div class="competence-name">Engineering</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul>
-            <li>Civil Engineering · Process Engineering</li>
-            <li>Automation Engineering · Mechanical Engineering</li>
-            <li>CAD Designers · Marine Engineering</li>
-            <li>Chemical Engineering · Robotics Engineer</li>
-            <li>Project Managers · Site Managers</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="competence-card">
-        <div class="competence-icon">👥</div>
-        <div class="competence-name">Management</div>
-        <div class="competence-section">
-          <div class="competence-label">Roller</div>
-          <ul>
-            <li>Project Manager · IT Director · Technical Program Manager</li>
-            <li>Process Analyst · Test Leader · Requirement Analyst</li>
-            <li>Change Management · Change Leader</li>
-            <li>Business Developer / BA · Management Consultant</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>Kompetencer 2/2</div>
-</section>
-{% endif %}
-
-{# ============ SLIDE 15 — THE EPIC PROCESS (toggle-bar) ============ #}
-{% if 'epic_process' in included_slides %}
-<section class="slide" data-slide="15">
-  <div class="slide-header">
-    <div class="e-mark-small"><span></span><span></span><span></span></div>
-    <div class="wordmark">Epico</div>
-    <div class="divider"></div>
-    <div class="section-tag">Vores proces</div>
-  </div>
-
-  <div class="layout-full">
-    <span class="eyebrow">Sådan ser et samarbejde ud</span>
-    <h2 class="h1" style="max-width:1600px;">Fra første <span class="accent">request</span> til underskreven kontrakt.</h2>
-
-    <div class="process-timeline">
-      <div class="process-step"><div class="step-num">1</div><div class="step-title">Request</div><div class="step-desc">KAM modtager request og sætter et møde op</div></div>
-      <div class="process-step"><div class="step-num">2</div><div class="step-title">Search</div><div class="step-desc">Resource Manager starter søgning i vores netværk</div></div>
-      <div class="process-step"><div class="step-num">3</div><div class="step-title">Screening</div><div class="step-desc">Kandidater interviewes og referencer tjekkes</div></div>
-      <div class="process-step"><div class="step-num">4</div><div class="step-title">Udvælgelse</div><div class="step-desc">Match på både kvalifikationer og personlighed</div></div>
-      <div class="process-step"><div class="step-num">5</div><div class="step-title">CV til kunde</div><div class="step-desc">Alle CV'er sendes til gennemsyn hos jer</div></div>
-      <div class="process-step"><div class="step-num">6</div><div class="step-title">Interview</div><div class="step-desc">3-vejs interview: kandidat, jer og Epico</div></div>
-      <div class="process-step"><div class="step-num">7</div><div class="step-title">Kontrakt</div><div class="step-desc">Konsulenten er klar til start</div></div>
-    </div>
-
-    <div style="margin-top:80px;padding:32px 40px;background:var(--raw-silk);border-left:3px solid var(--kiwi);max-width:1100px;">
-      <div style="font-family:var(--font-body);font-weight:700;font-size:13px;letter-spacing:var(--kern-label);text-transform:uppercase;color:var(--raspberry);margin-bottom:8px;">Tidshorisont</div>
-      <div style="font-family:var(--font-display);font-weight:500;font-size:28px;color:var(--black-currant);letter-spacing:var(--kern-medium);line-height:1.3;">Fra request til kontrakt: typisk <strong style="color:var(--raspberry);">7–14 dage</strong> for konsulent-roller, <strong style="color:var(--raspberry);">4–8 uger</strong> for headhunt af specialister.</div>
-    </div>
-  </div>
-
-  <div class="slide-footer"><span class="footer-mark"></span>15 / 18</div>
-</section>
-{% endif %}
-
-{# ============ SLIDE 16 — RELEVANT CASE (toggle-bar) ============ #}
-{% if 'case_study' in included_slides %}
+{# ---------- RELEVANT CASE ---------- #}
+{% if case and case.headline %}
 <section class="slide" data-slide="16">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -728,11 +226,11 @@
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>16 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Relevant case</div>
 </section>
 {% endif %}
 
-{# ============ SLIDE 17 — NÆSTE SKRIDT ============ #}
+{# ---------- NÆSTE SKRIDT ---------- #}
 <section class="slide" data-slide="17">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -743,7 +241,7 @@
 
   <div class="layout-full">
     <span class="eyebrow">Hvis vi er enige om retningen</span>
-    <h2 class="h1" style="max-width:1500px;">Tre konkrete <span class="accent">næste skridt.</span></h2>
+    <h2 class="h1" style="max-width:1500px;">{{ next_steps|length }} konkrete <span class="accent">næste skridt.</span></h2>
 
     <div class="steps-grid">
       {% for step in next_steps %}
@@ -761,14 +259,13 @@
         <div style="font-family:var(--font-body);font-weight:700;font-size:12px;letter-spacing:var(--kern-label);text-transform:uppercase;color:var(--kiwi);margin-bottom:6px;">Ingen binding</div>
         <div style="font-family:var(--font-display);font-weight:500;font-size:22px;letter-spacing:var(--kern-medium);">Hele forløbet er uden forpligtelse — I betaler først, når en kandidat starter.</div>
       </div>
-      <button class="btn btn--primary">Lad os booke workshoppen <span class="arrow">→</span></button>
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>17 / 18</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Næste skridt</div>
 </section>
 
-{# ============ SLIDE 18 — KONTAKT ============ #}
+{# ---------- KONTAKT ---------- #}
 <section class="slide slide--dark" data-slide="18">
   <div class="slide-header">
     <div class="e-mark-small"><span></span><span></span><span></span></div>
@@ -788,19 +285,19 @@
       <div class="contact-block">
         <div class="role">Din Key Account Manager</div>
         <div class="name">{{ team.kam.name }}</div>
-        <div class="title">{{ team.kam.title }} · Epico DK</div>
+        <div class="title">{{ team.kam.title }} · Epico</div>
         <div class="reach">T: {{ team.kam.phone }}<br>M: {{ team.kam.email }}{% if team.kam.linkedin %}<br>LinkedIn: {{ team.kam.linkedin }}{% endif %}</div>
       </div>
       <div class="contact-block" style="border-left-color:var(--raspberry);">
         <div class="role" style="color:var(--raspberry);">Din Resource Manager</div>
         <div class="name">{{ team.rm.name }}</div>
-        <div class="title">{{ team.rm.title }} · Epico DK</div>
+        <div class="title">{{ team.rm.title }} · Epico</div>
         <div class="reach">T: {{ team.rm.phone }}<br>M: {{ team.rm.email }}{% if team.rm.linkedin %}<br>LinkedIn: {{ team.rm.linkedin }}{% endif %}</div>
       </div>
     </div>
   </div>
 
-  <div class="slide-footer"><span class="footer-mark"></span>18 / 18 · Tak.</div>
+  <div class="slide-footer"><span class="footer-mark"></span>Tak.</div>
 </section>
 
 </div>

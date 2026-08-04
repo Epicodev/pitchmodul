@@ -42,7 +42,7 @@ def reload_knowledge() -> int:
 _SLIDE_REFINE_SYSTEM_PROMPT = """Du er Epico's pitch-redaktør. Sælger har bedt dig om at SKÆRPE et specifikt slide-indhold med en bestemt direktive.
 
 Modtag:
-- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation / service_slide / client_summary)
+- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation / client_summary)
 - Nuværende indhold (JSON)
 - Sælgers direktive (fritekst, fx "mere konkret", "mere kommerciel tone", "fokus på cybersecurity")
 
@@ -89,7 +89,7 @@ def refine_slide(
 
     Args:
         slide_type: 'research_facts' | 'strategic_priorities' | 'value_mappings' |
-                    'next_steps' | 'case_recommendation' | 'client_summary' | 'service_slide'
+                    'next_steps' | 'case_recommendation' | 'client_summary'
         current_content: Nuværende JSON-indhold for sliden
         directive: Sælgers ønske ("mere konkret", "mere kommerciel", "fokus på security", osv.)
         client_name: For kontekst
@@ -378,7 +378,7 @@ def _critique_and_refine(
 
 Læs udkastet IGENNEM mod kontrakten. Tjek SPECIFIKT:
 
-1. **Slide-antal**: Matcher service_slides + andre arrays kontraktens 'expected_slide_count'?
+1. **Omfang**: Matcher antal facts/prioriteter/mappings kontraktens 'expected_slide_count'?
 2. **Tone**: Er hver bullet i den tone kontrakten beskriver?
 3. **MUST_INCLUDE**: Er hver punkt fra kontrakten dækket et sted i pitchen?
 4. **MUST_EXCLUDE**: Er nogen af de forbudte temaer sneget med ind?
@@ -428,18 +428,15 @@ EPICO_SERVICES = {
 _SCHEMA_SIZES = {
     "short": {
         "facts": (2, 3), "priorities": (2, 3), "mappings": (2, 3),
-        "services": (1, 2), "what_we_deliver": (3, 4), "key_stats": (2, 3),
-        "who_its_for": (2, 3), "case_bullets": (2, 3), "next_steps": (2, 3),
+        "case_bullets": (2, 3), "next_steps": (2, 3),
     },
     "medium": {
         "facts": (4, 4), "priorities": (3, 3), "mappings": (4, 4),
-        "services": (1, 4), "what_we_deliver": (4, 5), "key_stats": (3, 3),
-        "who_its_for": (3, 3), "case_bullets": (3, 3), "next_steps": (3, 3),
+        "case_bullets": (3, 3), "next_steps": (3, 3),
     },
     "long": {
         "facts": (4, 5), "priorities": (3, 4), "mappings": (4, 5),
-        "services": (1, 6), "what_we_deliver": (5, 6), "key_stats": (3, 4),
-        "who_its_for": (3, 4), "case_bullets": (3, 4), "next_steps": (3, 4),
+        "case_bullets": (3, 4), "next_steps": (3, 4),
     },
 }
 
@@ -451,10 +448,6 @@ def _build_analysis_tool(pitch_length: str = "medium") -> Dict[str, Any]:
     fmin, fmax = sizes["facts"]
     pmin, pmax = sizes["priorities"]
     mmin, mmax = sizes["mappings"]
-    smin, smax = sizes["services"]
-    wmin, wmax = sizes["what_we_deliver"]
-    ksmin, ksmax = sizes["key_stats"]
-    womin, womax = sizes["who_its_for"]
     cbmin, cbmax = sizes["case_bullets"]
     nsmin, nsmax = sizes["next_steps"]
 
@@ -467,19 +460,8 @@ def _build_analysis_tool(pitch_length: str = "medium") -> Dict[str, Any]:
     props["strategic_priorities"]["maxItems"] = pmax
     props["value_mappings"]["minItems"] = mmin
     props["value_mappings"]["maxItems"] = mmax
-    props["service_slides"]["minItems"] = smin
-    props["service_slides"]["maxItems"] = smax
     props["next_steps"]["minItems"] = nsmin
     props["next_steps"]["maxItems"] = nsmax
-
-    # Service-slide indre arrays
-    sprops = props["service_slides"]["items"]["properties"]
-    sprops["what_we_deliver"]["minItems"] = wmin
-    sprops["what_we_deliver"]["maxItems"] = wmax
-    sprops["key_stats"]["minItems"] = ksmin
-    sprops["key_stats"]["maxItems"] = ksmax
-    sprops["who_its_for"]["minItems"] = womin
-    sprops["who_its_for"]["maxItems"] = womax
 
     # Case-bullets
     cprops = props["case_recommendation"]["properties"]
@@ -598,69 +580,6 @@ ANALYSIS_TOOL = {
                 "minItems": 3,
                 "maxItems": 3,
             },
-            "service_slides": {
-                "type": "array",
-                "description": "1 slide per Epico-service som skal vises i pitch'en. HVIS sælger har angivet 'services_to_highlight' → returnér KUN slides for de services. HVIS ingen valgt → returnér alle 6 services (Freelance, Projektansættelser, NextGen, Search, Public, Solution). Hvert slide skal være TILPASSET KUNDENS BRANCHE (roller og kunde-referencer matches til kundens domæne).",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "service_name": {
-                            "type": "string",
-                            "description": "Eksakt service-navn fra knowledge base. Et af: Epico Freelance, Epico Projektansættelser, Epico NextGen, Epico Search, Epico Public, Epico Solution.",
-                        },
-                        "tagline": {
-                            "type": "string",
-                            "description": "1 linje value-proposition. Max 90 tegn. Skarp og kunde-værdi-fokuseret, ikke generisk. Fx 'Erfarne IT-konsulenter på 48 timer — uden langtidsbinding'."
-                        },
-                        "what_we_deliver": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "4-6 bullets der konkret beskriver hvad kunden får. Max 100 tegn per bullet. Tag udgangspunkt i service-filen i knowledge base — særligt 'Det får I'-afsnittet hvis det findes. Vær konkret, ikke generisk.",
-                            "minItems": 4,
-                            "maxItems": 6,
-                        },
-                        "key_stats": {
-                            "type": "array",
-                            "description": "Nøjagtigt 3 nøgletal der gør servicen troværdig. Brug KUN tal der står i knowledge base (stats.md eller services/*.md).",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "value": {"type": "string", "description": "Selve tallet, fx '+500' eller '99%' eller '+25 år'"},
-                                    "label": {"type": "string", "description": "Kort label, max 60 tegn, fx 'konsulenter på kontrakt' eller 'hit-rate på matching'"},
-                                },
-                                "required": ["value", "label"],
-                            },
-                            "minItems": 3,
-                            "maxItems": 3,
-                        },
-                        "who_its_for": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "Nøjagtigt 3 bullets om hvornår denne service er det rigtige valg. Skriv 'Når I...' eller 'Hvis I...'. Tilpas til kundens situation hvor muligt.",
-                            "minItems": 3,
-                            "maxItems": 3,
-                        },
-                        "typical_roles": {
-                            "type": "string",
-                            "description": "Kommasepareret liste af 4-6 KONKRETE roller Epico kan levere via denne service. VÆLG ROLLER DER ER RELEVANTE FOR KUNDENS BRANCHE. Eksempel for finans-kunde i Search: 'CISO · Risk Manager · Senior Java Developer · Quant Developer · IT Security Architect'."
-                        },
-                        "relevant_partners": {
-                            "type": "string",
-                            "description": "Kommasepareret liste af 2-4 EPICO-PARTNERE/kunder vi kan nævne. Brug KUN navne fra knowledge base: Arla, Carlsberg, Politi.dk, Ikano Bank, KPMG, Pandora, Siemens, Aller Media. VÆLG DEM DER LIGNER KUNDENS BRANCHE MEST. Hvis ingen passer, skriv generisk fx '+1.500 kunder globalt'."
-                        },
-                        "process_steps": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "VALGFRI: 0 eller 5-10 trin der beskriver service-processen. Inkludér KUN for Search (10 trin fra knowledge base), Solution (RUN/BUILD-flow), Nearshore (setup) eller hvor process er en kerne-del af value-prop. Lad arrayet være tomt for services hvor process ikke giver ekstra værdi (fx Freelance, NextGen — her er process selv-forklarende). Format: '01 Specificering af krav', '02 Markedsføring (LinkedIn m.fl.)', ...",
-                            "minItems": 0,
-                            "maxItems": 10,
-                        },
-                    },
-                    "required": ["service_name", "tagline", "what_we_deliver", "key_stats", "who_its_for", "typical_roles", "relevant_partners"],
-                },
-                "minItems": 1,
-                "maxItems": 7,
-            },
             "case_recommendation": {
                 "type": "object",
                 "description": "En foreslået case at vise — bygget på relevans til kundens branche.",
@@ -703,7 +622,6 @@ ANALYSIS_TOOL = {
             "research_facts",
             "strategic_priorities",
             "value_mappings",
-            "service_slides",
             "next_steps",
             "case_recommendation",
         ],
@@ -739,12 +657,6 @@ For hver del af udkastet, spørg:
 - Er udfordringen formuleret konkret nok? (Ikke 'behov for IT-konsulenter', men 'akut behov for Oracle-DBA til S/4HANA-migration i Q3')
 - Differentierer løsningen Epico, eller kunne en anden leverandør sige det samme?
 - Hvis sælger har angivet konkurrent: skubber mapping mod hvorfor VI er bedre end DEM?
-
-**Service-slides:**
-- Er 'tagline' skarp og memorable, eller corporate?
-- Er bullets i 'what_we_deliver' konkrete eller generiske?
-- Matcher 'who_its_for' faktisk denne specifikke kundes situation?
-- Er 'relevant_partners' branche-relevante?
 
 **Case (slide 16):**
 - Er headline slagkraftig?
@@ -791,30 +703,23 @@ _PITCH_LENGTH_DESCRIPTIONS = {
 
 - Hold ALLE bullets UNDER 80 tegn. Tagline-style.
 - Drop adjektiver. Hver sætning skal kunne læses på 3 sekunder.
-- `what_we_deliver`: præcis 3 bullets pr service-slide (ikke 4-6).
 - `client_summary`: max 1 sætning, max 120 tegn.
 - Strategic priorities: titel max 50 tegn, description max 120 tegn.
 - Value mappings: challenge max 80 tegn, solution max 100 tegn.
 - Case-intro: 1 sætning.
 - Næste skridt: 1 sætning per description.
-- Returnér KUN de TOP-2 mest relevante services i service_slides (ikke alle 6).
-- Drop process_steps på alle services (selv Search) — for langt til kort pitch.""",
+- Vær nådesløs med at skære: kun det der DIREKTE understøtter pitch-vinklen.""",
 
     "medium": """**Pitch-længde: MEDIUM** (30-45 min møde, 13-15 slides total). Default.
 
 - Normal dybde. 80-100 tegn per bullet.
-- `what_we_deliver`: 4 bullets per service-slide.
 - `client_summary`: 1-2 sætninger.
-- Op til 4 services i service_slides hvis sælger ikke har valgt specifikke.
-- process_steps kun for Search (10 trin) hvor det er kerne-værdi.""",
+- Balancér mellem konkrete detaljer og læsbarhed.""",
 
     "long": """**Pitch-længde: LANG** (60+ min deep-dive, 20+ slides).
 
 - Maks dybde. 100-130 tegn per bullet.
-- `what_we_deliver`: 5-6 bullets per service-slide. Brug det ekstra bullet-rum til konkrete eksempler og branche-tilpasninger.
 - `client_summary`: 2-3 sætninger med konkret kontekst.
-- Inkludér ALLE services sælger har valgt (eller alle 6 hvis ingen valgt).
-- process_steps med 5-10 trin for Search og Solution hvor det giver dybde.
 - Strategic priorities: brug op til 200 tegn per description til at uddybe.
 - Value mappings: solution kan være op til 180 tegn med konkret reasoning.""",
 }

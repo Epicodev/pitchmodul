@@ -15,6 +15,8 @@ from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+
+from slide_library import select_slides
 from pptx.oxml.ns import qn
 from lxml import etree
 
@@ -441,198 +443,8 @@ def _slide_divider(prs, chapter_num: str, title: str, accent_word: str = "", red
               font_size=80, bold=True, color=WHITE, font_name=FONT_DISPLAY)
 
 
-def _slide_epico_stats(prs, ctx):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    _set_slide_bg(slide, BLACK_CURRANT)
-    _add_slide_header(slide, "Epico i tal", dark=True)
-
-    _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "2026",
-              font_size=11, bold=True, color=KIWI, font_name=FONT_BODY)
-    _add_text(slide, MARGIN, Inches(1.85), Inches(12), Inches(1.0),
-              "Et af Nordens største IT-konsulenthuse.",
-              font_size=44, bold=True, color=WHITE, font_name=FONT_DISPLAY)
-
-    stats = [
-        ("+700 mio.", "DKK i omsætning · 2024"),
-        ("+500", "Konsulenter på kontrakt"),
-        ("+13.000", "CV'er i database"),
-        ("+1.500", "Kunder globalt"),
-        ("12", "Lande med konsulenter"),
-    ]
-    col_w = (SLIDE_W - (MARGIN * 2) - Emu(100000)) / 5
-    y = Inches(3.5)
-    accents = [KIWI, RASPBERRY, BLUEBERRY, KIWI, RASPBERRY]
-    for i, (value, label) in enumerate(stats):
-        x = MARGIN + i * (col_w + Emu(20000))
-        # Border-left
-        _add_rect(slide, x, y, Emu(20000), Inches(2.5), accents[i])
-        _add_text(slide, x + Inches(0.2), y + Inches(0.3),
-                  col_w - Inches(0.3), Inches(0.8),
-                  value, font_size=40, bold=True, color=WHITE,
-                  font_name=FONT_DISPLAY)
-        _add_text(slide, x + Inches(0.2), y + Inches(1.4),
-                  col_w - Inches(0.3), Inches(1.0),
-                  label,
-                  font_size=10, color=RGBColor(0xAA, 0xAA, 0xBB),
-                  font_name=FONT_BODY)
 
 
-def _slide_market(prs, ctx):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    _set_slide_bg(slide, RAW_SILK)
-    _add_slide_header(slide, "Markedet")
-
-    _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "HVORFOR I IKKE STÅR ALENE MED PROBLEMET",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
-    _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              "DK's IT-marked i tal.",
-              font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
-
-    facts = [
-        ("200.000", "IT-specialister vil DK mangle i 2030."),
-        ("4 af 5", "virksomheder har problemer med at rekruttere IT-specialister."),
-        ("92%", "af virksomhederne mangler kvalificerede ansøgere."),
-        ("71,4%", "af danske IT-leverandører ser kompetencemangel som den største vækstbarriere."),
-    ]
-    y = Inches(3.4)
-    for figure, text in facts:
-        _add_text(slide, MARGIN, y, Inches(3), Inches(0.7),
-                  figure, font_size=42, bold=True, color=RASPBERRY,
-                  font_name=FONT_DISPLAY)
-        _add_text(slide, MARGIN + Inches(3.2), y + Inches(0.15),
-                  Inches(9), Inches(0.5),
-                  text, font_size=16, color=GREY, font_name=FONT_BODY)
-        _add_rect(slide, MARGIN, y + Inches(0.8),
-                  SLIDE_W - (MARGIN * 2), Emu(8000), ALU_GREY)
-        y += Inches(0.92)
-
-
-def _slide_dna(prs, ctx):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    _set_slide_bg(slide, RAW_SILK)
-    _add_slide_header(slide, "Vores DNA")
-
-    _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "DET VI MÅLES PÅ — HVER DAG",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
-    _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              "Fire ting, vi ikke går på kompromis med.",
-              font_size=40, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
-
-    dna = [
-        ("01", "Hastighed", "Vi leverer typisk relevante CV'er inden for 48 timer.", WHITE, RASPBERRY, GREY),
-        ("02", "Det rette match", "Vi matcher også på kultur, kommunikation og tempo.", BLACK_CURRANT, KIWI, WHITE),
-        ("03", "Personlig relation", "I får én dedikeret Key Account Manager.", RAW_SILK, RASPBERRY, GREY),
-        ("04", "Ekspertise", "+15 års dyb branche-erfaring inden for IT-konsulenthus.", RED, KIWI, WHITE),
-    ]
-    col_w = (SLIDE_W - (MARGIN * 2) - Inches(0.15)) / 4
-    cell_h = Inches(3.3)
-    y = Inches(3.4)
-    for i, (num, title, body, bg, num_color, text_color) in enumerate(dna):
-        x = MARGIN + i * (col_w + Inches(0.05))
-        _add_rect(slide, x, y, col_w, cell_h, bg)
-        _add_text(slide, x + Inches(0.3), y + Inches(0.3),
-                  col_w - Inches(0.5), Inches(1.0),
-                  num, font_size=42, bold=True, color=num_color,
-                  font_name=FONT_DISPLAY)
-        _add_text(slide, x + Inches(0.3), y + cell_h - Inches(1.5),
-                  col_w - Inches(0.5), Inches(0.5),
-                  title, font_size=18, bold=True, color=text_color,
-                  font_name=FONT_BODY)
-        _add_text(slide, x + Inches(0.3), y + cell_h - Inches(0.95),
-                  col_w - Inches(0.5), Inches(0.85),
-                  body, font_size=11,
-                  color=RGBColor(0xAA, 0xAA, 0xBB) if bg in (BLACK_CURRANT, RED) else LIGHT_GREY,
-                  font_name=FONT_BODY)
-
-
-def _slide_service(prs, service: dict, idx: int, total: int):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    _set_slide_bg(slide, RAW_SILK)
-    section_name = service.get("service_name", "Service").replace("Epico ", "")
-    _add_slide_header(slide, section_name)
-
-    _add_text(slide, MARGIN, Inches(1.0), Inches(6), Inches(0.4),
-              f"SERVICE {idx:02d} / {total:02d}",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
-    _add_text(slide, MARGIN, Inches(1.45), Inches(12), Inches(1.0),
-              service.get("service_name", ""),
-              font_size=64, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
-    _add_text(slide, MARGIN, Inches(2.55), Inches(12), Inches(0.6),
-              service.get("tagline", ""),
-              font_size=20, bold=True, color=RASPBERRY, font_name=FONT_DISPLAY)
-
-    # 3 kolonner
-    col_w = (SLIDE_W - (MARGIN * 2) - Inches(0.1)) / 3
-    body_y = Inches(3.5)
-    body_h = Inches(3.0)
-
-    # Col 1: Hvad I får
-    _add_rect(slide, MARGIN, body_y, col_w, body_h, WHITE)
-    _add_text(slide, MARGIN + Inches(0.3), body_y + Inches(0.25),
-              col_w - Inches(0.5), Inches(0.3),
-              "HVAD I FÅR", font_size=10, bold=True, color=RASPBERRY,
-              font_name=FONT_BODY)
-    bullet_y = body_y + Inches(0.7)
-    for b in service.get("what_we_deliver", [])[:4]:
-        _add_text(slide, MARGIN + Inches(0.3), bullet_y,
-                  col_w - Inches(0.5), Inches(0.5),
-                  f"• {b[:110]}", font_size=10, color=GREY,
-                  font_name=FONT_BODY)
-        bullet_y += Inches(0.55)
-
-    # Col 2: Stats (dark)
-    col2_x = MARGIN + col_w + Inches(0.05)
-    _add_rect(slide, col2_x, body_y, col_w, body_h, BLACK_CURRANT)
-    _add_text(slide, col2_x + Inches(0.3), body_y + Inches(0.25),
-              col_w - Inches(0.5), Inches(0.3),
-              "NØGLETAL", font_size=10, bold=True, color=KIWI,
-              font_name=FONT_BODY)
-    stat_y = body_y + Inches(0.8)
-    for s in service.get("key_stats", [])[:3]:
-        _add_text(slide, col2_x + Inches(0.3), stat_y,
-                  col_w - Inches(0.5), Inches(0.5),
-                  s.get("value", ""), font_size=28, bold=True, color=KIWI,
-                  font_name=FONT_DISPLAY)
-        _add_text(slide, col2_x + Inches(0.3), stat_y + Inches(0.45),
-                  col_w - Inches(0.5), Inches(0.3),
-                  s.get("label", ""), font_size=9,
-                  color=RGBColor(0xAA, 0xAA, 0xBB),
-                  font_name=FONT_BODY)
-        stat_y += Inches(0.85)
-
-    # Col 3: Hvornår
-    col3_x = MARGIN + (col_w * 2) + Inches(0.1)
-    _add_rect(slide, col3_x, body_y, col_w, body_h, WHITE)
-    _add_text(slide, col3_x + Inches(0.3), body_y + Inches(0.25),
-              col_w - Inches(0.5), Inches(0.3),
-              "HVORNÅR DET ER DET RIGTIGE VALG",
-              font_size=10, bold=True, color=RASPBERRY,
-              font_name=FONT_BODY)
-    who_y = body_y + Inches(0.7)
-    for w in service.get("who_its_for", [])[:3]:
-        _add_text(slide, col3_x + Inches(0.3), who_y,
-                  col_w - Inches(0.5), Inches(0.7),
-                  f"• {w[:130]}", font_size=10, color=GREY,
-                  font_name=FONT_BODY)
-        who_y += Inches(0.75)
-
-    # Footer metadata
-    foot_y = body_y + body_h + Inches(0.15)
-    _add_rect(slide, MARGIN, foot_y, SLIDE_W - (MARGIN * 2), Inches(0.7),
-              RAW_SILK)
-    _add_rect(slide, MARGIN, foot_y, Emu(30000), Inches(0.7), RED)
-    _add_text(slide, MARGIN + Inches(0.3), foot_y + Inches(0.1),
-              Inches(2), Inches(0.25),
-              "TYPISKE ROLLER", font_size=9, bold=True, color=RASPBERRY,
-              font_name=FONT_BODY)
-    _add_text(slide, MARGIN + Inches(0.3), foot_y + Inches(0.38),
-              SLIDE_W - (MARGIN * 2) - Inches(0.5), Inches(0.3),
-              service.get("typical_roles", "")[:200],
-              font_size=10, color=BLACK_CURRANT,
-              font_name=FONT_BODY)
 
 
 def _slide_case(prs, ctx):
@@ -774,24 +586,250 @@ def _slide_contact(prs, ctx):
 # MAIN RENDERER
 # ============================================================
 
+def _strip_md(text: str) -> str:
+    """Fjern **fed** markup — PPTX bruger ren tekst."""
+    return (text or "").replace("**", "")
+
+
+def _slide_from_library(prs, s: Dict[str, Any]) -> None:
+    """
+    Render én bibliotek-slide til PPTX ud fra dens layout.
+    Spejler library_slide.html.j2 så HTML og PPTX matcher.
+    """
+    dark = s.get("variant") == "dark"
+    red = s.get("variant") == "red"
+
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    _set_slide_bg(slide, BLACK_CURRANT if dark else (RED if red else RAW_SILK))
+    _add_slide_header(slide, s.get("section_tag") or s.get("title", ""), dark=dark or red)
+
+    heading_color = WHITE if (dark or red) else BLACK_CURRANT
+    body_color = RGBColor(0xC8, 0xC8, 0xD8) if (dark or red) else GREY
+    label_color = KIWI if (dark or red) else RASPBERRY
+
+    y = Inches(1.15)
+
+    if s.get("eyebrow"):
+        _add_text(slide, MARGIN, y, Inches(9), Inches(0.3),
+                  s["eyebrow"].upper(), font_size=10, bold=True,
+                  color=label_color, font_name=FONT_BODY)
+        y += Inches(0.42)
+
+    if s.get("heading"):
+        heading = _strip_md(s["heading"])
+        size = 44 if len(heading) < 60 else 34
+        _add_text(slide, MARGIN, y, SLIDE_W - (MARGIN * 2), Inches(1.0),
+                  heading, font_size=size, bold=True,
+                  color=heading_color, font_name=FONT_DISPLAY)
+        y += Inches(0.95 if size == 44 else 1.15)
+
+    if s.get("subheading"):
+        _add_text(slide, MARGIN, y, Inches(10.5), Inches(0.6),
+                  s["subheading"], font_size=15,
+                  color=LIGHT_GREY if not (dark or red) else RGBColor(0xAA, 0xAA, 0xBB),
+                  font_name=FONT_BODY)
+        y += Inches(0.7)
+
+    layout = s.get("layout", "bullets")
+    stats = s.get("stats", [])
+    bullets = s.get("bullets", [])
+    cards = s.get("cards", [])
+    content_w = SLIDE_W - (MARGIN * 2)
+
+    # ---------- STATS HERO ----------
+    if layout == "stats-hero" and stats:
+        n = max(1, len(stats))
+        col_w = int((content_w - Emu(20000) * (n - 1)) / n)
+        for i, stat in enumerate(stats):
+            x = MARGIN + i * (col_w + Emu(20000))
+            accent = [KIWI, RASPBERRY, BLUEBERRY][i % 3]
+            _add_rect(slide, x, y, Emu(25000), Inches(2.2), accent)
+            _add_text(slide, x + Inches(0.22), y + Inches(0.25),
+                      col_w - Inches(0.3), Inches(0.8),
+                      stat.get("value", ""), font_size=34, bold=True,
+                      color=WHITE if dark else BLACK_CURRANT, font_name=FONT_DISPLAY)
+            _add_text(slide, x + Inches(0.22), y + Inches(1.15),
+                      col_w - Inches(0.3), Inches(0.9),
+                      stat.get("label", ""), font_size=10,
+                      color=body_color, font_name=FONT_BODY)
+
+    # ---------- STATS + BULLETS ----------
+    elif layout == "stats-plus-bullets":
+        if stats:
+            n = max(1, len(stats))
+            col_w = int((content_w - Emu(20000) * (n - 1)) / n)
+            for i, stat in enumerate(stats):
+                x = MARGIN + i * (col_w + Emu(20000))
+                _add_rect(slide, x, y, col_w, Inches(1.5), WHITE if not dark else RGBColor(0x25, 0x25, 0x70))
+                _add_rect(slide, x, y, Emu(25000), Inches(1.5), RED if not dark else KIWI)
+                _add_text(slide, x + Inches(0.3), y + Inches(0.2),
+                          col_w - Inches(0.5), Inches(0.6),
+                          stat.get("value", ""), font_size=32, bold=True,
+                          color=RASPBERRY if not dark else KIWI, font_name=FONT_DISPLAY)
+                _add_text(slide, x + Inches(0.3), y + Inches(0.85),
+                          col_w - Inches(0.5), Inches(0.5),
+                          stat.get("label", ""), font_size=10,
+                          color=body_color, font_name=FONT_BODY)
+            y += Inches(1.75)
+        _render_bullet_columns(slide, bullets, y, content_w, body_color, label_color)
+
+    # ---------- CARDS ----------
+    elif layout in ("cards-3", "cards-4", "cards-6", "competence-grid"):
+        cols = {"cards-3": 3, "cards-4": 4, "cards-6": 3, "competence-grid": 4}[layout]
+        rows = -(-len(cards) // cols) if cards else 1
+        col_w = int((content_w - Emu(20000) * (cols - 1)) / cols)
+        avail_h = SLIDE_H - y - Inches(0.7)
+        card_h = int((avail_h - Emu(20000) * (rows - 1)) / max(1, rows))
+
+        for i, card in enumerate(cards):
+            cx = MARGIN + (i % cols) * (col_w + Emu(20000))
+            cy = y + (i // cols) * (card_h + Emu(20000))
+            _add_rect(slide, cx, cy, col_w, card_h, WHITE)
+            _add_rect(slide, cx, cy, col_w, Emu(30000), RED)
+
+            _add_text(slide, cx + Inches(0.25), cy + Inches(0.22),
+                      col_w - Inches(0.45), Inches(0.5),
+                      card.get("title", ""), font_size=15, bold=True,
+                      color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+
+            inner_y = cy + Inches(0.75)
+            if card.get("body"):
+                _add_text(slide, cx + Inches(0.25), inner_y,
+                          col_w - Inches(0.45), Inches(0.8),
+                          card["body"], font_size=10, color=GREY, font_name=FONT_BODY)
+                inner_y += Inches(0.85)
+
+            for b in card.get("bullets", [])[:6]:
+                _add_text(slide, cx + Inches(0.25), inner_y,
+                          col_w - Inches(0.45), Inches(0.35),
+                          f"· {b}", font_size=9, color=GREY, font_name=FONT_BODY)
+                inner_y += Inches(0.32)
+
+    # ---------- SERVICE DETAIL ----------
+    elif layout == "service-detail":
+        col_w = int((content_w - Emu(40000)) / 3)
+        col_h = SLIDE_H - y - Inches(0.7)
+
+        # Kolonne 1 — første kort
+        if cards:
+            _add_rect(slide, MARGIN, y, col_w, col_h, WHITE)
+            _add_text(slide, MARGIN + Inches(0.3), y + Inches(0.25),
+                      col_w - Inches(0.5), Inches(0.3),
+                      cards[0].get("title", "").upper(), font_size=10, bold=True,
+                      color=RASPBERRY, font_name=FONT_BODY)
+            by = y + Inches(0.72)
+            for b in cards[0].get("bullets", [])[:6]:
+                _add_text(slide, MARGIN + Inches(0.3), by,
+                          col_w - Inches(0.5), Inches(0.55),
+                          f"· {b}", font_size=10, color=GREY, font_name=FONT_BODY)
+                by += Inches(0.52)
+
+        # Kolonne 2 — nøgletal (mørk)
+        c2x = MARGIN + col_w + Emu(20000)
+        if stats:
+            _add_rect(slide, c2x, y, col_w, col_h, BLACK_CURRANT)
+            _add_text(slide, c2x + Inches(0.3), y + Inches(0.25),
+                      col_w - Inches(0.5), Inches(0.3),
+                      "NØGLETAL", font_size=10, bold=True, color=KIWI, font_name=FONT_BODY)
+            sy = y + Inches(0.8)
+            for stat in stats[:4]:
+                _add_text(slide, c2x + Inches(0.3), sy,
+                          col_w - Inches(0.5), Inches(0.5),
+                          stat.get("value", ""), font_size=26, bold=True,
+                          color=KIWI, font_name=FONT_DISPLAY)
+                _add_text(slide, c2x + Inches(0.3), sy + Inches(0.42),
+                          col_w - Inches(0.5), Inches(0.35),
+                          stat.get("label", ""), font_size=9,
+                          color=RGBColor(0xAA, 0xAA, 0xBB), font_name=FONT_BODY)
+                sy += Inches(0.85)
+
+        # Kolonne 3 — andet kort
+        c3x = MARGIN + (col_w * 2) + Emu(40000)
+        if len(cards) > 1:
+            _add_rect(slide, c3x, y, col_w, col_h, WHITE)
+            _add_text(slide, c3x + Inches(0.3), y + Inches(0.25),
+                      col_w - Inches(0.5), Inches(0.3),
+                      cards[1].get("title", "").upper(), font_size=10, bold=True,
+                      color=RASPBERRY, font_name=FONT_BODY)
+            by = y + Inches(0.72)
+            for b in cards[1].get("bullets", [])[:6]:
+                _add_text(slide, c3x + Inches(0.3), by,
+                          col_w - Inches(0.5), Inches(0.55),
+                          f"· {b}", font_size=10, color=GREY, font_name=FONT_BODY)
+                by += Inches(0.52)
+
+    # ---------- TWO COL ----------
+    elif layout == "two-col":
+        half = int((content_w - Inches(0.8)) / 2)
+        if s.get("body"):
+            _add_text(slide, MARGIN, y, half, Inches(3.0),
+                      s["body"], font_size=15, color=body_color, font_name=FONT_BODY)
+        bx = MARGIN + half + Inches(0.8)
+        by = y
+        for b in bullets[:8]:
+            _add_rect(slide, bx, by + Inches(0.1), Inches(0.18), Emu(28000),
+                      RASPBERRY if not dark else KIWI)
+            _add_text(slide, bx + Inches(0.35), by,
+                      half - Inches(0.35), Inches(0.5),
+                      b, font_size=13, color=body_color, font_name=FONT_BODY)
+            by += Inches(0.48)
+
+    # ---------- TEXT HERO ----------
+    elif layout == "text-hero":
+        _add_text(slide, MARGIN, y + Inches(0.5), content_w, Inches(2.5),
+                  s.get("body", ""), font_size=32,
+                  color=heading_color, font_name=FONT_DISPLAY)
+
+    # ---------- BULLETS (default) ----------
+    else:
+        _render_bullet_columns(slide, bullets, y, content_w, body_color, label_color)
+
+    if s.get("footnote"):
+        _add_text(slide, MARGIN, SLIDE_H - Inches(0.95),
+                  content_w, Inches(0.3),
+                  s["footnote"], font_size=9, color=LIGHT_GREY, font_name=FONT_BODY)
+
+    _add_footer(slide, s.get("title", ""), dark=dark or red)
+
+
+def _render_bullet_columns(slide, bullets, y, content_w, body_color, accent_color):
+    """Render bullets — én kolonne hvis få, to hvis mange."""
+    if not bullets:
+        return
+    two_col = len(bullets) > 5
+    col_w = int((content_w - Inches(0.8)) / 2) if two_col else content_w
+    per_col = -(-len(bullets) // 2) if two_col else len(bullets)
+
+    for i, b in enumerate(bullets):
+        col = i // per_col if two_col else 0
+        row = i % per_col if two_col else i
+        bx = MARGIN + col * (col_w + Inches(0.8))
+        by = y + row * Inches(0.52)
+        _add_rect(slide, bx, by + Inches(0.11), Inches(0.2), Emu(28000), accent_color)
+        _add_text(slide, bx + Inches(0.38), by,
+                  col_w - Inches(0.4), Inches(0.5),
+                  b, font_size=13, color=body_color, font_name=FONT_BODY)
+
+
 def render_pptx(
     client_name: str,
     analysis: Dict[str, Any],
     meeting: Optional[Dict[str, str]] = None,
     team: Optional[Dict[str, Dict[str, str]]] = None,
-    included_slides: Optional[List[str]] = None,
+    pitch_length: str = "medium",
+    services: Optional[List[str]] = None,
+    stakeholder: Optional[str] = None,
+    excluded_slide_ids: Optional[List[str]] = None,
 ) -> bytes:
     """
-    Generér et komplet pitch deck som .pptx fil.
-    Returnerer bytes klar til at gemme / serve via HTTP.
+    Generér et komplet pitch deck som .pptx.
+
+    Samme to-delte struktur som HTML-versionen:
+      DEL 1: Kunde-slides fra AI-analysen
+      DEL 2: Epico-slides fra slide_library/, filtreret på længde + services
     """
     meeting = meeting or {}
     team = team or {}
-    if included_slides is None:
-        included_slides = [
-            "epico_intro_chapter", "epico_stats", "it_market", "epico_dna",
-            "services_chapter", "epic_process", "case_study",
-        ]
 
     ctx = {
         "client": {"name": client_name},
@@ -817,7 +855,6 @@ def render_pptx(
         "research_facts": analysis.get("research_facts", []),
         "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
-        "service_slides": analysis.get("service_slides", []),
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),
@@ -827,36 +864,32 @@ def render_pptx(
     prs.slide_width = SLIDE_W
     prs.slide_height = SLIDE_H
 
-    # Slide-rækkefølge (samme som HTML-template)
+    # DEL 1 — kunde-slides
     _slide_cover(prs, ctx)
     _slide_agenda(prs, ctx)
     _slide_research(prs, ctx)
     _slide_priorities(prs, ctx)
     _slide_mapping(prs, ctx)
 
-    if "epico_intro_chapter" in included_slides:
-        _slide_divider(prs, "02", "Dette er Epico.")
-    if "epico_stats" in included_slides:
-        _slide_epico_stats(prs, ctx)
-    if "it_market" in included_slides:
-        _slide_market(prs, ctx)
-    if "epico_dna" in included_slides:
-        _slide_dna(prs, ctx)
-    if "services_chapter" in included_slides:
-        _slide_divider(prs, "03", "Det vi leverer.", red=True)
+    # DEL 2 — Epico-slides fra biblioteket
+    library = select_slides(
+        pitch_length=pitch_length,
+        services=services,
+        stakeholder=stakeholder,
+        excluded_ids=excluded_slide_ids,
+    )
+    if library:
+        if pitch_length != "short":
+            _slide_divider(prs, "02", "Dette er Epico.")
+        for lib_slide in library:
+            _slide_from_library(prs, lib_slide.to_dict())
 
-    # Dynamiske service-slides
-    service_slides = ctx["service_slides"]
-    for i, s in enumerate(service_slides, start=1):
-        _slide_service(prs, s, i, len(service_slides))
-
-    if "case_study" in included_slides and ctx["case"]:
+    # DEL 3 — afslutning
+    if ctx["case"] and ctx["case"].get("headline"):
         _slide_case(prs, ctx)
-
     _slide_next_steps(prs, ctx)
     _slide_contact(prs, ctx)
 
-    # Skriv til bytes
     out = BytesIO()
     prs.save(out)
     out.seek(0)

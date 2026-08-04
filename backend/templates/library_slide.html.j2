@@ -1,0 +1,161 @@
+{# ============================================================
+   LIBRARY SLIDE RENDERER
+   Renderer én statisk Epico-slide fra slide_library/ ud fra dens layout.
+   Forventer variabel `s` = slide-dict fra LibrarySlide.to_dict()
+   ============================================================ #}
+{% set variant_class = 'slide--dark' if s.variant == 'dark' else ('slide--red' if s.variant == 'red' else '') %}
+<section class="slide {{ variant_class }}" data-slide="lib-{{ s.id }}" data-library-id="{{ s.id }}">
+  <div class="slide-header">
+    <div class="e-mark-small"><span></span><span></span><span></span></div>
+    <div class="wordmark">Epico</div>
+    <div class="divider"></div>
+    <div class="section-tag">{{ s.section_tag }}</div>
+  </div>
+
+  <div class="layout-full">
+    {% if s.eyebrow %}<span class="eyebrow">{{ s.eyebrow }}</span>{% endif %}
+    {% if s.heading %}<h2 class="h1 lib-heading">{{ s.heading_html|safe }}</h2>{% endif %}
+    {% if s.subheading %}<p class="lib-subheading">{{ s.subheading }}</p>{% endif %}
+
+    {# ---------- STATS HERO ---------- #}
+    {% if s.layout == 'stats-hero' %}
+    <div class="stats-hero">
+      {% for stat in s.stats %}
+      <div class="stat">
+        <div class="stat-number">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---------- BULLETS ---------- #}
+    {% elif s.layout == 'bullets' %}
+    <ul class="lib-bullets">
+      {% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+
+    {# ---------- STATS + BULLETS ---------- #}
+    {% elif s.layout == 'stats-plus-bullets' %}
+    {% if s.stats %}
+    <div class="lib-stats-row">
+      {% for stat in s.stats %}
+      <div class="lib-stat">
+        <div class="lib-stat-value">{{ stat.value }}</div>
+        <div class="lib-stat-label">{{ stat.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if s.bullets %}
+    <ul class="lib-bullets lib-bullets--split">
+      {% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    {# ---------- CARDS 3 / 4 / 6 ---------- #}
+    {% elif s.layout in ['cards-3', 'cards-4', 'cards-6'] %}
+    <div class="lib-cards lib-cards--{{ s.layout.split('-')[1] }}">
+      {% for c in s.cards %}
+      <div class="lib-card">
+        <div class="lib-card-num">{{ '%02d' % loop.index }}</div>
+        <div class="lib-card-title">{{ c.title }}</div>
+        {% if c.body %}<div class="lib-card-body">{{ c.body }}</div>{% endif %}
+        {% if c.bullets %}
+        <ul class="lib-card-bullets">
+          {% for b in c.bullets %}<li>{{ b }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---------- SERVICE DETAIL ---------- #}
+    {% elif s.layout == 'service-detail' %}
+    <div class="lib-service-body">
+      {% if s.cards and s.cards|length > 0 %}
+      <div class="lib-service-col">
+        <div class="col-head">{{ s.cards[0].title }}</div>
+        <ul class="service-bullets">
+          {% for b in s.cards[0].bullets %}<li>{{ b }}</li>{% endfor %}
+        </ul>
+        {% if s.cards[0].body %}<p class="lib-card-body">{{ s.cards[0].body }}</p>{% endif %}
+      </div>
+      {% endif %}
+
+      {% if s.stats %}
+      <div class="lib-service-col lib-service-col--stats">
+        <div class="col-head">Nøgletal</div>
+        <div class="service-stats">
+          {% for stat in s.stats %}
+          <div class="service-stat">
+            <div class="service-stat-value">{{ stat.value }}</div>
+            <div class="service-stat-label">{{ stat.label }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if s.cards and s.cards|length > 1 %}
+      <div class="lib-service-col">
+        <div class="col-head">{{ s.cards[1].title }}</div>
+        <ul class="service-bullets service-bullets--accent">
+          {% for b in s.cards[1].bullets %}<li>{{ b }}</li>{% endfor %}
+        </ul>
+        {% if s.cards[1].body %}<p class="lib-card-body">{{ s.cards[1].body }}</p>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# ---------- COMPETENCE GRID ---------- #}
+    {% elif s.layout == 'competence-grid' %}
+    <div class="competences-grid">
+      {% for c in s.cards %}
+      <div class="competence-card">
+        <div class="competence-name">{{ c.title }}</div>
+        {% if c.body %}<div class="lib-card-body">{{ c.body }}</div>{% endif %}
+        {% if c.bullets %}
+        <div class="competence-section">
+          <ul>
+            {% for b in c.bullets %}<li>{{ b }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {# ---------- TWO COL ---------- #}
+    {% elif s.layout == 'two-col' %}
+    <div class="lib-two-col">
+      <div class="lib-two-col-left">
+        {% if s.body %}<p class="lib-body-text">{{ s.body }}</p>{% endif %}
+      </div>
+      <div class="lib-two-col-right">
+        <ul class="lib-bullets">
+          {% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    {# ---------- TEXT HERO ---------- #}
+    {% elif s.layout == 'text-hero' %}
+    <div class="lib-text-hero">
+      {% if s.body %}<p>{{ s.body }}</p>{% endif %}
+    </div>
+
+    {# ---------- FALLBACK ---------- #}
+    {% else %}
+    {% if s.body %}<p class="lib-body-text">{{ s.body }}</p>{% endif %}
+    {% if s.bullets %}
+    <ul class="lib-bullets">
+      {% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+
+    {% if s.footnote %}<div class="lib-footnote">{{ s.footnote }}</div>{% endif %}
+  </div>
+
+  <div class="slide-footer"><span class="footer-mark"></span>{{ s.title }}</div>
+</section>

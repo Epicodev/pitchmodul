@@ -21,11 +21,13 @@ Epico Public er en af to hovedforretningsgrene i Epico (sammen med Epico Private
 
 ## SKI-rammeaftaler vi opererer på
 
-Epico er leverandør på følgende SKI-rammeaftaler (kilde: epicogroup.com):
+Epico er leverandør på følgende fem SKI-rammeaftaler:
 
-- **SKI 02.06** — IT-konsulentydelser og rådgivning relateret til software, direkte tildeling
-- **SKI 02.14** — IT-konsulentydelser
-- **SKI 02.17** — IT-konsulentydelser og rådgivning relateret til software
+- **SKI 02.06** — standardsoftware
+- **SKI 02.13** — managementkonsulentydelser
+- **SKI 02.14** — konsulentydelser
+- **SKI 02.15** — IT-rådgivning
+- **SKI 02.17** — IT-konsulenter
 
 Disse aftaler muliggør **direkte tildeling** og fjerner kompleksiteten i miniudbud.
 
@@ -50,7 +52,7 @@ Disse aftaler muliggør **direkte tildeling** og fjerner kompleksiteten i miniud
 
 ## Nøgletal
 - **+20 års gennemsnitserfaring** i Public-teamet
-- Leverandør på 3 SKI-rammeaftaler (02.06, 02.14, 02.17)
+- Leverandør på **5** SKI-rammeaftaler (02.06, 02.13, 02.14, 02.15, 02.17)
 - Erfaring med både stat, regioner og kommuner
 - [VERIFICÉR] Antal aktive offentlige kunder
 - [VERIFICÉR] Volumen leveret seneste år

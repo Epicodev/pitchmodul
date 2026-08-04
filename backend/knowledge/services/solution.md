@@ -6,6 +6,34 @@
 ## Position
 > "Vi hjælper kunder med at få IT til at køre stabilt (**RUN**) og udvikle det, der skal bygges (**BUILD**) — leveret gennem ét **CoE-set-up**, med fuld ejerskab hos kunden."
 
+## Nøglefakta
+
+- **Gold Oracle Partner** — officiel partnerstatus
+- **Nearshore**: Warszawa, Polen (freelance og rekruttering, konkurrencedygtige priser)
+- **Offshore**: Vietnam
+- **Dansk manager** som fast kontaktperson på alle setups
+- Oracle-konsulenter med i gennemsnit **+20 års** erfaring
+- Mainframe/COBOL-specialister med **+25 års** erfaring
+
+## Fire løsningsprodukter
+
+1. **Applikationsdrift som service** — struktureret og skalerbar drift uanset cloud, on-premise eller hybrid. Drift, forvaltning, governance og sikkerhed integreret fra start.
+2. **Dataintegration & integrationsplatforme** — modulbaseret, skalerbar platform. Reducerer kompleksitet, hurtigere onboarding af nye systemer, højere datakvalitet.
+3. **Skalerbar cloud-løsning** — sikker cloud-baseret netværks- og infrastrukturplatform med hybrid-forbindelse til eksisterende on-premise-investeringer.
+4. **SAP Basis Authorization Service** — governance-baseret autorisationsmodel med Segregation of Duties, audit-understøttelse og skalerbar rolleadministration.
+
+## Oracle-ydelser (Gold Partner)
+
+Implementering & konsolidering · Performance & optimering · Databaseadministration · Cloud-migrering · Arkitektur & strategi · Licensrådgivning
+
+Cutting edge inden for Oracle DB, APEX, AMS, Managed Technology og AI.
+
+## Mainframe-ydelser
+
+Drift og vedligehold · Modernisering · Integration
+
+Betroet leverandør inden for bank, transport, forsikring og logistik.
+
 ## Kort beskrivelse
 Solution er Epico's **leveringsmodel** for komplekse, langvarige eller forretningskritiske IT-initiativer. Vi sælger services og teams — men det specielle er HVORDAN vi styrer dem: via et **Center of Excellence (CoE)** og et **Open Framework**.
 

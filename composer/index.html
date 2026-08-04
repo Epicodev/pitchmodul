@@ -82,11 +82,11 @@
           <label class="field">
             <span class="field-label">Pitch-længde <span class="hint">(matcher mødetid — auto-tilpasser slides og dybde)</span></span>
             <div class="radio-group radio-group--horizontal">
-              <label class="radio"><input type="radio" name="pitch_length" value="short"><span>🟢 Kort (15-20 min · 8-10 slides)</span></label>
-              <label class="radio"><input type="radio" name="pitch_length" value="medium" checked><span>🟡 Medium (30-45 min · 13-15 slides)</span></label>
-              <label class="radio"><input type="radio" name="pitch_length" value="long"><span>🔴 Lang (60+ min · 20+ slides)</span></label>
+              <label class="radio"><input type="radio" name="pitch_length" value="short"><span>🟢 Kort · 15-20 min</span></label>
+              <label class="radio"><input type="radio" name="pitch_length" value="medium" checked><span>🟡 Medium · 30-45 min</span></label>
+              <label class="radio"><input type="radio" name="pitch_length" value="long"><span>🔴 Lang · 60+ min</span></label>
             </div>
-            <span class="field-hint">Vælger du Kort, deselectes 'om Epico'-slides automatisk og Claude skriver i tagline-style. Lang giver maks dybde og alle slides.</span>
+            <span class="field-hint">Styrer både hvor mange Epico-slides der kommer med, og hvor dybt Claude skriver kunde-slidesne. Se live-overblik i afsnit F.</span>
           </label>
         </div>
 
@@ -237,73 +237,11 @@
 
       <!-- SLIDE-KONFIGURATION -->
       <fieldset class="form-block">
-        <legend><span class="legend-num">F</span>Slide-konfiguration <span class="legend-hint">vælg hvad der skal med</span></legend>
-        <p class="form-block-intro">Klient-specifikke slides (research, prioriteter, mapping, case, næste skridt) er <strong>altid med</strong>. Her kan du toggle de generiske "om Epico"-slides. Default: alle med.</p>
+        <legend><span class="legend-num">F</span>Slides i pitchen <span class="legend-hint">live-overblik</span></legend>
+        <p class="form-block-intro">Kunde-slides (research, prioriteter, mapping, case, næste skridt) er <strong>altid med</strong>. Epico-slides vælges automatisk ud fra <strong>pitch-længde</strong> og <strong>valgte services</strong> — fravælg enkeltvis hvis du vil.</p>
 
-        <div class="slide-toggle-grid">
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="epico_intro_chapter" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Kapitel: "Dette er Epico"</span>
-              <span class="slide-toggle-desc">Section-divider — overgang til Epico-præsentation</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="epico_stats" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Epico i tal</span>
-              <span class="slide-toggle-desc">Stats hero: omsætning, konsulenter, lande, kunder</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="it_market" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">DK's IT-marked</span>
-              <span class="slide-toggle-desc">"4 ud af 5 virksomheder mangler IT-specialister..." kontekst</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="epico_dna" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Vores DNA</span>
-              <span class="slide-toggle-desc">4 værdier: hastighed, match, relation, ekspertise</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="services_chapter" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Kapitel: "Det vi leverer"</span>
-              <span class="slide-toggle-desc">Section-divider før service-slides</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="services_overview" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Services overblik</span>
-              <span class="slide-toggle-desc">Alle 6 services i ét mosaic-overblik — før de detaljerede service-slides</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="competences" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Udvalgte kompetencer (2 slides)</span>
-              <span class="slide-toggle-desc">8 kompetenceområder med roller og teknologi — Security, Infrastructure, Workplace, Development, PM, Business App, Engineering, Management</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="epic_process" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">The Epic Process</span>
-              <span class="slide-toggle-desc">7-trins timeline: Request → Search → ... → Kontrakt</span>
-            </span>
-          </label>
-          <label class="slide-toggle">
-            <input type="checkbox" name="slide_includes" value="case_study" checked>
-            <span class="slide-toggle-content">
-              <span class="slide-toggle-name">Relevant case</span>
-              <span class="slide-toggle-desc">Konkret case fra kundens branche (What/Why/Result/Value)</span>
-            </span>
-          </label>
+        <div class="slide-plan" id="slide-plan">
+          <div class="slide-plan-loading">Indlæser slide-plan…</div>
         </div>
       </fieldset>
 

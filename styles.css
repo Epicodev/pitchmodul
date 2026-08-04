@@ -779,6 +779,286 @@ html, body {
   gap: 6px;
 }
 
+/* ============================================================
+   SLIDE-BIBLIOTEK — layouts til statiske Epico-slides
+   ============================================================ */
+
+.lib-heading {
+  max-width: 1600px;
+}
+
+.lib-subheading {
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--light-grey);
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+.slide--dark .lib-subheading,
+.slide--red .lib-subheading {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lib-body-text {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--grey);
+  max-width: 900px;
+}
+
+.slide--dark .lib-body-text { color: rgba(255, 255, 255, 0.78); }
+
+/* ---------- BULLETS ---------- */
+.lib-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 48px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1500px;
+}
+
+.lib-bullets--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 64px;
+  max-width: none;
+}
+
+.lib-bullets li {
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--grey);
+  padding-left: 32px;
+  position: relative;
+}
+
+.lib-bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 18px;
+  height: 3px;
+  background: var(--raspberry);
+}
+
+.slide--dark .lib-bullets li { color: rgba(255, 255, 255, 0.85); }
+.slide--dark .lib-bullets li::before { background: var(--kiwi); }
+
+/* ---------- STATS ROW (vandret) ---------- */
+.lib-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--gap-mosaic);
+  margin-top: 48px;
+}
+
+.lib-stat {
+  background: var(--white);
+  padding: 40px 36px;
+  border-left: 3px solid var(--red);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide--dark .lib-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--kiwi);
+}
+
+.lib-stat-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 72px;
+  line-height: 0.9;
+  letter-spacing: var(--kern-tight);
+  color: var(--raspberry);
+}
+
+.slide--dark .lib-stat-value { color: var(--kiwi); }
+
+.lib-stat-label {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--grey);
+}
+
+.slide--dark .lib-stat-label { color: rgba(255, 255, 255, 0.65); }
+
+/* ---------- CARDS (3 / 4 / 6) ---------- */
+.lib-cards {
+  display: grid;
+  gap: var(--gap-mosaic);
+  margin-top: 48px;
+}
+
+.lib-cards--3 { grid-template-columns: repeat(3, 1fr); }
+.lib-cards--4 { grid-template-columns: repeat(4, 1fr); }
+.lib-cards--6 { grid-template-columns: repeat(3, 1fr); }
+
+.lib-card {
+  background: var(--white);
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 260px;
+  border-top: 3px solid transparent;
+  transition: border-top-color 0.2s;
+}
+
+.lib-card:hover { border-top-color: var(--kiwi); }
+
+.lib-cards--6 .lib-card { min-height: 220px; }
+
+.lib-card-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 0.9;
+  letter-spacing: var(--kern-tight);
+  color: var(--alu-grey);
+}
+
+.lib-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.15;
+  letter-spacing: var(--kern-medium);
+  color: var(--black-currant);
+}
+
+.lib-card-body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--grey);
+}
+
+.lib-card-bullets {
+  list-style: none;
+  padding: 0;
+  margin: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lib-card-bullets li {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--grey);
+  padding-left: 14px;
+  position: relative;
+}
+
+.lib-card-bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 2px;
+  background: var(--raspberry);
+}
+
+/* ---------- SERVICE DETAIL (3 kolonner) ---------- */
+.lib-service-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--gap-mosaic);
+  margin-top: 48px;
+}
+
+.lib-service-col {
+  background: var(--white);
+  padding: 44px 36px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-service-col--stats {
+  background: var(--black-currant);
+  color: white;
+}
+
+.lib-service-col .col-head {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--raspberry);
+  margin-bottom: 28px;
+}
+
+.lib-service-col--stats .col-head { color: var(--kiwi); }
+
+/* ---------- TWO COL ---------- */
+.lib-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  margin-top: 48px;
+  align-items: start;
+}
+
+.lib-two-col-left .lib-body-text {
+  font-size: 24px;
+  line-height: 1.45;
+}
+
+.lib-two-col-right .lib-bullets {
+  margin-top: 0;
+}
+
+.lib-two-col-right .lib-bullets li {
+  font-size: 19px;
+}
+
+/* ---------- TEXT HERO ---------- */
+.lib-text-hero {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-top: 48px;
+}
+
+.lib-text-hero p {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1.2;
+  letter-spacing: var(--kern-medium);
+  color: var(--black-currant);
+  max-width: 1500px;
+}
+
+.slide--dark .lib-text-hero p { color: white; }
+
+/* ---------- FOOTNOTE ---------- */
+.lib-footnote {
+  margin-top: auto;
+  padding-top: 32px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--light-grey);
+}
+
+.slide--dark .lib-footnote { color: rgba(255, 255, 255, 0.5); }
+
 /* SOLUTION LEVERANCE-KONCEPTER (4 cards) */
 .solution-concepts-grid {
   display: grid;

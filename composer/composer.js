@@ -210,8 +210,8 @@ async function runResearch(e) {
   const dictMappings = form.dict_mappings.value.trim();
   const dictNextSteps = form.dict_next_steps.value.trim();
 
-  // Slide-toggles (hvilke "om Epico"-slides skal med)
-  const includedSlides = Array.from(form.querySelectorAll('input[name="slide_includes"]:checked')).map(c => c.value);
+  // Bibliotek-slides sælger har fravalgt i live-planen
+  const excludedSlideIds = Array.from(document.querySelectorAll('.plan-slide input[type="checkbox"]:not(:checked)')).map(c => c.value);
 
   if (!clientName) {
     alert('Kundenavn er påkrævet.');
@@ -239,7 +239,7 @@ async function runResearch(e) {
     dict_priorities: dictPriorities,
     dict_mappings: dictMappings,
     dict_next_steps: dictNextSteps,
-    included_slides: includedSlides,
+    excluded_slide_ids: excludedSlideIds,
     contact_person: form.contact_person.value.trim(),
     city: form.city.value.trim(),
     date: form.date.value,
@@ -278,7 +278,6 @@ async function runResearch(e) {
   if (dictPriorities) formData.append('dict_priorities', dictPriorities);
   if (dictMappings) formData.append('dict_mappings', dictMappings);
   if (dictNextSteps) formData.append('dict_next_steps', dictNextSteps);
-  if (includedSlides.length) formData.append('included_slides', includedSlides.join(','));
   if (pdfFile) formData.append('annual_report', pdfFile);
 
   // Skift til research tab
@@ -496,7 +495,10 @@ async function generateDeck() {
           contact_person: state.brief.contact_person,
         },
         team: state.brief.team,
-        included_slides: state.brief.included_slides,
+        pitch_length: state.brief.pitch_length,
+        services: state.brief.services_to_highlight,
+        stakeholder: state.brief.meeting_stakeholder,
+        excluded_slide_ids: state.brief.excluded_slide_ids || [],
       }),
     });
 
@@ -550,7 +552,10 @@ async function downloadPptx() {
           contact_person: state.brief.contact_person,
         },
         team: state.brief.team,
-        included_slides: state.brief.included_slides,
+        pitch_length: state.brief.pitch_length,
+        services: state.brief.services_to_highlight,
+        stakeholder: state.brief.meeting_stakeholder,
+        excluded_slide_ids: state.brief.excluded_slide_ids || [],
       }),
     });
 
@@ -584,10 +589,121 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
+
+// ---------- Live slide-plan ----------
+let _planTimer = null;
+
+function currentPlanParams() {
+  const form = $('#brief-form');
+  if (!form) return null;
+  const length = form.querySelector('input[name="pitch_length"]:checked')?.value || 'medium';
+  const stakeholder = form.querySelector('input[name="meeting_stakeholder"]:checked')?.value || '';
+  const services = Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value);
+  return { length, stakeholder, services };
+}
+
+async function refreshSlidePlan() {
+  const container = $('#slide-plan');
+  if (!container) return;
+  const params = currentPlanParams();
+  if (!params) return;
+
+  // Husk hvad sælger allerede har fravalgt så det ikke nulstilles
+  const previouslyExcluded = new Set(
+    Array.from(container.querySelectorAll('.plan-slide input[type="checkbox"]:not(:checked)')).map(c => c.value)
+  );
+
+  const qs = new URLSearchParams({ pitch_length: params.length });
+  if (params.services.length) qs.set('services', params.services.join(','));
+  if (params.stakeholder) qs.set('stakeholder', params.stakeholder);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/slide-plan?${qs}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const plan = await res.json();
+    renderSlidePlan(plan, previouslyExcluded);
+  } catch (e) {
+    container.innerHTML = `<div class="slide-plan-loading">Kunne ikke hente slide-plan (${e.message})</div>`;
+  }
+}
+
+const CATEGORY_LABELS = {
+  market: 'Marked', intro: 'Om Epico', services: 'Services',
+  'deep-dive': 'Specialer', competencies: 'Kompetencer', process: 'Proces',
+};
+
+function renderSlidePlan(plan, excluded) {
+  const container = $('#slide-plan');
+  const activeLibrary = plan.library_slides.filter(s => !excluded.has(s.id)).length;
+  const total = plan.client_slides.length + activeLibrary + plan.closing_slides.length +
+                (activeLibrary > 0 && plan.pitch_length !== 'short' ? 1 : 0);
+
+  // Gruppér bibliotek-slides efter kategori
+  const groups = {};
+  plan.library_slides.forEach(s => {
+    (groups[s.category] = groups[s.category] || []).push(s);
+  });
+
+  const fixed = [...plan.client_slides, ...plan.closing_slides]
+    .map(s => `<span class="plan-chip">${s.title}</span>`).join('');
+
+  const groupHtml = Object.entries(groups).map(([cat, slides]) => `
+    <div class="plan-group">
+      <div class="plan-group-head">${CATEGORY_LABELS[cat] || cat}</div>
+      ${slides.map(s => `
+        <label class="plan-slide">
+          <input type="checkbox" value="${s.id}" ${excluded.has(s.id) ? '' : 'checked'}>
+          <span class="plan-slide-title">${s.title}</span>
+          ${s.services.length ? `<span class="plan-slide-tag">${s.services.map(x => x.replace('Epico ','')).join(', ')}</span>` : ''}
+        </label>
+      `).join('')}
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="plan-summary">
+      <span class="plan-count" id="plan-count">${total}</span>
+      <span class="plan-count-label">slides i alt</span>
+      <span class="plan-breakdown">${plan.client_slides.length + plan.closing_slides.length} kunde-slides · ${activeLibrary} Epico-slides</span>
+    </div>
+
+    <div class="plan-fixed">
+      <div class="plan-group-head">Altid med</div>
+      <div class="plan-chips">${fixed}</div>
+    </div>
+
+    ${groupHtml || '<div class="slide-plan-loading">Ingen Epico-slides ved denne kombination.</div>'}
+  `;
+
+  container.querySelectorAll('.plan-slide input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const newExcluded = new Set(
+        Array.from(container.querySelectorAll('.plan-slide input:not(:checked)')).map(c => c.value)
+      );
+      const n = plan.library_slides.filter(s => !newExcluded.has(s.id)).length;
+      const t = plan.client_slides.length + n + plan.closing_slides.length +
+                (n > 0 && plan.pitch_length !== 'short' ? 1 : 0);
+      $('#plan-count').textContent = t;
+      container.querySelector('.plan-breakdown').textContent =
+        `${plan.client_slides.length + plan.closing_slides.length} kunde-slides · ${n} Epico-slides`;
+    });
+  });
+}
+
+function schedulePlanRefresh() {
+  clearTimeout(_planTimer);
+  _planTimer = setTimeout(refreshSlidePlan, 150);
+}
+
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', () => {
   checkHealth();
   setupUpload();
+  refreshSlidePlan();
+
+  // Opdater slide-planen når længde, services eller stakeholder ændres
+  $$('input[name="pitch_length"], input[name="services"], input[name="meeting_stakeholder"]')
+    .forEach(el => el.addEventListener('change', schedulePlanRefresh));
 
   $('#brief-form').addEventListener('submit', runResearch);
   $('#cvr-lookup-btn').addEventListener('click', lookupCVR);
@@ -606,20 +722,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Pitch-længde preset → auto-toggle slides
-  const PITCH_LENGTH_PRESETS = {
-    short: ['case_study'],
-    medium: ['epico_intro_chapter', 'epico_stats', 'epico_dna', 'services_chapter', 'services_overview', 'epic_process', 'case_study'],
-    long: ['epico_intro_chapter', 'epico_stats', 'it_market', 'epico_dna', 'services_chapter', 'services_overview', 'competences', 'epic_process', 'case_study'],
-  };
-  $$('input[name="pitch_length"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      const preset = PITCH_LENGTH_PRESETS[e.target.value] || PITCH_LENGTH_PRESETS.medium;
-      $$('input[name="slide_includes"]').forEach(cb => {
-        cb.checked = preset.includes(cb.value);
-      });
-    });
-  });
 
   // Collapse toggle for slide-dictation
   const dictToggle = $('#dictation-toggle');

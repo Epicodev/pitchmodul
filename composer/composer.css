@@ -549,70 +549,139 @@ body.composer-body {
   color: var(--grey);
 }
 
-/* ---------- SLIDE TOGGLE GRID ---------- */
-.slide-toggle-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.slide-toggle {
+/* ---------- LIVE SLIDE-PLAN ---------- */
+.slide-plan {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 20px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.slide-plan-loading {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--light-grey);
+  padding: 20px;
   background: var(--raw-silk);
-  border: 2px solid var(--alu-grey);
+  text-align: center;
+}
+
+.plan-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--black-currant);
+  color: white;
+}
+
+.plan-count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: var(--kern-tight);
+  color: var(--kiwi);
+}
+
+.plan-count-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.plan-breakdown {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.plan-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.plan-group-head {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--raspberry);
+  margin-bottom: 6px;
+}
+
+.plan-fixed {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--alu-grey);
+}
+
+.plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.plan-chip {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 11px;
+  background: var(--beige);
+  color: var(--grey);
+}
+
+.plan-slide {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px;
+  background: var(--raw-silk);
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.12s;
 }
 
-.slide-toggle:hover {
-  border-color: var(--black-currant);
+.plan-slide:hover {
+  border-color: var(--alu-grey);
+  background: var(--white);
 }
 
-.slide-toggle input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+.plan-slide input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
   margin: 0;
   flex-shrink: 0;
   accent-color: var(--kiwi);
   cursor: pointer;
 }
 
-.slide-toggle-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.slide-toggle-name {
+.plan-slide-title {
   font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--black-currant);
-  letter-spacing: var(--kern-medium);
 }
 
-.slide-toggle-desc {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--light-grey);
-  line-height: 1.4;
-}
-
-.slide-toggle:has(input:checked) {
-  background: var(--white);
-  border-color: var(--kiwi);
-}
-
-.slide-toggle:has(input:not(:checked)) .slide-toggle-name {
+.plan-slide input:not(:checked) ~ .plan-slide-title {
   color: var(--light-grey);
   text-decoration: line-through;
 }
 
-.slide-toggle:has(input:not(:checked)) .slide-toggle-desc {
-  opacity: 0.5;
+.plan-slide-tag {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: var(--raspberry);
+  background: rgba(224, 30, 55, 0.08);
+  padding: 3px 8px;
 }
 
 /* ---------- TEAM ---------- */

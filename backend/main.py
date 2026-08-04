@@ -23,7 +23,8 @@ from pydantic import BaseModel
 
 from cvr import lookup_by_name, lookup_by_cvr
 from claude_client import analyze_client, reload_knowledge, refine_slide
-from deck_gen import render_deck
+from deck_gen import render_deck, preview_slide_plan
+from slide_library import library_summary, reload_library
 from pptx_gen import render_pptx
 from pdf_reader import extract_text
 from knowledge_loader import load_summary
@@ -66,7 +67,11 @@ class GenerateDeckRequest(BaseModel):
     analysis: dict
     meeting: Optional[dict] = None
     team: Optional[dict] = None
-    included_slides: Optional[list] = None
+    # Styrer hvilke slides fra biblioteket der kommer med
+    pitch_length: Optional[str] = "medium"
+    services: Optional[list] = None
+    stakeholder: Optional[str] = None
+    excluded_slide_ids: Optional[list] = None
 
 
 # ---------- Routes ----------
@@ -86,14 +91,39 @@ async def health():
         "anthropic_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
         "time": datetime.utcnow().isoformat() + "Z",
         "knowledge": load_summary(),
+        "slide_library": library_summary(),
     }
 
 
 @app.post("/api/reload-knowledge")
 async def reload_kb():
-    """Reload knowledge base fra disk (efter manuelle .md-redigeringer)."""
+    """Reload knowledge base + slide-bibliotek fra disk (efter .md-redigeringer)."""
     total_chars = reload_knowledge()
-    return {"status": "reloaded", "total_chars": total_chars, "summary": load_summary()}
+    slide_count = reload_library()
+    return {
+        "status": "reloaded",
+        "total_chars": total_chars,
+        "summary": load_summary(),
+        "slide_library": {"slides": slide_count, **library_summary()},
+    }
+
+
+@app.get("/api/slide-plan")
+async def slide_plan(
+    pitch_length: str = "medium",
+    services: Optional[str] = None,
+    stakeholder: Optional[str] = None,
+):
+    """
+    Vis hvilke slides der ville komme med — uden at generere noget.
+    Bruges af Composer til live-overblik når sælger ændrer længde/services.
+    """
+    service_list = [s.strip() for s in services.split(",") if s.strip()] if services else None
+    return preview_slide_plan(
+        pitch_length=pitch_length,
+        services=service_list,
+        stakeholder=stakeholder,
+    )
 
 
 @app.post("/api/cvr-lookup")
@@ -251,7 +281,10 @@ async def generate_deck(req: GenerateDeckRequest):
         analysis=req.analysis,
         meeting=req.meeting,
         team=req.team,
-        included_slides=req.included_slides,
+        pitch_length=req.pitch_length or "medium",
+        services=req.services,
+        stakeholder=req.stakeholder,
+        excluded_slide_ids=req.excluded_slide_ids,
         asset_base="/static",
     )
 
@@ -301,7 +334,10 @@ async def generate_deck_pptx(req: GenerateDeckRequest):
         analysis=req.analysis,
         meeting=req.meeting,
         team=req.team,
-        included_slides=req.included_slides,
+        pitch_length=req.pitch_length or "medium",
+        services=req.services,
+        stakeholder=req.stakeholder,
+        excluded_slide_ids=req.excluded_slide_ids,
     )
 
     safe_name = "".join(c if c.isalnum() else "_" for c in req.client_name).lower()

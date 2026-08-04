@@ -65,11 +65,21 @@ Kilder: epicogroup.com + master pitch deck Januar 2024. Brug KUN disse tal.
 - Hurtig opstart: inden for 14 dage
 
 ### Epico Public
-- Leverandør på SKI-rammeaftalerne **02.06, 02.14 og 02.17**
+- Leverandør på **fem** SKI-rammeaftaler:
+  - **02.06** — standardsoftware
+  - **02.13** — managementkonsulentydelser
+  - **02.14** — konsulentydelser
+  - **02.15** — IT-rådgivning
+  - **02.17** — IT-konsulenter
 - Muliggør IT-konsulentydelser og rådgivning relateret til software ved direkte tildeling
 - +20 års gennemsnitserfaring i Public-teamet
 
 ### Epico Solution
+- **Gold Oracle Partner**
+- Nearshore-hub: **Warszawa, Polen** — freelance og rekruttering
+- Offshore-hub: **Vietnam**
+- Dansk manager som fast kontaktperson på alle setups
+- Fire løsningsprodukter: Applikationsdrift som service · Dataintegration & integrationsplatforme · Skalerbar cloud-løsning · SAP Basis Authorization Service
 - CoE (Center of Excellence)-baseret leveringsmodel
 - Open Framework med kunde-ejet arkitektur
 - RUN servicekatalog: 8 områder (Strategi, Arkitektur, Infrastruktur, Sikkerhed, Arbejdsplads, Applikationer, Levering, Drift)
@@ -88,6 +98,9 @@ Kilder: epicogroup.com + master pitch deck Januar 2024. Brug KUN disse tal.
 | 71,4% | af danske IT-leverandører ser kompetencemangel som største vækstbarriere |
 | 36% | af IT-leverandører måtte afvise opgaver pga. manglende kompetencer |
 | Nr. 8 | DK rangerer som nr. 8 i EU på antal IT-specialister |
+| 78% | af arbejdsgivere oplever hurtigere time-to-fill med fleksible bemandingsmodeller |
+| 41% | af organisationer identificerer kompetencegab som en central udfordring |
+| 75-100% | af årslønnen — det anslåede omkostning ved en fejlansættelse |
 
 ## Strategiske partnere & kunder vi kan nævne (offentlige)
 
