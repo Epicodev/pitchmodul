@@ -80,8 +80,8 @@
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Vi har gjort hjemmearbejdet</span>
-    <h2 class="h1" style="max-width:1500px;">Dette ved vi om <span class="accent">{{ client.name }}</span></h2>
+    <span class="eyebrow">{{ headlines.research.eyebrow }}</span>
+    <h2 class="h1" style="max-width:1500px;">{{ headlines.research.heading_html|safe }}</h2>
 
     <div class="research-grid">
       {% for fact in research_facts %}
@@ -107,8 +107,8 @@
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Sådan læser vi jeres retning</span>
-    <h2 class="h1" style="max-width:1600px;">{{ strategic_priorities|length }} strategiske prioriteter <span class="accent">vi vil tale ind i.</span></h2>
+    <span class="eyebrow">{{ headlines.priorities.eyebrow }}</span>
+    <h2 class="h1" style="max-width:1600px;">{{ headlines.priorities.heading_html|safe }}</h2>
 
     <div class="priority-list">
       {% for p in strategic_priorities %}
@@ -136,8 +136,8 @@
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Konkret kobling</span>
-    <h2 class="h1" style="max-width:1600px;">Jeres udfordring. <span class="accent">Vores håndtag.</span></h2>
+    <span class="eyebrow">{{ headlines.mapping.eyebrow }}</span>
+    <h2 class="h1" style="max-width:1600px;">{{ headlines.mapping.heading_html|safe }}</h2>
 
     <div class="mapping">
       <div class="col-head">Jeres udfordring</div>
@@ -240,8 +240,8 @@
   </div>
 
   <div class="layout-full">
-    <span class="eyebrow">Hvis vi er enige om retningen</span>
-    <h2 class="h1" style="max-width:1500px;">{{ next_steps|length }} konkrete <span class="accent">næste skridt.</span></h2>
+    <span class="eyebrow">{{ headlines.next_steps.eyebrow }}</span>
+    <h2 class="h1" style="max-width:1500px;">{{ headlines.next_steps.heading_html|safe }}</h2>
 
     <div class="steps-grid">
       {% for step in next_steps %}

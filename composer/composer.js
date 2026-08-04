@@ -88,6 +88,7 @@ async function lookupCVR() {
     const { data } = await res.json();
     if (data.cvr && !cvrVal) input.value = data.cvr;
     if (data.name && !nameVal) nameInput.value = data.name;
+    updateBriefQuestionsBtn();
 
     result.innerHTML = `
       <div class="cvr-name">${data.name || query}</div>
@@ -176,6 +177,210 @@ function resetSteps() {
   });
 }
 
+// ---------- Delte brief-felter ----------
+// Både /api/research og /api/brief-questions skal have præcis de samme værdier.
+function readSharedBriefFields(form) {
+  return {
+    client_name: form.client_name.value.trim(),
+    cvr_number: form.cvr_number.value.trim(),
+    pitch_length: form.querySelector('input[name="pitch_length"]:checked')?.value || 'medium',
+    meeting_stakeholder: form.querySelector('input[name="meeting_stakeholder"]:checked')?.value || '',
+    meeting_stage: form.querySelector('input[name="meeting_stage"]:checked')?.value || 'first_touch',
+    meeting_history: form.meeting_history.value.trim(),
+    personal_angle: form.personal_angle.value.trim(),
+    insider_insights: form.insider_insights.value.trim(),
+    exclusions: form.exclusions.value.trim(),
+    pitch_focus: form.pitch_focus.value.trim(),
+    services_to_highlight: Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value),
+  };
+}
+
+function appendSharedBriefFields(formData, v) {
+  formData.append('client_name', v.client_name);
+  if (v.cvr_number) formData.append('cvr_number', v.cvr_number);
+  formData.append('pitch_length', v.pitch_length);
+  if (v.meeting_stakeholder) formData.append('meeting_stakeholder', v.meeting_stakeholder);
+  formData.append('meeting_stage', v.meeting_stage);
+  if (v.meeting_history) formData.append('meeting_history', v.meeting_history);
+  if (v.personal_angle) formData.append('personal_angle', v.personal_angle);
+  if (v.insider_insights) formData.append('insider_insights', v.insider_insights);
+  if (v.exclusions) formData.append('exclusions', v.exclusions);
+  if (v.pitch_focus) formData.append('pitch_focus', v.pitch_focus);
+  if (v.services_to_highlight.length) formData.append('services_to_highlight', v.services_to_highlight.join(','));
+}
+
+// ---------- Omvendt brief — lad AI stille spørgsmålene ----------
+const BRIEF_FIELD_LABELS = {
+  insider_insights: 'Konkurrent-situation & insider',
+  personal_angle: 'Stakeholder & personlig vinkel',
+  meeting_history: 'Mødehistorik',
+  pitch_focus: 'Hvad skal pitchen fokusere på?',
+  exclusions: 'Eksklusioner',
+};
+
+const briefQuestions = {
+  items: [],        // spørgsmål fra AI
+  answers: {},      // spørgsmåls-index → sælgers svar
+  baselines: {},    // feltnavn → feltets tekst før AI-svarene blev føjet på
+  syncing: false,   // sandt mens vi selv skriver i et brief-felt
+};
+
+function briefFieldEl(name) {
+  return $(`#brief-form [name="${name}"]`);
+}
+
+// Alle svar der hører til ét brief-felt, i spørgsmåls-rækkefølge
+function briefAnswerTail(field) {
+  return briefQuestions.items
+    .map((q, i) => (q.field === field ? (briefQuestions.answers[i] || '').trim() : ''))
+    .filter(Boolean)
+    .join('\n');
+}
+
+// Føj svarene TIL feltet — aldrig overskriv sælgers egen tekst
+function syncBriefField(field) {
+  const el = briefFieldEl(field);
+  if (!el) return;
+  const base = (briefQuestions.baselines[field] || '').replace(/\s+$/, '');
+  const tail = briefAnswerTail(field);
+  briefQuestions.syncing = true;
+  el.value = base && tail ? `${base}\n${tail}` : (base || tail);
+  briefQuestions.syncing = false;
+}
+
+// Retter sælger selv i brief-feltet, skal deres tekst vinde
+function handleManualBriefEdit(field) {
+  if (briefQuestions.syncing) return;
+  if (!briefQuestions.items.some(q => q.field === field)) return;
+
+  const el = briefFieldEl(field);
+  if (!el) return;
+  const tail = briefAnswerTail(field);
+
+  if (tail && el.value.endsWith(tail)) {
+    // Kun teksten over svarene er rettet — flyt baseline med
+    briefQuestions.baselines[field] = el.value.slice(0, el.value.length - tail.length);
+    return;
+  }
+
+  // Sælger har redigeret i selve svarene — lad feltet stå og tøm svarboksene
+  briefQuestions.baselines[field] = el.value;
+  briefQuestions.items.forEach((q, i) => {
+    if (q.field !== field) return;
+    briefQuestions.answers[i] = '';
+    const ta = $(`#brief-questions-body textarea[data-qidx="${i}"]`);
+    if (ta) ta.value = '';
+  });
+}
+
+function updateBriefQuestionsBtn() {
+  const btn = $('#brief-questions-btn');
+  const input = $('#brief-form [name="client_name"]');
+  if (!btn || !input) return;
+  const ready = input.value.trim().length > 0;
+  btn.disabled = !ready;
+  btn.title = ready ? '' : 'Udfyld kundenavn først';
+}
+
+function renderBriefQuestions(data) {
+  const body = $('#brief-questions-body');
+  if (!body) return;
+
+  const items = Array.isArray(data.questions)
+    ? data.questions.filter(q => q && q.question && BRIEF_FIELD_LABELS[q.field])
+    : [];
+
+  briefQuestions.items = items;
+  briefQuestions.answers = {};
+  briefQuestions.baselines = {};
+  items.forEach(q => {
+    if (briefQuestions.baselines[q.field] === undefined) {
+      const el = briefFieldEl(q.field);
+      briefQuestions.baselines[q.field] = el ? el.value : '';
+    }
+  });
+
+  body.hidden = false;
+
+  if (!items.length) {
+    body.innerHTML = `<div class="brief-questions-error">AI'en havde ingen spørgsmål denne gang. Prøv igen når du har skrevet lidt mere.</div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    ${data.assessment ? `<p class="brief-assessment">${escapeHtml(data.assessment)}</p>` : ''}
+    <div class="brief-question-list">
+      ${items.map((q, i) => `
+        <div class="brief-question">
+          <div class="brief-question-q">${escapeHtml(q.question)}</div>
+          ${q.why ? `<div class="brief-question-why">${escapeHtml(q.why)}</div>` : ''}
+          <textarea class="editable brief-question-answer" data-qidx="${i}" rows="2"
+                    placeholder="${escapeHtml(q.example_answer || 'Skriv dit svar her...')}"></textarea>
+          <div class="brief-question-target">Føjes til <strong>${escapeHtml(BRIEF_FIELD_LABELS[q.field])}</strong></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  body.querySelectorAll('.brief-question-answer').forEach(ta => {
+    ta.addEventListener('input', () => {
+      const i = parseInt(ta.dataset.qidx, 10);
+      const item = briefQuestions.items[i];
+      if (!item) return;
+      briefQuestions.answers[i] = ta.value;
+      syncBriefField(item.field);
+    });
+  });
+}
+
+async function askBriefQuestions() {
+  const form = $('#brief-form');
+  const btn = $('#brief-questions-btn');
+  const body = $('#brief-questions-body');
+  if (!form || !btn || !body) return;
+
+  const shared = readSharedBriefFields(form);
+  if (!shared.client_name) {
+    updateBriefQuestionsBtn();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = 'Læser din brief... <span class="arrow">⟳</span>';
+  body.hidden = false;
+  body.innerHTML = `<div class="brief-questions-loading">AI'en læser det du har skrevet og finder de spørgsmål der rykker mest — det tager ca. 5 sekunder.</div>`;
+
+  const formData = new FormData();
+  appendSharedBriefFields(formData, shared);
+
+  try {
+    const res = await fetch(`${API_BASE}/api/brief-questions`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      let detail = `Kaldet fejlede (HTTP ${res.status}).`;
+      try {
+        const err = await res.json();
+        if (err && err.detail) detail = err.detail;
+      } catch { /* ikke JSON — behold standardbesked */ }
+      body.innerHTML = `<div class="brief-questions-error">${escapeHtml(detail)}</div>`;
+      return;
+    }
+
+    renderBriefQuestions(await res.json());
+  } catch (e) {
+    body.innerHTML = `<div class="brief-questions-error">Netværksfejl: ${escapeHtml(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = briefQuestions.items.length
+      ? 'Stil nye spørgsmål <span class="arrow">→</span>'
+      : 'Lad AI stille spørgsmål <span class="arrow">→</span>';
+    updateBriefQuestionsBtn();
+  }
+}
+
 // ---------- Run AI research ----------
 async function runResearch(e) {
   e.preventDefault();
@@ -184,27 +389,27 @@ async function runResearch(e) {
   const formData = new FormData();
 
   // Indsaml form-data
-  const clientName = form.client_name.value.trim();
-  const cvrNumber = form.cvr_number.value.trim();
+  const shared = readSharedBriefFields(form);
+  const clientName = shared.client_name;
+  const cvrNumber = shared.cvr_number;
   const pdfFile = form.annual_report.files[0];
 
   // Pitch-længde
-  const pitchLength = form.querySelector('input[name="pitch_length"]:checked')?.value || 'medium';
+  const pitchLength = shared.pitch_length;
 
   // Lag 1: Sælgers brief (strukturerede inputs)
-  const meetingStakeholder = form.querySelector('input[name="meeting_stakeholder"]:checked')?.value || '';
-  const meetingStage = form.querySelector('input[name="meeting_stage"]:checked')?.value || 'first_touch';
-  const meetingHistory = form.meeting_history.value.trim();
-  const personalAngle = form.personal_angle.value.trim();
-  const insiderInsights = form.insider_insights.value.trim();
-  const exclusions = form.exclusions.value.trim();
+  const meetingStakeholder = shared.meeting_stakeholder;
+  const meetingStage = shared.meeting_stage;
+  const meetingHistory = shared.meeting_history;
+  const personalAngle = shared.personal_angle;
+  const insiderInsights = shared.insider_insights;
+  const exclusions = shared.exclusions;
 
   // Pitch-vinkel
-  const pitchFocus = form.pitch_focus.value.trim();
-  const servicesChecked = Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value);
+  const pitchFocus = shared.pitch_focus;
+  const servicesChecked = shared.services_to_highlight;
 
   // Lag 2: Slide-for-slide dictation
-  const dictWhyMeeting = form.dict_why_meeting.value.trim();
   const dictResearchFacts = form.dict_research_facts.value.trim();
   const dictPriorities = form.dict_priorities.value.trim();
   const dictMappings = form.dict_mappings.value.trim();
@@ -234,7 +439,6 @@ async function runResearch(e) {
     pitch_focus: pitchFocus,
     services_to_highlight: servicesChecked,
     // Lag 2
-    dict_why_meeting: dictWhyMeeting,
     dict_research_facts: dictResearchFacts,
     dict_priorities: dictPriorities,
     dict_mappings: dictMappings,
@@ -259,21 +463,9 @@ async function runResearch(e) {
     },
   };
 
-  formData.append('client_name', clientName);
-  if (cvrNumber) formData.append('cvr_number', cvrNumber);
-  formData.append('pitch_length', pitchLength);
-  // Lag 1
-  if (meetingStakeholder) formData.append('meeting_stakeholder', meetingStakeholder);
-  formData.append('meeting_stage', meetingStage);
-  if (meetingHistory) formData.append('meeting_history', meetingHistory);
-  if (personalAngle) formData.append('personal_angle', personalAngle);
-  if (insiderInsights) formData.append('insider_insights', insiderInsights);
-  if (exclusions) formData.append('exclusions', exclusions);
-  // Pitch-vinkel
-  if (pitchFocus) formData.append('pitch_focus', pitchFocus);
-  if (servicesChecked.length) formData.append('services_to_highlight', servicesChecked.join(','));
+  // Klient + Lag 1 + pitch-vinkel (samme felter som /api/brief-questions)
+  appendSharedBriefFields(formData, shared);
   // Lag 2
-  if (dictWhyMeeting) formData.append('dict_why_meeting', dictWhyMeeting);
   if (dictResearchFacts) formData.append('dict_research_facts', dictResearchFacts);
   if (dictPriorities) formData.append('dict_priorities', dictPriorities);
   if (dictMappings) formData.append('dict_mappings', dictMappings);
@@ -329,8 +521,7 @@ async function runResearch(e) {
     summary.hidden = false;
     summary.innerHTML = `
       <h3>${data.client_name}</h3>
-      <p class="summary-text">${state.analysis.client_summary || ''}</p>
-      <p class="summary-text" style="margin-top:12px;color:var(--light-grey);">
+      <p class="summary-text" style="color:var(--light-grey);">
         Branche: <strong style="color:var(--black-currant);">${state.analysis.industry_tag || '—'}</strong>
         ${data.pdf_pages_parsed ? ` · ${data.pdf_pages_parsed} sider læst fra årsrapport` : ''}
         ${data.cvr_data ? ` · CVR ${data.cvr_data.cvr}` : ''}
@@ -353,21 +544,185 @@ async function runResearch(e) {
   }
 }
 
-// ---------- Build review UI ----------
-function buildReviewUI() {
-  const a = state.analysis;
-  const c = $('#review-container');
+// ---------- Dækningsrapport (hvordan briefen blev brugt) ----------
+function coverageMarkup(cov) {
+  if (!cov || typeof cov !== 'object') return '';
 
-  const facts = a.research_facts.map((f, i) => `
-    <div class="review-item">
-      <span class="field-hint">Fakta ${i + 1}</span>
+  const usage = Array.isArray(cov.brief_usage) ? cov.brief_usage.filter(Boolean) : [];
+  const dropped = Array.isArray(cov.dropped) ? cov.dropped.filter(Boolean) : [];
+  const missing = Array.isArray(cov.missing_input) ? cov.missing_input.filter(Boolean) : [];
+  const weakest = cov.weakest_slide && typeof cov.weakest_slide === 'object' ? cov.weakest_slide : null;
+
+  if (!usage.length && !dropped.length && !missing.length && !weakest) return '';
+
+  const weakestHtml = weakest ? `
+    <div class="coverage-warning">
+      <span class="coverage-warning-tag">Svageste slide</span>
+      <div class="coverage-warning-slide">${escapeHtml(weakest.slide)}</div>
+      <p class="coverage-warning-why">${escapeHtml(weakest.why)}</p>
+      ${weakest.what_would_fix_it ? `
+        <div class="coverage-fix">
+          <span class="coverage-fix-label">Sådan løfter du det</span>
+          ${escapeHtml(weakest.what_would_fix_it)}
+        </div>` : ''}
+    </div>
+  ` : '';
+
+  const usageHtml = usage.length ? `
+    <div class="coverage-section">
+      <div class="coverage-section-head">Det her landede i pitchen</div>
+      <div class="coverage-list">
+        ${usage.map(u => `
+          <div class="coverage-item">
+            <div class="coverage-input">${escapeHtml(u.input)}</div>
+            <div class="coverage-landed">${escapeHtml(u.landed_in)}</div>
+            <div class="coverage-how">${escapeHtml(u.how)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const droppedHtml = dropped.length ? `
+    <div class="coverage-section coverage-section--dropped">
+      <div class="coverage-section-head">Det her kom ikke med</div>
+      <p class="coverage-section-sub">Er noget af det vigtigt for dig? Skriv det tydeligere i briefen og kør research igen.</p>
+      <div class="coverage-list">
+        ${dropped.map(d => `
+          <div class="coverage-item coverage-item--dropped">
+            <div class="coverage-input">${escapeHtml(d.input)}</div>
+            <div class="coverage-how">${escapeHtml(d.why)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const missingHtml = missing.length ? `
+    <div class="coverage-section">
+      <div class="coverage-section-head">Det ville jeg gerne have vidst</div>
+      <ul class="coverage-missing">
+        ${missing.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <div class="review-block coverage-block">
+      <div class="review-block-head">
+        <h3>Sådan brugte jeg din brief</h3>
+        <button type="button" class="collapse-btn is-expanded" id="coverage-toggle">Skjul ↑</button>
+      </div>
+      <div class="coverage-body" id="coverage-body">
+        ${weakestHtml}
+        ${usageHtml}
+        ${droppedHtml}
+        ${missingHtml}
+      </div>
+    </div>
+  `;
+}
+
+// ---------- Research-fakta med bytte-funktion ----------
+function factsMarkup() {
+  const a = state.analysis;
+  const facts = Array.isArray(a.research_facts) ? a.research_facts : [];
+  const alts = Array.isArray(a.research_facts_alternates) ? a.research_facts_alternates : [];
+
+  return facts.map((f, i) => `
+    <div class="review-item fact-item">
+      <div class="fact-head">
+        <span class="field-hint">Fakta ${i + 1}</span>
+        ${alts.length ? `<button type="button" class="fact-swap-btn" data-swap="${i}">Byt ↔</button>` : ''}
+      </div>
       <div class="review-grid-3">
         <input class="editable" data-path="research_facts.${i}.key" value="${escapeHtml(f.key)}" placeholder="Label">
         <input class="editable" data-path="research_facts.${i}.value" value="${escapeHtml(f.value)}" placeholder="Værdi">
         <input class="editable" data-path="research_facts.${i}.source" value="${escapeHtml(f.source)}" placeholder="Kilde">
       </div>
+      ${f.why_it_matters ? `
+        <div class="fact-why">
+          <span class="fact-why-label">Intern note</span>${escapeHtml(f.why_it_matters)}
+        </div>` : ''}
+      ${alts.length ? `
+        <div class="fact-alternates" data-alts="${i}" hidden>
+          <div class="fact-alt-head">Byt ud med et af disse — den nuværende ryger tilbage i puljen</div>
+          <div class="fact-alt-list">
+            ${alts.map((alt, j) => `
+              <button type="button" class="fact-alt" data-fact="${i}" data-alt="${j}">
+                <span class="fact-alt-key">${escapeHtml(alt.key)}</span>
+                <span class="fact-alt-value">${escapeHtml(alt.value)}</span>
+                <span class="fact-alt-source">Kilde: ${escapeHtml(alt.source)}</span>
+                ${alt.why_it_matters ? `<span class="fact-alt-why">${escapeHtml(alt.why_it_matters)}</span>` : ''}
+              </button>
+            `).join('')}
+          </div>
+        </div>` : ''}
     </div>
   `).join('');
+}
+
+function swapFact(factIndex, altIndex) {
+  const a = state.analysis;
+  const facts = a.research_facts;
+  const alts = a.research_facts_alternates;
+  if (!Array.isArray(facts) || !Array.isArray(alts)) return;
+  if (!facts[factIndex] || !alts[altIndex]) return;
+
+  // Byt de to — den valgte fakta ryger i puljen, så byttet kan fortrydes
+  const chosen = alts[altIndex];
+  alts[altIndex] = facts[factIndex];
+  facts[factIndex] = chosen;
+
+  renderFacts();
+}
+
+function renderFacts() {
+  const host = $('#facts-list');
+  if (!host) return;
+
+  host.innerHTML = factsMarkup();
+  bindEditables(host);
+
+  host.querySelectorAll('.fact-swap-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = host.querySelector(`.fact-alternates[data-alts="${btn.dataset.swap}"]`);
+      if (!panel) return;
+      const willOpen = panel.hidden;
+      host.querySelectorAll('.fact-alternates').forEach(p => { p.hidden = true; });
+      host.querySelectorAll('.fact-swap-btn').forEach(b => b.classList.remove('is-open'));
+      panel.hidden = !willOpen;
+      btn.classList.toggle('is-open', willOpen);
+    });
+  });
+
+  host.querySelectorAll('.fact-alt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      swapFact(parseInt(btn.dataset.fact, 10), parseInt(btn.dataset.alt, 10));
+    });
+  });
+}
+
+// Bind edits — opdater state.analysis live
+function bindEditables(root) {
+  root.querySelectorAll('.editable[data-path]').forEach(el => {
+    el.addEventListener('input', (e) => {
+      const path = e.target.dataset.path.split('.');
+      let obj = state.analysis;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        obj = obj[isNaN(key) ? key : parseInt(key)];
+      }
+      const lastKey = path[path.length - 1];
+      obj[isNaN(lastKey) ? lastKey : parseInt(lastKey)] = e.target.value;
+    });
+  });
+}
+
+// ---------- Build review UI ----------
+function buildReviewUI() {
+  const a = state.analysis;
+  const c = $('#review-container');
 
   const priorities = a.strategic_priorities.map((p, i) => `
     <div class="review-item">
@@ -420,12 +775,14 @@ function buildReviewUI() {
   `;
 
   c.innerHTML = `
+    ${coverageMarkup(a.coverage_report)}
+
     <div class="review-block">
       <div class="review-block-head">
         <h3>Research-fakta om ${escapeHtml(state.brief.client_name)}</h3>
         <span class="slide-ref">Slide 04</span>
       </div>
-      ${facts}
+      <div class="facts-list" id="facts-list"></div>
     </div>
 
     <div class="review-block">
@@ -461,19 +818,23 @@ function buildReviewUI() {
     </div>
   `;
 
-  // Bind edits — opdater state.analysis live
-  $$('.editable[data-path]').forEach(el => {
-    el.addEventListener('input', (e) => {
-      const path = e.target.dataset.path.split('.');
-      let obj = state.analysis;
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        obj = obj[isNaN(key) ? key : parseInt(key)];
-      }
-      const lastKey = path[path.length - 1];
-      obj[isNaN(lastKey) ? lastKey : parseInt(lastKey)] = e.target.value;
+  // Bind edits på alt undtagen fakta (#facts-list er stadig tom her)
+  bindEditables(c);
+
+  // Fakta renderes for sig, så de kan gen-tegnes når sælger bytter en ud
+  renderFacts();
+
+  // Foldbar dækningsrapport
+  const covToggle = $('#coverage-toggle');
+  const covBody = $('#coverage-body');
+  if (covToggle && covBody) {
+    covToggle.addEventListener('click', () => {
+      const isOpen = !covBody.hidden;
+      covBody.hidden = isOpen;
+      covToggle.textContent = isOpen ? 'Vis rapport ↓' : 'Skjul ↑';
+      covToggle.classList.toggle('is-expanded', !isOpen);
     });
-  });
+  }
 }
 
 // ---------- Generate deck ----------
@@ -707,6 +1068,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#brief-form').addEventListener('submit', runResearch);
   $('#cvr-lookup-btn').addEventListener('click', lookupCVR);
+
+  // Omvendt brief — knappen er død indtil der står et kundenavn
+  const askBtn = $('#brief-questions-btn');
+  const clientNameInput = $('#brief-form [name="client_name"]');
+  if (askBtn && clientNameInput) {
+    askBtn.addEventListener('click', askBriefQuestions);
+    clientNameInput.addEventListener('input', updateBriefQuestionsBtn);
+    updateBriefQuestionsBtn();
+  }
+
+  // Retter sælger selv i et brief-felt, må vores AI-svar ikke overskrive det
+  Object.keys(BRIEF_FIELD_LABELS).forEach(field => {
+    const el = briefFieldEl(field);
+    if (el) el.addEventListener('input', () => handleManualBriefEdit(field));
+  });
+
   $('#back-to-brief').addEventListener('click', () => setActiveTab('brief'));
   $('#generate-deck-btn').addEventListener('click', generateDeck);
   $('#download-deck-btn').addEventListener('click', downloadDeck);

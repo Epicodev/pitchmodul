@@ -42,7 +42,7 @@ def reload_knowledge() -> int:
 _SLIDE_REFINE_SYSTEM_PROMPT = """Du er Epico's pitch-redaktør. Sælger har bedt dig om at SKÆRPE et specifikt slide-indhold med en bestemt direktive.
 
 Modtag:
-- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation / client_summary)
+- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation)
 - Nuværende indhold (JSON)
 - Sælgers direktive (fritekst, fx "mere konkret", "mere kommerciel tone", "fokus på cybersecurity")
 
@@ -89,7 +89,7 @@ def refine_slide(
 
     Args:
         slide_type: 'research_facts' | 'strategic_priorities' | 'value_mappings' |
-                    'next_steps' | 'case_recommendation' | 'client_summary'
+                    'next_steps' | 'case_recommendation'
         current_content: Nuværende JSON-indhold for sliden
         directive: Sælgers ønske ("mere konkret", "mere kommerciel", "fokus på security", osv.)
         client_name: For kontekst
@@ -163,9 +163,31 @@ _BRIEF_CONTRACT_TOOL = {
             "research_priorities": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "3-5 specifikke fakta/observationer fra årsrapport, web search eller crawl der UNDERSTØTTER pitchen. Disse er de KUN ting Claude må trække fra det store research-materiale.",
+                "description": (
+                    "3-5 ting pitchen har brug for at vide om kunden for at holde vand. "
+                    "Formulér dem som det du LEDER EFTER — ikke som noget du allerede har fundet. "
+                    "Fx 'Om de har annonceret et ERP-skifte inden for 18 måneder', ikke 'De skifter ERP'. "
+                    "Har du allerede belæg i materialet, så skriv det du fandt. "
+                    "Disse styrer både hvad der bliver søgt efter, og hvad der senere må trækkes ud af materialet."
+                ),
                 "minItems": 3,
                 "maxItems": 5,
+            },
+            "research_queries": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "3-4 konkrete web-søgninger der kan afklare research-prioriteterne ovenfor. "
+                    "Skriv dem som en researcher ville taste dem — med firmanavn, konkrete termer og "
+                    "gerne årstal. Ikke som spørgsmål til en chatbot.\n\n"
+                    "God: 'Novo Nordisk SAP S/4HANA migration 2025 leverandør'\n"
+                    "Dårlig: 'Hvad laver Novo Nordisk inden for IT?'\n\n"
+                    "Rammer sælgers brief en konkurrent, en bestemt afdeling eller en konkret smerte — "
+                    "så skal mindst én søgning gå direkte efter dét. Søgninger på generisk firmabaggrund "
+                    "er spildt: dem har vi CVR og årsrapport til."
+                ),
+                "minItems": 3,
+                "maxItems": 4,
             },
             "next_steps_style": {
                 "type": "string",
@@ -176,23 +198,35 @@ _BRIEF_CONTRACT_TOOL = {
                 "description": "Fx '8-10 slides' (kort), '13-15 slides' (medium), '20+ slides' (lang).",
             },
         },
-        "required": ["core_intent", "tone_directive", "must_include", "must_exclude", "research_priorities", "next_steps_style", "expected_slide_count"],
+        "required": ["core_intent", "tone_directive", "must_include", "must_exclude", "research_priorities", "research_queries", "next_steps_style", "expected_slide_count"],
     },
 }
 
 
-_BRIEF_CONTRACT_SYSTEM = """Du er Epico's pitch-strateg. Sælger har givet dig en masse input om en kunde og et møde. Din opgave NU er at producere en KONTRAKT der binder den kommende pitch til sælgers intent.
+_BRIEF_CONTRACT_SYSTEM = """Du er Epico's pitch-strateg. En sælger skal til møde hos en kunde, og du skal beslutte HVAD den pitch handler om — før nogen begynder at samle materiale.
 
-Du skal IKKE generere pitch-indhold endnu. Du skal beslutte og kommunikere — på 300 ord — HVAD pitchen handler om, hvad den SKAL inkludere, hvad den IKKE må indeholde, og hvilke datapunkter fra det enorme research-materiale der er relevante.
+Det er vigtigt at forstå rækkefølgen: du arbejder **før** researchen er lavet. Du får sælgers brief, CVR-data og eventuelt en årsrapport. Du får ikke web-søgninger endnu — for det er DIG der bestemmer hvad der skal søges efter.
 
-Tænk som en redaktør der briefer en journalist: "Her er rammerne. Hold dig inden for dem."
+Din opgave er en kontrakt på ~300 ord: hvad pitchen handler om, hvad den skal indeholde, hvad den ikke må indeholde, og hvad vi mangler at vide.
 
-Vigtige principper:
-- Sælgers brief vinder over årsrapport/web-data
-- Stakeholder-type styrer tone og næste-skridt
-- Pitch-længde styrer hvor mange detaljer der må med
-- Hvis sælger har angivet en konkurrent: pitchen handler om differentiering — ikke generisk salg
-- Hvis sælger har angivet eksklusioner: respektér dem ABSOLUT
+Tænk som en redaktør der briefer en journalist inden researchen: "Her er historien. Gå ud og find belæg for den — og kom tilbage hvis den ikke holder."
+
+## Sådan læser du sælgers input
+
+Sælgers input er ikke én klump. Fem typer, hver med sin egen vægt:
+
+- **Begrænsninger** (hvad der ikke må nævnes) er absolutte. De ryger direkte i `must_exclude` og kan ikke afvejes.
+- **Evidens** (insider-viden, mødehistorik, hvad sælger ved om personen) er faktuelle oplysninger. De vinder over årsrapport og CVR ved konflikt — et regnskab er op til 14 måneder gammelt, sælger talte måske med dem i sidste uge.
+- **Ramme** (mødestadie, pitch-vinkel) afgør hvad der er relevant. Den tilføjer ikke fakta, men den bestemmer hvad du leder efter.
+- **Diktat** (tekst sælger selv har skrevet til bestemte slides) er endeligt indhold. Kontrakten skal beskytte det, ikke overskrive det.
+- **Struktur** (længde, services, stakeholder) styrer form og omfang — ikke hvad der er sandt.
+
+## Principper
+
+- Stakeholder-typen styrer tone og næste skridt. En Procurement-chef og en CIO får ikke samme pitch.
+- Pitch-længden styrer hvor mange detaljer der er plads til. Kort betyder skarpere, ikke bare kortere.
+- Er der nævnt en konkurrent: pitchen handler om differentiering, ikke om generisk salg.
+- Er briefen tynd, så sig det ærligt i `core_intent` fremfor at digte en historie. Dine `research_queries` bliver så det der skal redde pitchen.
 
 Returnér via `deliver_pitch_contract`-værktøjet."""
 
@@ -261,21 +295,31 @@ def _build_pitch_contract(
         parts.append(f"- Hjemmeside: {cvr_data.get('website', '—')}")
         parts.append("")
 
-    # Research-materiale (FOR Claude at vælge fra — Claude vælger 3-5 prioriteter)
+    # Research-materiale. Kontrakten bygges normalt FØR web-search, så det meste
+    # af dette er tomt — det er meningen. Kontrakten bestemmer hvad der skal søges.
     if annual_report_text:
-        excerpt = annual_report_text[:30000]  # Halvér ift Stage 1 — kontrakten skal være hurtig
-        parts.append("## Årsrapport (uddrag — vælg de mest relevante fakta)\n")
-        parts.append(excerpt)
+        # Kun et uddrag: kontrakten skal være hurtig, og Stage 1 får hele rapporten.
+        parts.append("## Årsrapport (uddrag)\n")
+        parts.append(annual_report_text[:30000])
         parts.append("")
 
     if web_intelligence:
-        parts.append("## Web search-resultater (aktuelle nyheder)\n")
+        parts.append("## Web search-resultater\n")
         parts.append(web_intelligence[:8000])
         parts.append("")
 
     if website_text:
         parts.append("## Hjemmeside (kuratede sider)\n")
         parts.append(website_text[:8000])
+        parts.append("")
+
+    if not any([annual_report_text, web_intelligence, website_text]):
+        parts.append("## Research-materiale\n")
+        parts.append(
+            "Der er endnu ikke indsamlet research — det sker EFTER denne kontrakt, "
+            "styret af dine `research_queries`. Byg kontrakten på sælgers brief og CVR-data alene, "
+            "og lad `research_queries` være det du har brug for at få afklaret."
+        )
         parts.append("")
 
     parts.append("---")
@@ -300,6 +344,188 @@ def _build_pitch_contract(
         return None
 
     return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# OMVENDT BRIEF — AI spørger, i stedet for at sælger udfylder blanke felter
+# ═══════════════════════════════════════════════════════════════════════════
+
+_BRIEF_QUESTIONS_TOOL = {
+    "name": "deliver_brief_questions",
+    "description": "Returnér de spørgsmål der vil løfte pitchen mest.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "assessment": {
+                "type": "string",
+                "description": (
+                    "Én sætning, max 160 tegn, til sælgeren: hvad kan du allerede lave en god pitch på, "
+                    "og hvad er det svage punkt? Skriv direkte og uden smiger. "
+                    "Fx 'Du har stakeholder og konkurrent på plads — men intet om hvad der gør DEM utilfredse.'"
+                ),
+            },
+            "questions": {
+                "type": "array",
+                "description": (
+                    "2-3 spørgsmål. Ikke flere. Hvert spørgsmål skal kunne ændre pitchen konkret — "
+                    "kan du ikke pege på hvilket slide svaret ville flytte, så stil det ikke."
+                ),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": (
+                                "Spørgsmålet, som en kollega ville stille det. Max 120 tegn. "
+                                "Konkret og besvarligt på 20 sekunder. "
+                                "God: 'Hvad var den udløsende årsag til at de tog mødet?' "
+                                "Dårlig: 'Kan du fortælle mere om kunden?'"
+                            ),
+                        },
+                        "why": {
+                            "type": "string",
+                            "description": "Max 90 tegn: hvad svaret ændrer i pitchen. Fx 'Bestemmer om vi åbner på pris eller på kapacitet.'",
+                        },
+                        "field": {
+                            "type": "string",
+                            "enum": ["insider_insights", "personal_angle", "meeting_history", "pitch_focus", "exclusions"],
+                            "description": "Hvilket brief-felt svaret hører hjemme i.",
+                        },
+                        "example_answer": {
+                            "type": "string",
+                            "description": "Max 90 tegn. Et realistisk eksempelsvar der viser detaljeniveauet. Vises som placeholder.",
+                        },
+                    },
+                    "required": ["question", "why", "field", "example_answer"],
+                },
+                "minItems": 2,
+                "maxItems": 3,
+            },
+        },
+        "required": ["assessment", "questions"],
+    },
+}
+
+
+_BRIEF_QUESTIONS_SYSTEM = """Du er en erfaren Epico-sælger der kigger en kollegas mødeforberedelse igennem, kort før de skal afsted.
+
+Kollegaen har skrevet noget om kunden og mødet — måske meget, måske næsten intet. Din opgave er at stille de **2-3 spørgsmål der vil løfte pitchen mest**. Ikke en tjekliste. Ikke alt hvad man kunne spørge om. De to-tre der faktisk rykker.
+
+## Sådan vælger du
+
+Et godt spørgsmål opfylder alle fire:
+
+1. **Svaret ændrer pitchen.** Kan du ikke sige hvilket slide der bliver anderledes, så drop det.
+2. **Sælgeren kan svare på 20 sekunder.** Vi spørger om hvad de ved, ikke om hvad de skal undersøge.
+3. **Du kan ikke selv finde svaret.** Omsætning, branche, antal ansatte — det slår vi selv op. Spørg om det der kun findes i sælgerens hoved.
+4. **Det er ikke allerede besvaret.** Læs briefen ordentligt igennem først.
+
+## Hvad der typisk er værd at spørge om
+
+- **Den udløsende årsag.** Hvorfor tog de mødet lige nu? Det afgør hvad hele pitchen skal handle om.
+- **Smerten hos den nuværende leverandør.** Er der en konkurrent inde, er "hvad irriterer dem" mere værd end alt andet.
+- **Hvem der reelt beslutter.** Ofte ikke personen i mødet.
+- **Hvad der er gået galt før.** Både med os og med andre.
+- **Hvad der IKKE må nævnes.** Sælgere glemmer ofte at skrive det, men det redder møder.
+
+## Hvad du ikke skal spørge om
+
+- Ting der står i CVR eller årsrapporten
+- Brede spørgsmål ("fortæl mere om kunden")
+- Ting sælger næppe ved ("hvad er deres IT-budget for 2027?")
+- Mere end tre spørgsmål — så bliver det et skema, og skemaer bliver ikke udfyldt
+
+Er briefen allerede stærk, så sig det i `assessment` og stil de to spørgsmål der ville gøre den skarpere endnu. Der er altid noget.
+
+Returnér via `deliver_brief_questions`-værktøjet."""
+
+
+def suggest_brief_questions(
+    client_name: str,
+    cvr_data: Optional[Dict[str, Any]] = None,
+    seller_brief: Optional[Dict[str, Optional[str]]] = None,
+    pitch_focus: Optional[str] = None,
+    stakeholder_key: Optional[str] = None,
+    pitch_length: Optional[str] = "medium",
+    services_to_highlight: Optional[List[str]] = None,
+    api_key: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Læs sælgers (måske tomme) brief og returnér 2-3 spørgsmål der vil løfte pitchen mest.
+
+    Vender formularen om: i stedet for tolv blanke felter sælgeren skal gætte
+    relevansen af, spørger vi om det der faktisk mangler.
+    """
+    client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
+
+    brief = seller_brief or {}
+    parts = [f"# Kunde: {client_name}\n"]
+
+    if cvr_data:
+        parts.append("## Hvad vi allerede kan slå op (spørg IKKE om dette)\n")
+        for label, key in [("Branche", "industry_desc"), ("Ansatte", "employees"), ("Hjemmeside", "website")]:
+            if cvr_data.get(key):
+                parts.append(f"- {label}: {cvr_data[key]}")
+        parts.append("")
+
+    parts.append("## Mødeopsætning\n")
+    parts.append(f"- Stakeholder: {stakeholder_key or 'ikke angivet'}")
+    parts.append(f"- Mødestadie: {brief.get('meeting_stage') or 'ikke angivet'}")
+    parts.append(f"- Pitch-længde: {pitch_length}")
+    if services_to_highlight:
+        parts.append(f"- Services i spil: {', '.join(services_to_highlight)}")
+    parts.append("")
+
+    parts.append("## Hvad sælgeren har skrevet indtil nu\n")
+    written = [
+        (label, brief.get(key) or (pitch_focus if key == "pitch_focus" else None))
+        for key, label in [
+            ("pitch_focus", "Pitch-vinkel"),
+            ("meeting_history", "Mødehistorik"),
+            ("personal_angle", "Om mødedeltageren"),
+            ("insider_insights", "Insider-viden"),
+            ("exclusions", "Må ikke nævnes"),
+        ]
+    ]
+    filled = [(l, v) for l, v in written if v]
+    if filled:
+        for label, value in filled:
+            parts.append(f"**{label}**: {value}")
+    else:
+        parts.append("*Intet udfyldt endnu — sælgeren er lige begyndt.*")
+    parts.append("")
+
+    tomme = [l for l, v in written if not v]
+    if tomme:
+        parts.append(f"*Endnu tomme felter: {', '.join(tomme)}*\n")
+
+    parts.append("---")
+    parts.append("Stil de 2-3 spørgsmål der vil løfte denne pitch mest. Returnér via `deliver_brief_questions`.")
+
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=1500,
+            system=_BRIEF_QUESTIONS_SYSTEM,
+            tools=[_BRIEF_QUESTIONS_TOOL],
+            tool_choice={"type": "tool", "name": "deliver_brief_questions"},
+            messages=[{"role": "user", "content": "\n".join(parts)}],
+        )
+        for block in response.content:
+            if block.type == "tool_use" and block.name == "deliver_brief_questions":
+                return block.input
+    except Exception as e:
+        # Kaster videre — kalderen skal kunne vise sælgeren HVORFOR det fejlede.
+        # "Prøv igen" hjælper ikke hvis problemet er en tom API-konto.
+        raise RuntimeError(str(e)) from e
+
+    return None
+
+
+def build_pitch_contract(**kwargs) -> Optional[Dict[str, Any]]:
+    """Offentligt indgangspunkt til Stage 0. Kaldes af /api/research FØR web-search,
+    så kontraktens `research_queries` kan styre hvad der bliver søgt efter."""
+    return _build_pitch_contract(**kwargs)
 
 
 def _short_length_label(pitch_length: Optional[str]) -> str:
@@ -329,10 +555,23 @@ def _format_contract_for_prompt(contract: Dict[str, Any]) -> str:
     parts.append("\n**SKAL UNDGÅS:**")
     for item in contract.get("must_exclude", []):
         parts.append(f"- {item}")
-    parts.append("\n**Research-prioriteter** (de eneste fakta fra research-materialet du må trække fra):")
+    parts.append(
+        "\n**Research-prioriteter** — det pitchen har brug for at vide. De blev formuleret "
+        "FØR researchen blev indsamlet, så de er spørgsmål, ikke svar:"
+    )
     for item in contract.get("research_priorities", []):
         parts.append(f"- {item}")
-    parts.append("\nDu SKAL respektere kontrakten i alt output.")
+
+    queries = contract.get("research_queries") or []
+    if queries:
+        parts.append("\nDer blev søgt målrettet efter: " + " · ".join(f"«{q}»" for q in queries))
+
+    parts.append(
+        "\n**Sådan bruger du dem:** Materialet nedenfor er indsamlet for at besvare netop disse "
+        "spørgsmål. Træk det ud der besvarer dem. Fandt søgningen ikke svar på et af dem — så påstå "
+        "det ikke alligevel; lad prioriteten falde og nævn hullet i `coverage_report.missing_input`.\n"
+        "\nDu SKAL respektere kontrakten i alt output."
+    )
     return "\n".join(parts)
 
 
@@ -385,7 +624,20 @@ Læs udkastet IGENNEM mod kontrakten. Tjek SPECIFIKT:
 5. **Research-prioriteter**: Bruger pitchen KUN de research-prioriteter kontrakten godkendte?
 6. **Næste skridt**: Matcher de kontraktens 'next_steps_style'?
 
+7. **Slide-overskrifter**: Taler `slide_headlines` til DENNE stakeholder, eller kunne de sidde på en hvilken som helst pitch?
+8. **Relevans-test på facts**: Består hver fact begge dele — ikke-indlysende for kunden OG handlingsbar for os? Er `why_it_matters` en reel indsigt eller en omskrivning af faktaet?
+
 Hvis du finder problemer — TILBAGE-RUL. Kontraktens vilje trumfer dine egne præferencer for hvad der er pitch-mæssigt 'pænt'.
+
+## Dækningsrapporten skal skrives HELT FORFRA
+
+`coverage_report` i udkastet beskriver udkastet — ikke din rettede version. Skriv den om fra bunden,
+så den beskriver dét du returnerer nu.
+
+Vær ærlig i den. Rapporten læses af sælgeren for at finde ud af hvor de skal gribe ind, og en rapport
+der siger at alt lykkedes er værdiløs. Har du udeladt noget fra briefen — skriv det i `dropped` med
+den rigtige grund. Er der et svagt slide — og det er der altid — så peg på det i `weakest_slide`
+og fortæl hvad sælgeren konkret kan tilføje.
 
 Returnér forbedret JSON via `deliver_pitch_research`.""")
 
@@ -480,37 +732,76 @@ ANALYSIS_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "client_summary": {
-                "type": "string",
-                "description": "1-2 SÆTNINGER (max 200 tegn) der bliver vist på Hvorfor-vi-mødes-konteksten. SKAL afspejle sælgers brief, ikke kun årsrapport. Hvis sælger pitcher MOD en konkurrent → nævn det subtilt (fx 'I bruger i dag Emagine — vi vil gerne vise hvor Epico flytter nålen yderligere'). Hvis stakeholder er Procurement → tonen er forretningsmæssig, ikke teknisk. Ingen bulletliste, kun prosa.",
-            },
             "industry_tag": {
                 "type": "string",
                 "description": "Branchekategori. Vælg én: Medtech, Pharma, Biotech, Finans, Energi, Forsyning, Retail, Public, Industri, Tech, Telco, Transport, Andet.",
             },
             "research_facts": {
                 "type": "array",
-                "description": "Nøjagtigt 4 fakta om kunden, der demonstrerer at vi har gjort research. Brug konkrete tal fra årsrapport hvor muligt.",
+                "description": (
+                    "Fakta om kunden der beviser at vi har gjort hjemmearbejdet. "
+                    "**RELEVANS-TESTEN — hver fact skal bestå BEGGE dele:**\n"
+                    "1) **Ikke-indlysende for modtageren.** Kunden kender sin egen omsætning. "
+                    "Et tal de selv har skrevet i deres årsrapport er kun interessant hvis du kobler det til noget de IKKE selv har sagt "
+                    "(en konsekvens, en sammenligning, et mønster over tid).\n"
+                    "2) **Handlingsbar for os.** Fakta skal kunne bruges som afsæt for noget Epico kan tilbyde. "
+                    "Hvis du ikke kan svare på 'og derfor kan vi...' — så er den ikke relevant, uanset hvor imponerende den lyder.\n\n"
+                    "En fact der kun består test 1 er trivia. En der kun består test 2 er et gæt. Begge, eller drop den."
+                ),
                 "items": {
                     "type": "object",
                     "properties": {
                         "key": {
                             "type": "string",
-                            "description": "Kort label, fx 'Omsætning seneste regnskabsår' eller 'Strategisk fokus'."
+                            "description": "Kort label, fx 'Vækst i medarbejderstab' eller 'Teknologi-skifte i gang'."
                         },
                         "value": {
                             "type": "string",
-                            "description": "Konkret tal eller kort tekst. Fx '24,2 mia. DKK' eller 'Digital transformation + ESG'."
+                            "description": "Konkret tal eller kort tekst. Fx '+340 ansatte på 2 år' eller 'SAP S/4HANA-migration annonceret Q1 2026'."
                         },
                         "source": {
                             "type": "string",
-                            "description": "Kildehenvisning, fx 'Årsrapport 2024, s. 12' eller 'CEO-brev'."
+                            "description": "Kildehenvisning, fx 'Årsrapport 2024, s. 12', 'Pressemeddelelse 3. feb 2026' eller 'Epico-netværk' (når sælger har oplyst den)."
+                        },
+                        "why_it_matters": {
+                            "type": "string",
+                            "description": (
+                                "INTERN note (vises ikke på sliden — kun til sælger i review). Max 140 tegn. "
+                                "Skal besvare: hvad er det ikke-indlysende her, OG hvad kan vi konkret gøre ved det? "
+                                "Format: '[indsigt] → [vores åbning]'. "
+                                "Eksempel: 'Vækst uden tilsvarende IT-rekruttering → de mangler kapacitet, ikke strategi.' "
+                                "Kan du ikke skrive en troværdig sådan — så er faktaet ikke relevant nok. Vælg et andet."
+                            )
                         },
                     },
-                    "required": ["key", "value", "source"],
+                    "required": ["key", "value", "source", "why_it_matters"],
                 },
                 "minItems": 4,
                 "maxItems": 4,
+            },
+            "research_facts_alternates": {
+                "type": "array",
+                "description": (
+                    "3 EKSTRA fakta som sælger kan bytte ind i stedet for dem ovenfor. "
+                    "Disse skal bestå samme relevans-test, men vælge en ANDEN vinkel end de valgte — "
+                    "fx en anden kilde, et andet forretningsområde, en anden tidshorisont. "
+                    "Sælgeren kender kunden bedre end du gør; giv reelle alternativer, ikke andenrangs-rester."
+                ),
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "key": {"type": "string"},
+                        "value": {"type": "string"},
+                        "source": {"type": "string"},
+                        "why_it_matters": {
+                            "type": "string",
+                            "description": "Samme format som ovenfor: '[indsigt] → [vores åbning]'. Max 140 tegn."
+                        },
+                    },
+                    "required": ["key", "value", "source", "why_it_matters"],
+                },
+                "minItems": 3,
+                "maxItems": 3,
             },
             "strategic_priorities": {
                 "type": "array",
@@ -580,6 +871,116 @@ ANALYSIS_TOOL = {
                 "minItems": 3,
                 "maxItems": 3,
             },
+            "slide_headlines": {
+                "type": "object",
+                "description": (
+                    "Overskrifterne til de fire kundespecifikke slides. De fire slides stiller ALTID de samme fire spørgsmål "
+                    "(hvad ved vi · hvor skal I hen · hvor kan vi hjælpe · hvad gør vi nu) — men RAMMEN skal matche "
+                    "hvem der sidder i lokalet, hvad mødet handler om, og hvad sælger har skrevet i sin brief.\n\n"
+                    "Skriv IKKE generiske overskrifter. En Procurement-chef og en CIO skal ikke se den samme sætning:\n"
+                    "· CIO → 'Dette ved vi om jeres IT-landskab'\n"
+                    "· Procurement → 'Sådan ser jeres leverandørbillede ud'\n"
+                    "· CFO → 'Hvor jeres IT-omkostninger ligger i dag'\n"
+                    "· HR → 'Hvad jeres rekrutteringstal fortæller'\n\n"
+                    "Markér 1-3 ord med **stjerner** — de bliver farvet som accent. Præcis ét accent-udtryk pr. overskrift."
+                ),
+                "properties": {
+                    "research": {
+                        "type": "object",
+                        "properties": {
+                            "eyebrow": {"type": "string", "description": "Max 40 tegn. Rammesætter hvorfor vi viser dette. Fx 'Vi har gjort hjemmearbejdet' eller 'Jeres leverandørsituation'."},
+                            "heading": {"type": "string", "description": "Max 70 tegn. Hovedoverskrift for research-sliden, i stakeholderens sprog. Brug **stjerner** om accent-ordene."},
+                        },
+                        "required": ["eyebrow", "heading"],
+                    },
+                    "priorities": {
+                        "type": "object",
+                        "properties": {
+                            "eyebrow": {"type": "string", "description": "Max 40 tegn."},
+                            "heading": {"type": "string", "description": "Max 70 tegn. Overskrift for de strategiske prioriteter. Brug **stjerner**."},
+                        },
+                        "required": ["eyebrow", "heading"],
+                    },
+                    "mapping": {
+                        "type": "object",
+                        "properties": {
+                            "eyebrow": {"type": "string", "description": "Max 40 tegn."},
+                            "heading": {"type": "string", "description": "Max 70 tegn. Overskrift for udfordring→løsning-koblingen. Brug **stjerner**."},
+                        },
+                        "required": ["eyebrow", "heading"],
+                    },
+                    "next_steps": {
+                        "type": "object",
+                        "properties": {
+                            "eyebrow": {"type": "string", "description": "Max 40 tegn."},
+                            "heading": {"type": "string", "description": "Max 70 tegn. Overskrift for næste skridt. Brug **stjerner**."},
+                        },
+                        "required": ["eyebrow", "heading"],
+                    },
+                },
+                "required": ["research", "priorities", "mapping", "next_steps"],
+            },
+            "coverage_report": {
+                "type": "object",
+                "description": (
+                    "En ÆRLIG selvrapport til sælgeren om hvordan deres input blev brugt. Dette vises kun i review-fanen, "
+                    "aldrig i pitchen. Vær kritisk over for dit eget arbejde — en rapport der siger 'alt gik perfekt' "
+                    "er ubrugelig. Sælgeren skal kunne se hvor de skal gribe ind."
+                ),
+                "properties": {
+                    "brief_usage": {
+                        "type": "array",
+                        "description": "Ét punkt pr. konkret ting sælger skrev i sin brief, som faktisk landede i pitchen.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "input": {"type": "string", "description": "Hvad sælger skrev — citér kort, max 80 tegn."},
+                                "landed_in": {"type": "string", "description": "Hvor det endte. Fx 'Research-slide, fact 2' eller 'Næste skridt 1 + tone gennem hele pitchen'."},
+                                "how": {"type": "string", "description": "Hvordan det blev brugt — max 120 tegn. Konkret, ikke 'blev taget i betragtning'."},
+                            },
+                            "required": ["input", "landed_in", "how"],
+                        },
+                        "minItems": 1,
+                        "maxItems": 8,
+                    },
+                    "dropped": {
+                        "type": "array",
+                        "description": (
+                            "Ting fra sælgers brief du IKKE brugte — og hvorfor. Vær ærlig. Typiske grunde: "
+                            "pitch-længden gav ikke plads, det stred mod en eksklusion, det passede ikke til stakeholderen, "
+                            "eller du kunne ikke finde noget i research der bakkede det op. Tom liste er kun troværdig "
+                            "hvis briefen var meget kort."
+                        ),
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "input": {"type": "string", "description": "Hvad sælger skrev — max 80 tegn."},
+                                "why": {"type": "string", "description": "Hvorfor det ikke kom med — max 120 tegn. Konkret grund."},
+                            },
+                            "required": ["input", "why"],
+                        },
+                        "maxItems": 6,
+                    },
+                    "weakest_slide": {
+                        "type": "object",
+                        "description": "Det svageste slide i pitchen. Der ER altid ét. Peg på det.",
+                        "properties": {
+                            "slide": {"type": "string", "description": "Hvilket slide, fx 'Value mappings' eller 'Case'."},
+                            "why": {"type": "string", "description": "Hvad er svagt ved det — max 140 tegn. Fx 'Bygger på branchegæt, ikke på noget kunden selv har sagt.'"},
+                            "what_would_fix_it": {"type": "string", "description": "Hvad sælger konkret kan tilføje for at løfte det — max 140 tegn. Formulér som noget sælgeren kan skrive i briefen."},
+                        },
+                        "required": ["slide", "why", "what_would_fix_it"],
+                    },
+                    "missing_input": {
+                        "type": "array",
+                        "description": "1-3 ting du ville have haft gavn af at vide, som sælger ikke oplyste. Formulér som direkte spørgsmål.",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "maxItems": 3,
+                    },
+                },
+                "required": ["brief_usage", "dropped", "weakest_slide", "missing_input"],
+            },
             "case_recommendation": {
                 "type": "object",
                 "description": "En foreslået case at vise — bygget på relevans til kundens branche.",
@@ -617,13 +1018,15 @@ ANALYSIS_TOOL = {
             },
         },
         "required": [
-            "client_summary",
             "industry_tag",
+            "slide_headlines",
             "research_facts",
+            "research_facts_alternates",
             "strategic_priorities",
             "value_mappings",
             "next_steps",
             "case_recommendation",
+            "coverage_report",
         ],
     },
 }
@@ -681,13 +1084,6 @@ Returnér en KOMPLET forbedret version i samme JSON-struktur som input. Behold d
 Returnér ALTID via `deliver_pitch_research`-værktøjet."""
 
 
-_EMPHASIS_DESCRIPTIONS = {
-    "speed": "Sælger vil have pitchen til at lægge ekstra vægt på **hastighed og leveringskraft**. Fremhæv Epico's 48t-responstid, hurtige onboarding, og evne til at skalere op på få dage.",
-    "expertise": "Sælger vil have pitchen til at lægge ekstra vægt på **specialisterfaring**. Fremhæv +20 års gennemsnitserfaring, nicheskompetencer, og dybde frem for bredde.",
-    "cost": "Sælger vil have pitchen til at lægge ekstra vægt på **skalering uden vækst i fast lønsum**. Fremhæv konsulent-modellen, fleksibilitet, og Nearshore som omkostningsoptimering.",
-    "local": "Sælger vil have pitchen til at lægge ekstra vægt på **lokal/dansk kontekst**. Fremhæv at Epico er dansk, kender det danske arbejdsmarked, har dansk juridisk setup, og forstår SKI-aftaler.",
-    "culture": "Sælger vil have pitchen til at lægge ekstra vægt på **kultur- og team-fit**. Fremhæv at Epico matcher på personlighed og kommunikation, ikke kun CV. Personlig KAM-relation, ingen ticket-systemer.",
-}
 
 
 _MEETING_STAGE_DESCRIPTIONS = {
@@ -703,7 +1099,6 @@ _PITCH_LENGTH_DESCRIPTIONS = {
 
 - Hold ALLE bullets UNDER 80 tegn. Tagline-style.
 - Drop adjektiver. Hver sætning skal kunne læses på 3 sekunder.
-- `client_summary`: max 1 sætning, max 120 tegn.
 - Strategic priorities: titel max 50 tegn, description max 120 tegn.
 - Value mappings: challenge max 80 tegn, solution max 100 tegn.
 - Case-intro: 1 sætning.
@@ -713,30 +1108,21 @@ _PITCH_LENGTH_DESCRIPTIONS = {
     "medium": """**Pitch-længde: MEDIUM** (30-45 min møde, 13-15 slides total). Default.
 
 - Normal dybde. 80-100 tegn per bullet.
-- `client_summary`: 1-2 sætninger.
 - Balancér mellem konkrete detaljer og læsbarhed.""",
 
     "long": """**Pitch-længde: LANG** (60+ min deep-dive, 20+ slides).
 
 - Maks dybde. 100-130 tegn per bullet.
-- `client_summary`: 2-3 sætninger med konkret kontekst.
 - Strategic priorities: brug op til 200 tegn per description til at uddybe.
 - Value mappings: solution kan være op til 180 tegn med konkret reasoning.""",
 }
 
 
-_TONE_DESCRIPTIONS = {
-    "balanced": "Balanceret — direkte og professionel, men menneskelig.",
-    "formal": "**Formel og strategisk**. Strammere sprog. Mere fokus på governance, KPI'er, strategi. Mindre 'vi' og mere 'organisationen'.",
-    "direct": "**Direkte og operationel**. Korte sætninger. Konkret. Tal-tunge formuleringer. Spring blødheder over.",
-    "personal": "**Personlig og konsultativ**. Som en betroet rådgiver. Brug 'I' / 'vi sammen'. Lidt mere uformel uden at miste autoritet.",
-}
 
 
 def _build_system_prompt(
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
-    emphasis: Optional[str] = None,
     seller_brief: Optional[Dict[str, Optional[str]]] = None,
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     stakeholder_key: Optional[str] = None,
@@ -752,85 +1138,138 @@ def _build_system_prompt(
             + _PITCH_LENGTH_DESCRIPTIONS[pitch_length]
         )
 
-    # Lag 1: Strukturerede sælger-inputs (HØJESTE prioritet)
-    if seller_brief:
-        brief_parts = []
-        stage = seller_brief.get("meeting_stage")
-        if stage and stage in _MEETING_STAGE_DESCRIPTIONS:
-            brief_parts.append(f"**Mødestadie**: {_MEETING_STAGE_DESCRIPTIONS[stage]}")
-        if seller_brief.get("meeting_history"):
-            brief_parts.append(f"**Mødehistorik**: {seller_brief['meeting_history']}")
-        if seller_brief.get("personal_angle"):
-            brief_parts.append(f"**Personlig vinkel om mødedeltageren**: {seller_brief['personal_angle']}")
-        if seller_brief.get("insider_insights"):
-            brief_parts.append(f"**Insider-insights (ikke offentlige)**: {seller_brief['insider_insights']}")
-        if seller_brief.get("exclusions"):
-            brief_parts.append(f"**EKSKLUSIONER — må IKKE nævnes**: {seller_brief['exclusions']}")
-        tone = seller_brief.get("tone")
-        if tone and tone in _TONE_DESCRIPTIONS and tone != "balanced":
-            brief_parts.append(f"**Tone**: {_TONE_DESCRIPTIONS[tone]}")
+    # ── DE FEM AUTORITETSTYPER ────────────────────────────────────────────
+    # Sælgers input er IKKE én udifferentieret klump. Hver type har sin egen
+    # regel for hvordan den vinder over — eller samarbejder med — research.
 
-        if brief_parts:
-            directives.append(
-                "## 🎯 SÆLGERS BRIEF (TRUMFER ALT ANDET)\n\n"
-                "Disse oplysninger kommer fra sælgers personlige kendskab til kunden — fra netværk, "
-                "tidligere møder, LinkedIn, jobopslag eller interne kilder. **De vægter HØJERE end årsrapporten.**\n\n"
-                "Hvis sælgers brief og årsrapport peger forskelligt — vinder sælger. Brug årsrapporten som "
-                "*støtte* til sælgers narrativ, ikke som modvægt.\n\n"
-                + "\n\n".join(brief_parts)
-            )
+    brief = seller_brief or {}
+    dictation = slide_dictation or {}
 
-    # Lag 2: Slide-for-slide dictation
-    if slide_dictation:
-        dict_parts = []
-        if slide_dictation.get("why_meeting"):
-            dict_parts.append(f"**Slide 02 (Hvorfor vi mødes)**: Brug DENNE tekst som `client_summary` (polér gerne sprog, men hold indholdet):\n> {slide_dictation['why_meeting']}")
-        if slide_dictation.get("research_facts"):
-            dict_parts.append(f"**Slide 04 (Research-facts)**: Brug DISSE facts som `research_facts` (parser hver linje). Hvis format er '[Label]: [Værdi] | [Kilde]', så map til key/value/source. Hvis sælger har givet færre end 4 — supplér med årsrapport, men sælgers facts har prioritet:\n```\n{slide_dictation['research_facts']}\n```")
-        if slide_dictation.get("priorities"):
-            dict_parts.append(f"**Slide 05 (Strategiske prioriteter)**: Brug DISSE som `strategic_priorities` (én linje pr. prioritet, format '[Titel] — [beskrivelse]'):\n```\n{slide_dictation['priorities']}\n```")
-        if slide_dictation.get("mappings"):
-            dict_parts.append(f"**Slide 06 (Value mappings)**: Brug DISSE som `value_mappings` (én linje pr. mapping, format '[Udfordring] => [Service] : [Løsning]'):\n```\n{slide_dictation['mappings']}\n```")
-        if slide_dictation.get("next_steps"):
-            dict_parts.append(f"**Slide 17 (Næste skridt)**: Brug DISSE som `next_steps` (én linje pr. skridt, format '[Titel] | [tidsramme] — [beskrivelse]'):\n```\n{slide_dictation['next_steps']}\n```")
+    # TYPE 1 — BEGRÆNSNING. Absolut. Ingen afvejning.
+    if brief.get("exclusions"):
+        directives.append(
+            "## ⛔ BEGRÆNSNINGER — ABSOLUTTE\n\n"
+            "Sælgeren har angivet hvad der IKKE må optræde i pitchen. Dette er ikke en præference "
+            "du kan afveje mod andre hensyn. Det er en grænse.\n\n"
+            f"> {brief['exclusions']}\n\n"
+            "**Hvordan du håndterer det:** Ordene må ikke optræde. Emnet må ikke optræde. "
+            "Omskrivninger der peger på det samme tæller også som en overtrædelse — "
+            "hvis sælger har skrevet 'nævn ikke deres fyringsrunde', så er "
+            "'organisatoriske forandringer' også forbudt. Sælgeren ved hvorfor; det gør du ikke.\n\n"
+            "Hvis en begrænsning gør et ellers oplagt indhold umuligt: find et andet indhold. "
+            "Nævn ALDRIG at noget blev udeladt."
+        )
 
-        if dict_parts:
-            directives.append(
-                "## 📝 SÆLGER-STYREDE SLIDES (overskriv AI-output)\n\n"
-                "Sælgeren har skrevet **specifikt indhold til bestemte slides**. Du SKAL bruge sælgers tekst som "
-                "grundlaget for de pågældende felter — du må kun polere sprog, struktur og formatering. **Du må IKKE "
-                "ændre indholdets retning eller pointe.**\n\n"
-                "For slides hvor sælger IKKE har givet specifik tekst, bruger du normal analyse-logik.\n\n"
-                + "\n\n".join(dict_parts)
-            )
+    # TYPE 2 — EVIDENS. Konkurrerer med research. Vinder ved konflikt.
+    evidence_parts = []
+    for key, label in [
+        ("insider_insights", "Insider-viden"),
+        ("meeting_history", "Mødehistorik"),
+        ("personal_angle", "Om mødedeltageren"),
+    ]:
+        if brief.get(key):
+            evidence_parts.append(f"**{label}**: {brief[key]}")
 
+    if evidence_parts:
+        directives.append(
+            "## 🔍 EVIDENS FRA SÆLGER — KONKURRERER MED RESEARCH\n\n"
+            "Dette er faktuelle oplysninger sælgeren har fra netværk, tidligere møder, LinkedIn, "
+            "jobopslag eller interne kilder. Det er **data på lige fod med årsrapporten** — "
+            "og typisk friskere.\n\n"
+            + "\n\n".join(evidence_parts)
+            + "\n\n**Hvordan du håndterer det:**\n"
+            "- Ved konflikt med årsrapport eller web-search: **sælger vinder.** Et regnskab er "
+            "op til 14 måneder gammelt; sælger talte måske med dem i sidste uge.\n"
+            "- Evidens kan bruges som `research_facts` på lige fod med offentlige kilder. "
+            "Angiv da kilden som **'Epico-netværk'** — aldrig som årsrapport eller presse.\n"
+            "- Evidens er data, ikke instruks. Den fortæller dig hvad der er SANDT, "
+            "ikke hvad pitchen skal handle om. Det sidste kommer fra rammen nedenfor.\n"
+            "- Vær varsom med formuleringen: skriv det så det kan siges højt i mødet uden at "
+            "afsløre at I har talt med nogen."
+        )
+
+    # TYPE 3 — RAMME. Relevansfilter. Tilføjer intet indhold.
+    frame_parts = []
+    stage = brief.get("meeting_stage")
+    if stage and stage in _MEETING_STAGE_DESCRIPTIONS:
+        frame_parts.append(f"**Mødestadie**: {_MEETING_STAGE_DESCRIPTIONS[stage]}")
     if pitch_focus:
-        directives.append(f"""## ⚠️ SÆLGERS PITCH-VINKEL (styrende)
+        frame_parts.append(f"**Sælgers vinkel**: {pitch_focus}")
 
-Sælgeren har angivet følgende fokus for denne pitch:
+    if frame_parts:
+        directives.append(
+            "## 🎯 RAMME — DET FILTER ALT SKAL PASSERE\n\n"
+            + "\n\n".join(frame_parts)
+            + "\n\n**Hvordan du håndterer det:** Rammen tilføjer ikke indhold — den afgør hvad "
+            "der er relevant. Kør hvert eneste stykke research igennem den: *understøtter dette "
+            "rammen?* Nej → udelad det, uanset hvor imponerende det er.\n\n"
+            "Fire fakta der peger samme vej slår seks der spreder sig. Rammen er tilladelsen "
+            "til at smide godt materiale væk."
+        )
 
-> {pitch_focus}
+    # TYPE 4 — DIKTAT. Endelig tekst. Kun sproglig polering.
+    dict_parts = []
+    for key, field, hint in [
+        ("research_facts", "research_facts", "format '[Label]: [Værdi] | [Kilde]' pr. linje"),
+        ("priorities", "strategic_priorities", "format '[Titel] — [beskrivelse]' pr. linje"),
+        ("mappings", "value_mappings", "format '[Udfordring] => [Service] : [Løsning]' pr. linje"),
+        ("next_steps", "next_steps", "format '[Titel] | [tidsramme] — [beskrivelse]' pr. linje"),
+    ]:
+        if dictation.get(key):
+            dict_parts.append(
+                f"**→ `{field}`** ({hint}):\n```\n{dictation[key]}\n```"
+            )
 
-**Dette overstyrer alt andet.** Alle dine valg — research-facts, strategiske prioriteter, value-mappings, case-anbefaling og næste skridt — SKAL understøtte denne vinkel.
+    if dict_parts:
+        directives.append(
+            "## ✍️ DIKTERET INDHOLD — ENDELIGT\n\n"
+            "Sælgeren har skrevet indholdet til bestemte felter selv. Det er ikke et forslag "
+            "du skal forbedre — det er beslutningen.\n\n"
+            + "\n\n".join(dict_parts)
+            + "\n\n**Hvordan du håndterer det:** Du må rette stavefejl, ensrette tegnsætning og "
+            "tilpasse længden til pitch-formatet. Du må **ikke** ændre pointen, tilføje forbehold, "
+            "gøre sproget mere sælgende, eller bytte sælgers ord ud med dine egne fordi de lyder bedre.\n\n"
+            "Har sælger givet færre punkter end feltet kræver: supplér med dine egne, "
+            "men placér altid sælgers først.\n\n"
+            "Felter der ikke er nævnt her genererer du helt normalt."
+        )
 
-Du må gerne **nedprioritere temaer fra årsrapporten**, selvom de er interessante, hvis de ikke understøtter sælgers fokus. Hellere skarpere end mere komplet. Hellere fire fakta der peger samme vej end fire fakta der spreder sig.""")
-
+    # TYPE 5 — STRUKTUR. Form, ikke indhold.
+    structure_parts = []
     if services_to_highlight:
-        services_str = ", ".join(services_to_highlight)
-        directives.append(f"""## ⚠️ SERVICES AT FREMHÆVE (styrende)
+        structure_parts.append(
+            f"**Services i spil**: {', '.join(services_to_highlight)} — "
+            "dine `value_mappings` skal mappe til DISSE. Samme service må gerne gå igen "
+            "(forskellige aspekter). Inddrag ikke fravalgte services."
+        )
+    if stakeholder_key:
+        structure_parts.append(
+            f"**Stakeholder**: `{stakeholder_key}` — profilen står i vidensbasen nedenfor. "
+            "Den styrer tone, hvilke slides der giver mening, og hvilke næste skridt der lander."
+        )
 
-Sælgeren har valgt at fremhæve følgende services i pitch'en:
+    if structure_parts:
+        directives.append(
+            "## ⚙️ STRUKTUR — FORM, IKKE INDHOLD\n\n"
+            + "\n\n".join(structure_parts)
+            + "\n\n**Hvordan du håndterer det:** Dette bestemmer pitchens *form* — "
+            "hvor mange slides, hvilke services, hvilken tone. Det bestemmer ikke hvad der er "
+            "sandt om kunden. Lad ikke strukturvalg presse dig til at påstå noget research "
+            "ikke bakker op."
+        )
 
-> {services_str}
-
-Dine `value_mappings` skal **primært** mappe kundens udfordringer til DISSE services. Hvis sælgeren har valgt færre end 4 services, må du gerne bruge samme service flere gange (forskellige aspekter af det). Inkludér IKKE services sælgeren ikke har valgt, medmindre det er strengt nødvendigt for at undgå kunstig tvang.""")
-
-    if emphasis and emphasis in _EMPHASIS_DESCRIPTIONS:
-        directives.append(f"""## ⚠️ EKSTRA VÆGT (styrende)
-
-{_EMPHASIS_DESCRIPTIONS[emphasis]}
-
-Lad dette farve dine formuleringer og prioritering — særligt i `value_mappings.solution` og `next_steps`.""")
+    # Hierarkiet — eksplicit, så modellen ikke selv skal gætte
+    if directives:
+        directives.append(
+            "## ⚖️ NÅR TO INPUT PEGER FORSKELLIGT\n\n"
+            "1. **Begrænsning** slår alt. Ingen undtagelser.\n"
+            "2. **Diktat** slår dine egne formuleringer for de felter det dækker.\n"
+            "3. **Evidens** slår årsrapport, web-search og CVR ved faktuel konflikt.\n"
+            "4. **Ramme** afgør hvad der overhovedet kommer i betragtning.\n"
+            "5. **Struktur** afgør hvor meget der er plads til.\n\n"
+            "Bemærk at de ikke er rangeret efter vigtighed, men efter *hvad de gør*. "
+            "En begrænsning og en ramme kan ikke være uenige — de arbejder på hvert sit niveau."
+        )
 
     directive_block = "\n\n".join(directives) if directives else "## Frihed til at vælge\n\nSælgeren har ikke angivet specifik retning. Brug din bedste dømmekraft baseret på årsrapport og CVR-data."
 
@@ -934,9 +1373,9 @@ def analyze_client(
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
-    emphasis: Optional[str] = None,
     stakeholder_key: Optional[str] = None,
     pitch_length: Optional[str] = "medium",
+    pitch_contract: Optional[Dict[str, Any]] = None,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -949,27 +1388,27 @@ def analyze_client(
         sales_notes: Sælgers baggrundsviden om kunden (eller None)
         pitch_focus: Sælgers eksplicitte direktiv om hvad pitchen skal handle om
         services_to_highlight: Liste af Epico-services som sælger vil fremhæve
-        emphasis: En af 'speed', 'expertise', 'cost', 'local', 'culture' eller None
     """
     client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
 
     # ===== STAGE 0: Pitch-kontrakt =====
-    # Claude læser ALT input og producerer en kompakt kontrakt der binder
-    # Stage 1 + Stage 2 til sælgers intent. Kontrakten trumfer alle andre signals.
-    pitch_contract = _build_pitch_contract(
-        client_name=client_name,
-        cvr_data=cvr_data,
-        annual_report_text=annual_report_text,
-        website_text=website_text,
-        web_intelligence=web_intelligence,
-        seller_brief=seller_brief,
-        slide_dictation=slide_dictation,
-        pitch_focus=pitch_focus,
-        services_to_highlight=services_to_highlight,
-        stakeholder_key=stakeholder_key,
-        pitch_length=pitch_length,
-        api_key=api_key,
-    )
+    # Normalt bygget af kalderen FØR web-search, så kontrakten kan styre hvad der
+    # søges efter. Bygges her kun hvis kalderen ikke har gjort det.
+    if pitch_contract is None:
+        pitch_contract = _build_pitch_contract(
+            client_name=client_name,
+            cvr_data=cvr_data,
+            annual_report_text=annual_report_text,
+            website_text=website_text,
+            web_intelligence=web_intelligence,
+            seller_brief=seller_brief,
+            slide_dictation=slide_dictation,
+            pitch_focus=pitch_focus,
+            services_to_highlight=services_to_highlight,
+            stakeholder_key=stakeholder_key,
+            pitch_length=pitch_length,
+            api_key=api_key,
+        )
     contract_block = _format_contract_for_prompt(pitch_contract) if pitch_contract else ""
 
     # ===== STAGE 1: Initial draft =====
@@ -995,15 +1434,11 @@ def analyze_client(
             parts.append(f"**Insider-insights**: {seller_brief['insider_insights']}")
         if seller_brief.get("exclusions"):
             parts.append(f"**⚠️ EKSKLUSIONER (må IKKE nævnes)**: {seller_brief['exclusions']}")
-        if seller_brief.get("tone"):
-            parts.append(f"**Tone**: {seller_brief['tone']}")
         parts.append("")
 
     # SLIDE-DICTATION (specifikke felter sælger har styret)
     if slide_dictation and any(slide_dictation.values()):
         parts.append("## 📝 SÆLGER HAR DIKTERET SPECIFIKT INDHOLD TIL DISSE SLIDES\n")
-        if slide_dictation.get("why_meeting"):
-            parts.append(f"**Slide 02 (client_summary)**:\n> {slide_dictation['why_meeting']}\n")
         if slide_dictation.get("research_facts"):
             parts.append(f"**Slide 04 (research_facts)** — parse hver linje, format '[Label]: [Værdi] | [Kilde]':\n```\n{slide_dictation['research_facts']}\n```\n")
         if slide_dictation.get("priorities"):
@@ -1053,19 +1488,17 @@ def analyze_client(
         parts.append("")
 
     # Pitch-vinkel og services-direktiver gentages
-    if pitch_focus or services_to_highlight or emphasis:
+    if pitch_focus or services_to_highlight:
         parts.append("## ⚠️ Pitch-direktiver (gentaget for tydelighed)\n")
         if pitch_focus:
             parts.append(f"**Pitch-vinkel**: {pitch_focus}")
         if services_to_highlight:
             parts.append(f"**Services at fremhæve**: {', '.join(services_to_highlight)}")
-        if emphasis and emphasis in _EMPHASIS_DESCRIPTIONS:
-            parts.append(f"**Ekstra vægt på**: {emphasis} — se system-prompt.")
         parts.append("")
 
     parts.append("---")
     parts.append("Analysér nu kunden og returnér via `deliver_pitch_research`-værktøjet.")
-    parts.append("**Husk hierarkiet:** Sælgers brief + slide-dictation > pitch-vinkel + services + emphasis > årsrapport > CVR-data.")
+    parts.append("**Husk autoritetstyperne:** Begrænsning > Diktat > Evidens > Ramme > Struktur. Se system-prompten.")
 
     user_message = "\n".join(parts)
 
@@ -1076,7 +1509,6 @@ def analyze_client(
         system=_build_system_prompt(
             pitch_focus=pitch_focus,
             services_to_highlight=services_to_highlight,
-            emphasis=emphasis,
             seller_brief=seller_brief,
             slide_dictation=slide_dictation,
             stakeholder_key=stakeholder_key,

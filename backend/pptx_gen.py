@@ -47,6 +47,20 @@ FONT_BODY = "DM Sans"
 # HELPERS
 # ============================================================
 
+
+def _headline(ctx: Dict[str, Any], key: str, fallback_eyebrow: str, fallback_heading: str) -> tuple:
+    """Hent AI-genereret overskrift til et kunde-slide.
+
+    PPTX-tekstbokse kan ikke farve enkelte ord som HTML'ens accent-span, saa
+    **stjernerne** strippes. Overskriften er ellers den samme som i HTML-decket —
+    de to formater maa ikke sige forskellige ting.
+    """
+    h = (ctx.get("headlines") or {}).get(key) or {}
+    eyebrow = (h.get("eyebrow") or "").strip() or fallback_eyebrow
+    heading = (h.get("heading") or "").strip() or fallback_heading
+    return eyebrow.upper(), heading.replace("**", "")
+
+
 def _set_slide_bg(slide, color: RGBColor) -> None:
     """Sæt baggrundsfarve på en slide."""
     bg = slide.background.fill
@@ -288,12 +302,12 @@ def _slide_research(prs, ctx):
     _set_slide_bg(slide, RAW_SILK)
     _add_slide_header(slide, "Research")
 
+    eyebrow, heading = _headline(ctx, "research", "Vi har gjort hjemmearbejdet",
+                                 f"Dette ved vi om {ctx['client']['name']}")
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "VI HAR GJORT HJEMMEARBEJDET",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
+              eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              f"Dette ved vi om {ctx['client']['name']}",
-              font_size=56, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=56, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
 
     # 2x2 grid med facts
     facts = ctx.get("research_facts", [])[:4]
@@ -334,12 +348,13 @@ def _slide_priorities(prs, ctx):
     _set_slide_bg(slide, RAW_SILK)
     _add_slide_header(slide, "Jeres prioriteter")
 
+    eyebrow, heading = _headline(
+        ctx, "priorities", "Sådan læser vi jeres retning",
+        f"{len(ctx.get('strategic_priorities') or [])} strategiske prioriteter vi vil tale ind i.")
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "SÅDAN LÆSER VI JERES RETNING",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
+              eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              "3 strategiske prioriteter vi vil tale ind i.",
-              font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
 
     priorities = ctx.get("strategic_priorities", [])[:3]
     y = Inches(3.4)
@@ -370,12 +385,12 @@ def _slide_mapping(prs, ctx):
     _set_slide_bg(slide, RAW_SILK)
     _add_slide_header(slide, "Hvor vi flytter nålen")
 
+    eyebrow, heading = _headline(ctx, "mapping", "Konkret kobling",
+                                 "Jeres udfordring. Vores håndtag.")
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              "KONKRET KOBLING",
-              font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
+              eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(12), Inches(1.0),
-              "Jeres udfordring. Vores håndtag.",
-              font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
 
     mappings = ctx.get("value_mappings", [])[:4]
     col1_w = Inches(5.5)
@@ -496,13 +511,13 @@ def _slide_next_steps(prs, ctx):
     _set_slide_bg(slide, RAW_SILK)
     _add_slide_header(slide, "Næste skridt")
 
+    eyebrow, heading = _headline(ctx, "next_steps", "Hvis vi er enige om retningen",
+                                 "Tre konkrete næste skridt.")
     _add_text(slide, MARGIN, Inches(1.4), Inches(8), Inches(0.4),
-              "HVIS VI ER ENIGE OM RETNINGEN",
-              font_size=11, bold=True, color=RASPBERRY,
+              eyebrow, font_size=11, bold=True, color=RASPBERRY,
               font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              "Tre konkrete næste skridt.",
-              font_size=44, bold=True, color=BLACK_CURRANT,
+              heading, font_size=44, bold=True, color=BLACK_CURRANT,
               font_name=FONT_DISPLAY)
 
     steps = ctx.get("next_steps", [])[:3]
@@ -858,6 +873,7 @@ def render_pptx(
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),
+        "headlines": analysis.get("slide_headlines") or {},
     }
 
     prs = Presentation()

@@ -20,11 +20,17 @@ def gather_web_intelligence(
     client_name: str,
     industry_hint: Optional[str] = None,
     pitch_focus: Optional[str] = None,
+    research_queries: Optional[List[str]] = None,
+    core_intent: Optional[str] = None,
     max_searches: int = 5,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Kør Claude med web_search tool til at indsamle aktuel intelligens om kunden.
+
+    Hvis `research_queries` er givet (fra pitch-kontrakten), søger vi MÅLRETTET efter
+    dét sælgeren skal tale om — i stedet for at støvsuge generisk firmanyt. Samme
+    antal søgninger, men rettet mod det der faktisk skal bruges.
 
     Returnerer:
         {
@@ -35,9 +41,55 @@ def gather_web_intelligence(
     """
     client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
 
-    # Byg fokuseret prompt
-    focus_hint = f"\n\nSælgers pitch-fokus: {pitch_focus}" if pitch_focus else ""
     industry_line = f" (branche: {industry_hint})" if industry_hint else ""
+
+    # MÅLRETTET tilstand: pitch-kontrakten har fortalt os hvad mødet handler om,
+    # så vi søger efter dét — ikke efter generisk firmanyt.
+    if research_queries:
+        intent_line = f"\n\n**Hvad mødet handler om**: {core_intent}" if core_intent else ""
+        queries_block = "\n".join(f"{i}. {q}" for i, q in enumerate(research_queries, 1))
+        brief_block = f"""Du er research-assistent for en Epico-sælger der skal pitche til **{client_name}**{industry_line}.{intent_line}
+
+Sælgeren har allerede besluttet hvad mødet skal handle om. Din opgave er **ikke** at kortlægge
+virksomheden bredt — det er at finde belæg for netop disse spørgsmål:
+
+{queries_block}
+
+Brug web_search målrettet mod dem. Max {max_searches} søgninger — brug dem alle på listen ovenfor,
+ikke på generisk baggrund. Er et spørgsmål udtømt efter én søgning, gå videre til det næste
+frem for at grave dybere i samme.
+
+Finder du noget stort og relevant der IKKE står på listen, må du tage det med — men kun hvis det
+ændrer billedet, ikke bare fordi det er interessant."""
+        output_spec = """
+
+Returnér en **STRUKTURERET OPSUMMERING** på dansk, organiseret efter spørgsmålene ovenfor:
+
+```
+## Spørgsmål 1: [gentag spørgsmålet kort]
+- [Fund] (kilde, dato): hvad vi fandt
+- **Svar**: dit direkte svar på spørgsmålet, eller "Intet belæg fundet"
+
+## Spørgsmål 2: ...
+(samme struktur for hvert spørgsmål)
+
+## Uventede fund
+- Kun ting der ændrer billedet. Tom hvis intet.
+
+## Det sælgeren BØR vide før mødet
+1. ...
+2. ...
+3. ...
+```
+"""
+        prompt = brief_block + output_spec + """
+Brug KUN information du har verificeret via web search. **Find ikke noget på.**
+Et ærligt "Intet belæg fundet" er mere værd end et kvalificeret gæt."""
+
+        return _run_search(client, prompt, max_searches)
+
+    # BRED tilstand: ingen kontrakt endnu — kortlæg virksomheden generisk.
+    focus_hint = f"\n\nSælgers pitch-fokus: {pitch_focus}" if pitch_focus else ""
 
     prompt = f"""Du er research-assistent for en Epico-sælger der skal pitche til **{client_name}**{industry_line}.
 
@@ -80,6 +132,11 @@ Når du har samlet info, returnér en **STRUKTURERET OPSUMMERING** på dansk i d
 Brug KUN information du har verificeret via web search. **Find ikke noget på.** Hvis en kategori er tom — skriv "Intet relevant fundet".
 """
 
+    return _run_search(client, prompt, max_searches)
+
+
+def _run_search(client: Anthropic, prompt: str, max_searches: int) -> Dict[str, Any]:
+    """Kør ét web-search-kald og pak resultatet ud. Fejler stille."""
     try:
         response = client.messages.create(
             model=SEARCH_MODEL,
@@ -94,7 +151,6 @@ Brug KUN information du har verificeret via web search. **Find ikke noget på.**
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Uddrag text response
         summary_parts = []
         search_count = 0
         for block in response.content:
@@ -103,17 +159,15 @@ Brug KUN information du har verificeret via web search. **Find ikke noget på.**
             elif block.type == "server_tool_use":
                 search_count += 1
 
-        summary = "\n".join(summary_parts).strip()
-
         return {
-            "summary": summary,
+            "summary": "\n".join(summary_parts).strip(),
             "search_count": search_count,
             "stop_reason": response.stop_reason,
         }
 
     except Exception as e:
-        # Web search kan fejle hvis API-key ikke har adgang, eller andre fejl
-        # Vi vil ikke crashe hele pipeline pga. dette
+        # Web search kan fejle hvis API-key ikke har adgang. Ikke kritisk —
+        # pipelinen kører videre uden.
         return {
             "summary": None,
             "search_count": 0,

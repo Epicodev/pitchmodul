@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from slide_library import select_slides
+from slide_library import select_slides, bold_to_accent
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 _env = Environment(
@@ -24,6 +24,37 @@ _AGENDA_TIMINGS = {
     "medium": ["8 min", "10 min", "10 min", "10 min", "7 min"],
     "long": ["10 min", "15 min", "15 min", "15 min", "10 min"],
 }
+
+
+
+# Overskrifter til de fire kundespecifikke slides. AI'en genererer dem, så rammen
+# matcher hvem der sidder i lokalet — en Procurement-chef og en CIO skal ikke se
+# den samme sætning. Falder tilbage til de generiske hvis AI'en ikke leverede.
+_HEADLINE_FALLBACKS = {
+    "research": ("Vi har gjort hjemmearbejdet", "Dette ved vi om **{client}**"),
+    "priorities": ("Sådan læser vi jeres retning", "{n} strategiske prioriteter **vi vil tale ind i.**"),
+    "mapping": ("Konkret kobling", "Jeres udfordring. **Vores håndtag.**"),
+    "next_steps": ("Hvis vi er enige om retningen", "{n} konkrete **næste skridt.**"),
+}
+
+
+def _slide_headlines(analysis: Dict[str, Any], client_name: str) -> Dict[str, Dict[str, str]]:
+    """Saml overskrifter til kunde-slidesne, med fallback til de generiske."""
+    generated = analysis.get("slide_headlines") or {}
+    counts = {
+        "priorities": len(analysis.get("strategic_priorities") or []),
+        "next_steps": len(analysis.get("next_steps") or []),
+    }
+
+    out = {}
+    for key, (fb_eyebrow, fb_heading) in _HEADLINE_FALLBACKS.items():
+        item = generated.get(key) or {}
+        eyebrow = (item.get("eyebrow") or "").strip() or fb_eyebrow
+        heading = (item.get("heading") or "").strip() or fb_heading.format(
+            client=client_name, n=counts.get(key, "")
+        )
+        out[key] = {"eyebrow": eyebrow, "heading_html": bold_to_accent(heading)}
+    return out
 
 
 def _default_team_member(member: Optional[Dict[str, str]], fallback_title: str) -> Dict[str, Optional[str]]:
@@ -91,6 +122,7 @@ def render_deck(
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),
+        "headlines": _slide_headlines(analysis, client_name),
         # Epico-slides fra bibliotek
         "library_slides": [s.to_dict() for s in library],
         # Meta

@@ -126,6 +126,11 @@ class LibrarySlide:
         }
 
 
+def bold_to_accent(text: str) -> str:
+    """Offentligt alias — bruges også af deck_gen til AI-genererede overskrifter."""
+    return _bold_to_accent(text)
+
+
 def _bold_to_accent(text: str) -> str:
     """Konvertér **fed** til <span class="accent"> så overskrifter kan fremhæve ord."""
     if not text:

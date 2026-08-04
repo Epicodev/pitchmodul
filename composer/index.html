@@ -75,8 +75,22 @@
 
       <!-- SÆLGERS BRIEF -->
       <fieldset class="form-block form-block--accent">
-        <legend><span class="legend-num">B</span>Din viden om kunden <span class="legend-hint">trumfer årsrapport</span></legend>
-        <p class="form-block-intro">Det her er det vigtigste afsnit. Det du skriver her vægter <strong>højere</strong> end årsrapporten. Brug det til at give AI'en din kontekst — fra netværk, tidligere møder, LinkedIn, jobopslag, interne kilder.</p>
+        <legend><span class="legend-num">B</span>Din viden om kunden <span class="legend-hint">vinder ved uenighed</span></legend>
+        <p class="form-block-intro">Det her er det vigtigste afsnit. Det du skriver behandles som <strong>evidens på lige fod med årsrapporten</strong> — og vinder hvis de to peger forskelligt. Et regnskab kan være 14 måneder gammelt; du talte måske med dem i sidste uge. Skriv hvad du ved fra netværk, tidligere møder, LinkedIn eller jobopslag.</p>
+
+        <!-- OMVENDT BRIEF — AI spørger i stedet for blanke felter -->
+        <div class="brief-questions" id="brief-questions">
+          <div class="brief-questions-head">
+            <div class="brief-questions-copy">
+              <span class="brief-questions-title">Ved du ikke hvad der er værd at skrive?</span>
+              <span class="brief-questions-sub">AI'en læser det du har udfyldt indtil nu og stiller de 2-3 spørgsmål der ville løfte pitchen mest. Dine svar bliver føjet til felterne herunder. Tager ca. 5 sekunder.</span>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" id="brief-questions-btn" disabled title="Udfyld kundenavn først">
+              Lad AI stille spørgsmål <span class="arrow">→</span>
+            </button>
+          </div>
+          <div class="brief-questions-body" id="brief-questions-body" hidden></div>
+        </div>
 
         <div class="form-row">
           <label class="field">
@@ -202,12 +216,6 @@
         <p class="form-block-intro">Vil du selv skrive præcis hvad der står på en specifik slide? Udfyld feltet — så bruger AI'en din tekst i stedet for at gætte. Lad felter være tomme hvis AI'en skal bestemme.</p>
 
         <div class="dictation-fields" id="dictation-fields" hidden>
-          <div class="form-row">
-            <label class="field">
-              <span class="field-label">Slide 02: Hvorfor vi mødes <span class="hint">(åbnings-narrativet)</span></span>
-              <textarea name="dict_why_meeting" rows="3" placeholder="Skriv den korte forklaring på hvorfor I mødes. Maks 2-3 sætninger."></textarea>
-            </label>
-          </div>
           <div class="form-row">
             <label class="field">
               <span class="field-label">Slide 04: Research-fakta <span class="hint">(4 facts du selv vil have med)</span></span>
