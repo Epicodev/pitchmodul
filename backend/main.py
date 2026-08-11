@@ -19,9 +19,10 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
-from cvr import lookup_by_name, lookup_by_cvr
+from cvr import lookup_by_name, lookup_by_cvr, CVRUnavailable
 from claude_client import (
     analyze_client,
     reload_knowledge,
@@ -135,14 +136,43 @@ async def slide_plan(
 @app.post("/api/cvr-lookup")
 async def cvr_lookup(req: CVRLookupRequest):
     """Slå en virksomhed op via CVR-API."""
-    if req.type == "cvr":
-        result = await lookup_by_cvr(req.query)
-    else:
-        result = await lookup_by_name(req.query)
+    try:
+        if req.type == "cvr":
+            result = await lookup_by_cvr(req.query)
+        else:
+            result = await lookup_by_name(req.query)
+    except CVRUnavailable as e:
+        # Ikke det samme som "findes ikke" — sælgeren skal vide at det er
+        # registret der er nede, ikke deres stavemåde.
+        return JSONResponse(
+            {"found": False, "unavailable": True,
+             "detail": f"{e}. Udfyld felterne manuelt, eller prøv igen senere."},
+            status_code=503,
+        )
 
     if not result:
-        return JSONResponse({"found": False}, status_code=404)
+        return JSONResponse(
+            {"found": False,
+             "detail": "Ingen virksomhed fundet. Tjek stavemåden, eller indtast CVR-nummeret."},
+            status_code=404,
+        )
     return {"found": True, "data": result}
+
+
+async def _try_cvr(cvr_number: Optional[str], client_name: str):
+    """Slå CVR op, men lad det aldrig vælte kaldet.
+
+    CVR-data er en bonus — pitchen kan sagtens genereres uden. Er registret
+    nede eller kvoten opbrugt, kører vi videre på brief og årsrapport alene.
+    """
+    try:
+        if cvr_number:
+            found = await lookup_by_cvr(cvr_number)
+            if found:
+                return found
+        return await lookup_by_name(client_name)
+    except CVRUnavailable:
+        return None
 
 
 def _readable_api_error(e: Exception) -> str:
@@ -188,18 +218,15 @@ async def brief_questions(
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY er ikke sat.")
 
-    cvr_data = None
-    if cvr_number:
-        cvr_data = await lookup_by_cvr(cvr_number)
-    if not cvr_data:
-        cvr_data = await lookup_by_name(client_name)
+    cvr_data = await _try_cvr(cvr_number, client_name)
 
     services_list = []
     if services_to_highlight:
         services_list = [s.strip() for s in services_to_highlight.split(",") if s.strip()]
 
     try:
-        result = suggest_brief_questions(
+        result = await run_in_threadpool(
+            suggest_brief_questions,
             client_name=client_name,
             cvr_data=cvr_data,
             seller_brief={
@@ -268,11 +295,7 @@ async def run_research(
         )
 
     # ── Step 1: CVR-lookup ──
-    cvr_data = None
-    if cvr_number:
-        cvr_data = await lookup_by_cvr(cvr_number)
-    if not cvr_data:
-        cvr_data = await lookup_by_name(client_name)
+    cvr_data = await _try_cvr(cvr_number, client_name)
 
     # ── Step 2: Parse årsrapport ──
     annual_report_text = None
@@ -305,7 +328,8 @@ async def run_research(
     # ── Step 3: Pitch-kontrakt FØR research ──
     # Kontrakten ved endnu intet om web-fund. Det er pointen: den beslutter
     # hvad mødet handler om, og udleder derfra hvad vi mangler at få afklaret.
-    pitch_contract = build_pitch_contract(
+    pitch_contract = await run_in_threadpool(
+        build_pitch_contract,
         client_name=client_name,
         cvr_data=cvr_data,
         annual_report_text=annual_report_text,
@@ -328,7 +352,8 @@ async def run_research(
     web_intelligence = None
     if enable_web_search == "true":
         try:
-            web_intelligence = gather_web_intelligence(
+            web_intelligence = await run_in_threadpool(
+                gather_web_intelligence,
                 client_name=client_name,
                 industry_hint=cvr_data.get("industry_desc") if cvr_data else None,
                 pitch_focus=pitch_focus,
@@ -341,7 +366,8 @@ async def run_research(
 
     # ── Step 5: Analyse, bundet til kontrakten ──
     try:
-        analysis = analyze_client(
+        analysis = await run_in_threadpool(
+            analyze_client,
             client_name=client_name,
             cvr_data=cvr_data,
             annual_report_text=annual_report_text,
@@ -410,7 +436,8 @@ class RefineSlideRequest(BaseModel):
 async def refine_slide_endpoint(req: RefineSlideRequest):
     """Skærp et specifikt slide via Claude. Returnér forbedret indhold."""
     try:
-        refined = refine_slide(
+        refined = await run_in_threadpool(
+            refine_slide,
             slide_type=req.slide_type,
             current_content=req.current_content,
             directive=req.directive,

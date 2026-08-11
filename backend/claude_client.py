@@ -184,7 +184,11 @@ _BRIEF_CONTRACT_TOOL = {
                     "Dårlig: 'Hvad laver Novo Nordisk inden for IT?'\n\n"
                     "Rammer sælgers brief en konkurrent, en bestemt afdeling eller en konkret smerte — "
                     "så skal mindst én søgning gå direkte efter dét. Søgninger på generisk firmabaggrund "
-                    "er spildt: dem har vi CVR og årsrapport til."
+                    "er spildt: dem har vi CVR og årsrapport til.\n\n"
+                    "**Søg aldrig efter Epico.** Alt om vores egne services, tal, cases og leveringstider "
+                    "står i vidensbasen og er den eneste gyldige kilde. En web-søgning på Epico spilder "
+                    "en søgning og risikerer at trække upræcise påstande om os selv ind i pitchen. "
+                    "Hver søgning skal handle om KUNDEN, deres marked eller deres nuværende leverandør."
                 ),
                 "minItems": 3,
                 "maxItems": 4,
@@ -761,7 +765,18 @@ ANALYSIS_TOOL = {
                         },
                         "source": {
                             "type": "string",
-                            "description": "Kildehenvisning, fx 'Årsrapport 2024, s. 12', 'Pressemeddelelse 3. feb 2026' eller 'Epico-netværk' (når sælger har oplyst den)."
+                            "description": (
+                                "Kildehenvisning — og den skal vise hvordan VI fik fat i oplysningen, ikke bare "
+                                "hvor den oprindeligt stammer fra. Sælgeren skal kunne se om han kan sige "
+                                "'ifølge jeres årsrapport' med rank ryg, eller om han bør verificere først.\n\n"
+                                "· Læst i en uploadet årsrapport → 'Årsrapport 2024, s. 12'\n"
+                                "· Fundet via web-søgning → skriv kilden OG at den kommer derfra, fx "
+                                "'Årsrapport FY 2024/25 (via web-søgning)' eller 'Pressemeddelelse 3. feb (via web-søgning)'\n"
+                                "· Fra sælgers egen brief → 'Epico-netværk'\n"
+                                "· Kundens egen hjemmeside → 'coloplast.com/om-os'\n\n"
+                                "Er der ingen uploadet årsrapport i materialet, kan en fact ikke have en ren "
+                                "årsrapport-kilde — så har du den fra nettet, og det skal stå."
+                            )
                         },
                         "why_it_matters": {
                             "type": "string",

@@ -507,6 +507,85 @@ body.composer-body {
   color: var(--raspberry);
 }
 
+/* Hver runde spørgsmål lægges under den forrige */
+.brief-question-round + .brief-question-round,
+.brief-questions-error + .brief-question-round,
+.brief-question-round + .brief-questions-error {
+  display: block;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--alu-grey);
+}
+
+.brief-questions-more {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--alu-grey);
+}
+
+.brief-questions-more[hidden] { display: none; }
+
+.brief-questions-more-hint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+}
+
+/* ---------- AVANCERET ---------- */
+.advanced-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.advanced-fields[hidden] { display: none; }
+
+.advanced-group {
+  background: var(--light-silk);
+  padding: 28px 32px;
+}
+
+.advanced-group-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: var(--kern-medium);
+  color: var(--black-currant);
+  margin: 0 0 8px;
+}
+
+.advanced-group-intro {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--light-grey);
+  line-height: 1.5;
+  margin: 0 0 22px;
+  max-width: 780px;
+}
+
+.advanced-group .form-row:last-child { margin-bottom: 0; }
+.advanced-group .dictation-fields .form-row:last-child { margin-bottom: 0; }
+
+.advanced-note {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--black-currant);
+  background: var(--kiwi);
+  padding: 4px 10px;
+}
+
+.advanced-note[hidden] { display: none; }
+
 /* ---------- COLLAPSIBLE BLOCK ---------- */
 .form-block--collapsible legend {
   display: flex;
@@ -591,7 +670,8 @@ body.composer-body {
   user-select: none;
 }
 
-.chip input[type="checkbox"] {
+/* Både checkbox-chips (services) og radio-chips (længde, stakeholder) */
+.chip input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -807,7 +887,123 @@ body.composer-body {
   padding: 3px 8px;
 }
 
+/* ---------- SLIDES I PITCHEN — rolig statuslinje ---------- */
+.slide-plan-strip {
+  background: var(--white);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.slide-plan-strip-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slide-plan-strip-title {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.slide-plan-strip-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+  line-height: 1.5;
+  max-width: 780px;
+}
+
+.slide-plan-strip .slide-plan { gap: 16px; }
+
+.slide-plan-strip .plan-summary {
+  background: var(--raw-silk);
+  color: var(--grey);
+  border-left: 3px solid var(--kiwi);
+  padding: 14px 20px;
+}
+
+.slide-plan-strip .plan-count {
+  font-size: 24px;
+  color: var(--black-currant);
+}
+
+.slide-plan-strip .plan-count-label {
+  font-size: 11px;
+  color: var(--grey);
+}
+
+.slide-plan-strip .plan-breakdown { color: var(--light-grey); }
+
+.slide-plan-strip .plan-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.slide-plan-strip .plan-group-head { grid-column: 1 / -1; }
+
 /* ---------- TEAM ---------- */
+.form-block--team legend { margin-bottom: 20px; }
+
+.team-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: var(--raw-silk);
+  border: 2px solid var(--alu-grey);
+  padding: 16px 20px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--grey);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.team-summary:hover {
+  border-color: var(--black-currant);
+  background: var(--white);
+}
+
+.team-summary-role {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--light-grey);
+  margin-right: 4px;
+}
+
+.team-summary-dot {
+  color: var(--alu-grey);
+  margin: 0 6px;
+}
+
+.team-summary-line--empty {
+  font-weight: 700;
+  color: var(--black-currant);
+}
+
+.team-summary-action {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--raspberry);
+}
+
+.team-fields { margin-top: 28px; }
+.team-fields[hidden] { display: none; }
+
 .team-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -842,6 +1038,7 @@ body.composer-body {
 
 .btn:hover:not(:disabled) { transform: translateY(-2px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn[hidden] { display: none; }
 
 .btn--primary {
   background: var(--kiwi);
@@ -869,11 +1066,21 @@ body.composer-body {
 .form-actions {
   margin-top: 48px;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 16px;
   padding: 32px;
   background: var(--white);
   border-top: 2px solid var(--alu-grey);
+}
+
+.form-actions-note {
+  margin: 0 auto 0 0;
+  max-width: 520px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+  line-height: 1.5;
 }
 
 /* ---------- RESEARCH STATUS ---------- */

@@ -80,8 +80,13 @@ async function lookupCVR() {
     });
 
     if (!res.ok) {
+      // 503 = registret er nede eller kvoten opbrugt. Det er ikke det samme
+      // som at kunden ikke findes, og kræver en anden handling af sælgeren.
+      const body = await res.json().catch(() => ({}));
       result.classList.add('is-error');
-      result.innerHTML = `Ingen virksomhed fundet for "<strong>${query}</strong>"`;
+      result.innerHTML = body.detail
+        ? escapeHtml(body.detail)
+        : `Ingen virksomhed fundet for "<strong>${escapeHtml(query)}</strong>"`;
       return;
     }
 
@@ -274,15 +279,56 @@ function handleManualBriefEdit(field) {
 }
 
 function updateBriefQuestionsBtn() {
-  const btn = $('#brief-questions-btn');
   const input = $('#brief-form [name="client_name"]');
-  if (!btn || !input) return;
+  if (!input) return;
   const ready = input.value.trim().length > 0;
-  btn.disabled = !ready;
-  btn.title = ready ? '' : 'Udfyld kundenavn først';
+  [$('#brief-questions-btn'), $('#brief-questions-more-btn')].forEach(btn => {
+    if (!btn) return;
+    btn.disabled = !ready;
+    btn.title = ready ? '' : 'Udfyld kundenavn først';
+  });
 }
 
-function renderBriefQuestions(data) {
+// Første runde bor i knappen øverst; opfølgninger i knappen under kortene,
+// så sælger aldrig ser to knapper der gør det samme.
+function updateBriefQuestionsUi() {
+  const hasCards = briefQuestions.items.length > 0;
+  const askBtn = $('#brief-questions-btn');
+  const more = $('#brief-questions-more');
+  const title = $('#brief-questions-head .brief-questions-title');
+  const sub = $('#brief-questions-head .brief-questions-sub');
+
+  if (askBtn) askBtn.hidden = hasCards;
+  if (more) more.hidden = !hasCards;
+  if (hasCards && title) title.textContent = 'Svar på det du kan.';
+  if (hasCards && sub) {
+    sub.textContent = 'Spring gerne et spørgsmål over. Alt du skriver havner i briefen — du kan se og rette det under Avanceret.';
+  }
+  updateBriefQuestionsBtn();
+}
+
+// Sælger skal kunne se at svarene faktisk landede et sted
+function markAdvancedUpdated() {
+  const note = $('#advanced-note');
+  if (note) note.hidden = false;
+}
+
+function briefQuestionsMessage(html, append) {
+  const body = $('#brief-questions-body');
+  if (!body) return;
+  body.hidden = false;
+  if (append) body.insertAdjacentHTML('beforeend', html);
+  else body.innerHTML = html;
+}
+
+function clearBriefQuestionsLoading() {
+  const loader = $('#brief-questions-loading');
+  if (loader) loader.remove();
+}
+
+// append = true når sælger beder om flere spørgsmål: nye kort lægges under
+// de gamle, og de allerede afgivne svar bliver stående.
+function renderBriefQuestions(data, append = false) {
   const body = $('#brief-questions-body');
   if (!body) return;
 
@@ -290,9 +336,19 @@ function renderBriefQuestions(data) {
     ? data.questions.filter(q => q && q.question && BRIEF_FIELD_LABELS[q.field])
     : [];
 
-  briefQuestions.items = items;
-  briefQuestions.answers = {};
-  briefQuestions.baselines = {};
+  if (!append) {
+    briefQuestions.items = [];
+    briefQuestions.answers = {};
+    briefQuestions.baselines = {};
+  }
+
+  // Nye kort fortsætter nummereringen, så data-qidx og items følges ad
+  const offset = briefQuestions.items.length;
+  briefQuestions.items = briefQuestions.items.concat(items);
+
+  // Et felt der allerede har en baseline beholder den — ellers ville feltets
+  // nuværende tekst (baseline + tidligere svar) blive den nye baseline,
+  // og svarene ville stå to gange.
   items.forEach(q => {
     if (briefQuestions.baselines[q.field] === undefined) {
       const el = briefFieldEl(q.field);
@@ -303,39 +359,53 @@ function renderBriefQuestions(data) {
   body.hidden = false;
 
   if (!items.length) {
-    body.innerHTML = `<div class="brief-questions-error">AI'en havde ingen spørgsmål denne gang. Prøv igen når du har skrevet lidt mere.</div>`;
+    briefQuestionsMessage(
+      `<div class="brief-questions-error">AI'en havde ingen spørgsmål denne gang. Prøv igen når du har skrevet lidt mere.</div>`,
+      append,
+    );
+    updateBriefQuestionsUi();
     return;
   }
 
-  body.innerHTML = `
-    ${data.assessment ? `<p class="brief-assessment">${escapeHtml(data.assessment)}</p>` : ''}
-    <div class="brief-question-list">
-      ${items.map((q, i) => `
-        <div class="brief-question">
-          <div class="brief-question-q">${escapeHtml(q.question)}</div>
-          ${q.why ? `<div class="brief-question-why">${escapeHtml(q.why)}</div>` : ''}
-          <textarea class="editable brief-question-answer" data-qidx="${i}" rows="2"
-                    placeholder="${escapeHtml(q.example_answer || 'Skriv dit svar her...')}"></textarea>
-          <div class="brief-question-target">Føjes til <strong>${escapeHtml(BRIEF_FIELD_LABELS[q.field])}</strong></div>
-        </div>
-      `).join('')}
+  const html = `
+    <div class="brief-question-round">
+      ${data.assessment ? `<p class="brief-assessment">${escapeHtml(data.assessment)}</p>` : ''}
+      <div class="brief-question-list">
+        ${items.map((q, i) => `
+          <div class="brief-question">
+            <div class="brief-question-q">${escapeHtml(q.question)}</div>
+            ${q.why ? `<div class="brief-question-why">${escapeHtml(q.why)}</div>` : ''}
+            <textarea class="editable brief-question-answer" data-qidx="${offset + i}" rows="2"
+                      placeholder="${escapeHtml(q.example_answer || 'Skriv dit svar her...')}"></textarea>
+            <div class="brief-question-target">Føjes til <strong>${escapeHtml(BRIEF_FIELD_LABELS[q.field])}</strong></div>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 
-  body.querySelectorAll('.brief-question-answer').forEach(ta => {
+  if (append) body.insertAdjacentHTML('beforeend', html);
+  else body.innerHTML = html;
+
+  // Bind kun de nye svarfelter — de gamle har allerede en lytter
+  body.querySelectorAll('.brief-question-answer:not([data-bound])').forEach(ta => {
+    ta.dataset.bound = '1';
     ta.addEventListener('input', () => {
       const i = parseInt(ta.dataset.qidx, 10);
       const item = briefQuestions.items[i];
       if (!item) return;
       briefQuestions.answers[i] = ta.value;
       syncBriefField(item.field);
+      markAdvancedUpdated();
     });
   });
+
+  updateBriefQuestionsUi();
 }
 
-async function askBriefQuestions() {
+async function askBriefQuestions(append = false) {
   const form = $('#brief-form');
-  const btn = $('#brief-questions-btn');
+  const btn = append ? $('#brief-questions-more-btn') : $('#brief-questions-btn');
   const body = $('#brief-questions-body');
   if (!form || !btn || !body) return;
 
@@ -345,10 +415,13 @@ async function askBriefQuestions() {
     return;
   }
 
+  const originalLabel = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = 'Læser din brief... <span class="arrow">⟳</span>';
-  body.hidden = false;
-  body.innerHTML = `<div class="brief-questions-loading">AI'en læser det du har skrevet og finder de spørgsmål der rykker mest — det tager ca. 5 sekunder.</div>`;
+  briefQuestionsMessage(
+    `<div class="brief-questions-loading" id="brief-questions-loading">AI'en læser det du har skrevet og finder de spørgsmål der rykker mest — det tager ca. 5 sekunder.</div>`,
+    append,
+  );
 
   const formData = new FormData();
   appendSharedBriefFields(formData, shared);
@@ -365,20 +438,114 @@ async function askBriefQuestions() {
         const err = await res.json();
         if (err && err.detail) detail = err.detail;
       } catch { /* ikke JSON — behold standardbesked */ }
-      body.innerHTML = `<div class="brief-questions-error">${escapeHtml(detail)}</div>`;
+      clearBriefQuestionsLoading();
+      briefQuestionsMessage(`<div class="brief-questions-error">${escapeHtml(detail)}</div>`, append);
       return;
     }
 
-    renderBriefQuestions(await res.json());
+    const data = await res.json();
+    clearBriefQuestionsLoading();
+    renderBriefQuestions(data, append);
   } catch (e) {
-    body.innerHTML = `<div class="brief-questions-error">Netværksfejl: ${escapeHtml(e.message)}</div>`;
+    clearBriefQuestionsLoading();
+    briefQuestionsMessage(`<div class="brief-questions-error">Netværksfejl: ${escapeHtml(e.message)}</div>`, append);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = briefQuestions.items.length
-      ? 'Stil nye spørgsmål <span class="arrow">→</span>'
-      : 'Lad AI stille spørgsmål <span class="arrow">→</span>';
-    updateBriefQuestionsBtn();
+    btn.innerHTML = originalLabel;
+    updateBriefQuestionsUi();
   }
+}
+
+// ---------- Dit Epico-team (samme værdier hver gang — så husk dem) ----------
+const TEAM_STORAGE_KEY = 'epico-composer-team';
+const TEAM_FIELDS = [
+  'kam_name', 'kam_title', 'kam_phone', 'kam_email',
+  'rm_name', 'rm_title', 'rm_phone', 'rm_email',
+];
+
+function teamFieldEl(name) {
+  return $(`#brief-form [name="${name}"]`);
+}
+
+function teamValue(name) {
+  const el = teamFieldEl(name);
+  return el ? el.value.trim() : '';
+}
+
+function loadTeam() {
+  let saved;
+  try {
+    saved = JSON.parse(localStorage.getItem(TEAM_STORAGE_KEY) || '{}');
+  } catch {
+    return; // korrupt eller blokeret storage — kør bare videre med tomme felter
+  }
+  if (!saved || typeof saved !== 'object') return;
+  TEAM_FIELDS.forEach(name => {
+    const el = teamFieldEl(name);
+    if (el && typeof saved[name] === 'string' && saved[name].trim()) el.value = saved[name];
+  });
+}
+
+function saveTeam() {
+  const data = {};
+  TEAM_FIELDS.forEach(name => {
+    const el = teamFieldEl(name);
+    if (el) data[name] = el.value;
+  });
+  try {
+    localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(data));
+  } catch { /* privat browsing eller fuld storage — ikke kritisk */ }
+}
+
+function renderTeamSummary() {
+  const summary = $('#team-summary');
+  const fields = $('#team-fields');
+  if (!summary || !fields) return;
+
+  const open = !fields.hidden;
+  const kam = teamValue('kam_name');
+  const rm = teamValue('rm_name');
+  const action = open ? 'Skjul ↑' : 'Redigér';
+
+  if (!kam && !rm) {
+    summary.innerHTML = open
+      ? `<span class="team-summary-line">Udfyld navn på KAM og RM — de huskes til næste gang</span>
+         <span class="team-summary-action">${action}</span>`
+      : `<span class="team-summary-line team-summary-line--empty">Udfyld dit team <span class="arrow">→</span></span>`;
+    return;
+  }
+
+  summary.innerHTML = `
+    <span class="team-summary-line">
+      <span class="team-summary-role">KAM:</span> ${escapeHtml(kam || '—')}
+      <span class="team-summary-dot">·</span>
+      <span class="team-summary-role">RM:</span> ${escapeHtml(rm || '—')}
+    </span>
+    <span class="team-summary-action">${action}</span>
+  `;
+}
+
+function setupTeam() {
+  const summary = $('#team-summary');
+  const fields = $('#team-fields');
+  if (!summary || !fields) return;
+
+  loadTeam();
+  renderTeamSummary();
+
+  summary.addEventListener('click', () => {
+    fields.hidden = !fields.hidden;
+    renderTeamSummary();
+  });
+
+  TEAM_FIELDS.forEach(name => {
+    const el = teamFieldEl(name);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      saveTeam();
+      renderTeamSummary();
+    });
+  });
 }
 
 // ---------- Run AI research ----------
@@ -1069,14 +1236,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#brief-form').addEventListener('submit', runResearch);
   $('#cvr-lookup-btn').addEventListener('click', lookupCVR);
 
-  // Omvendt brief — knappen er død indtil der står et kundenavn
+  // Omvendt brief — knapperne er døde indtil der står et kundenavn
   const askBtn = $('#brief-questions-btn');
+  const askMoreBtn = $('#brief-questions-more-btn');
   const clientNameInput = $('#brief-form [name="client_name"]');
-  if (askBtn && clientNameInput) {
-    askBtn.addEventListener('click', askBriefQuestions);
-    clientNameInput.addEventListener('input', updateBriefQuestionsBtn);
-    updateBriefQuestionsBtn();
-  }
+  if (askBtn) askBtn.addEventListener('click', () => askBriefQuestions(false));
+  if (askMoreBtn) askMoreBtn.addEventListener('click', () => askBriefQuestions(true));
+  if (clientNameInput) clientNameInput.addEventListener('input', updateBriefQuestionsBtn);
+  updateBriefQuestionsUi();
 
   // Retter sælger selv i et brief-felt, må vores AI-svar ikke overskrive det
   Object.keys(BRIEF_FIELD_LABELS).forEach(field => {
@@ -1100,7 +1267,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  // Collapse toggle for slide-dictation
+  // Collapse toggle for Avanceret
+  const advToggle = $('#advanced-toggle');
+  const advFields = $('#advanced-fields');
+  if (advToggle && advFields) {
+    advToggle.addEventListener('click', () => {
+      const isOpen = !advFields.hidden;
+      advFields.hidden = isOpen;
+      advToggle.textContent = isOpen ? 'Vis felter ↓' : 'Skjul felter ↑';
+      advToggle.classList.toggle('is-expanded', !isOpen);
+    });
+  }
+
+  // Collapse toggle for slide-dictation (inde i Avanceret)
   const dictToggle = $('#dictation-toggle');
   const dictFields = $('#dictation-fields');
   if (dictToggle && dictFields) {
@@ -1111,6 +1290,9 @@ document.addEventListener('DOMContentLoaded', () => {
       dictToggle.classList.toggle('is-expanded', !isOpen);
     });
   }
+
+  // Sælgerens eget team er det samme hver gang — hent det fra sidste deck
+  setupTeam();
 
   // Sæt dato til i dag som default
   const dateInput = $('input[name="date"]');

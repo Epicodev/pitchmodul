@@ -10,6 +10,14 @@ CVR_API_BASE = "https://cvrapi.dk/api"
 USER_AGENT = "Epico-Pitch-Deck-Generator/1.0 (https://epico.dk)"
 
 
+class CVRUnavailable(Exception):
+    """API'et svarede, men kunne ikke slå op — kvote opbrugt eller nede.
+
+    Adskilt fra "virksomheden findes ikke", fordi de to kræver hver sin
+    handling af sælgeren: vent kontra tjek stavemåden.
+    """
+
+
 async def lookup_by_name(name: str, country: str = "dk") -> Optional[Dict[str, Any]]:
     """
     Find en virksomhed ud fra navn. Returnerer rigeste match.
@@ -21,15 +29,10 @@ async def lookup_by_name(name: str, country: str = "dk") -> Optional[Dict[str, A
                 params={"search": name, "country": country},
                 headers={"User-Agent": USER_AGENT},
             )
-            if resp.status_code != 200:
-                return None
-            data = resp.json()
-            # cvrapi.dk returnerer enten et enkelt objekt eller en error
-            if isinstance(data, dict) and data.get("error"):
-                return None
-            return _normalize(data) if isinstance(data, dict) else None
+            data = _parse(resp)
+            return _normalize(data) if data else None
         except (httpx.HTTPError, ValueError):
-            return None
+            raise CVRUnavailable("CVR-registret svarede ikke")
 
 
 async def lookup_by_cvr(cvr_number: str, country: str = "dk") -> Optional[Dict[str, Any]]:
@@ -44,14 +47,34 @@ async def lookup_by_cvr(cvr_number: str, country: str = "dk") -> Optional[Dict[s
                 params={"search": cvr_clean, "country": country},
                 headers={"User-Agent": USER_AGENT},
             )
-            if resp.status_code != 200:
-                return None
-            data = resp.json()
-            if isinstance(data, dict) and data.get("error"):
-                return None
-            return _normalize(data) if isinstance(data, dict) else None
+            data = _parse(resp)
+            return _normalize(data) if data else None
         except (httpx.HTTPError, ValueError):
-            return None
+            raise CVRUnavailable("CVR-registret svarede ikke")
+
+
+def _parse(resp: "httpx.Response") -> Optional[Dict[str, Any]]:
+    """Pak et cvrapi.dk-svar ud. Returnerer None hvis virksomheden ikke findes;
+    kaster CVRUnavailable hvis selve tjenesten ikke kan svare lige nu."""
+    if resp.status_code in (429, 402, 403):
+        raise CVRUnavailable("CVR-registrets gratiskvote er brugt op")
+    if resp.status_code >= 500:
+        raise CVRUnavailable("CVR-registret er nede lige nu")
+    if resp.status_code != 200:
+        return None
+
+    data = resp.json()
+    if not isinstance(data, dict):
+        return None
+
+    error = data.get("error")
+    if error:
+        # cvrapi.dk svarer 200 med en error-nøgle når kvoten er opbrugt
+        if error in ("QUOTA_EXCEEDED", "RATE_LIMIT"):
+            raise CVRUnavailable("CVR-registrets gratiskvote er brugt op")
+        return None
+
+    return data
 
 
 def _normalize(raw: Dict[str, Any]) -> Dict[str, Any]:

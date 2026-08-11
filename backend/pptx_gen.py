@@ -8,6 +8,7 @@ Bruger:
 - DM Sans som primær font (fallback til Arial hvis ikke installeret)
 - Tekst er editerbar i PowerPoint
 """
+import re
 from io import BytesIO
 from typing import Dict, Any, List, Optional
 from pptx import Presentation
@@ -51,14 +52,14 @@ FONT_BODY = "DM Sans"
 def _headline(ctx: Dict[str, Any], key: str, fallback_eyebrow: str, fallback_heading: str) -> tuple:
     """Hent AI-genereret overskrift til et kunde-slide.
 
-    PPTX-tekstbokse kan ikke farve enkelte ord som HTML'ens accent-span, saa
-    **stjernerne** strippes. Overskriften er ellers den samme som i HTML-decket —
-    de to formater maa ikke sige forskellige ting.
+    Overskriften er den samme som i HTML-decket — de to formater maa ikke sige
+    forskellige ting. **Stjernerne** bevares og bliver til accent-farve inde i
+    _add_text, saa fremhaevningen ogsaa overlever i PowerPoint.
     """
     h = (ctx.get("headlines") or {}).get(key) or {}
     eyebrow = (h.get("eyebrow") or "").strip() or fallback_eyebrow
     heading = (h.get("heading") or "").strip() or fallback_heading
-    return eyebrow.upper(), heading.replace("**", "")
+    return eyebrow.upper(), heading
 
 
 def _set_slide_bg(slide, color: RGBColor) -> None:
@@ -80,6 +81,124 @@ def _add_rect(slide, x, y, w, h, fill: RGBColor, line: Optional[RGBColor] = None
     return shape
 
 
+
+# ── Tekst-tilpasning ────────────────────────────────────────────────────────
+# PowerPoint-tekstbokse har fast geometri. AI-genereret tekst varierer i længde,
+# så en overskrift der passer for én kunde løber ud over kanten for den næste og
+# lapper ind over indholdet nedenunder. HTML-versionen ombryder og flytter sig;
+# her skal vi selv måle og skrue ned.
+#
+# Vi måler med Arial, som ligger metrisk tæt på DM Sans men er en anelse bredere.
+# Det gør estimatet konservativt — vi skruer hellere en smule for meget ned end
+# at lade to tekstblokke overlappe.
+
+_MEASURE_FONTS = {
+    False: "/System/Library/Fonts/Supplemental/Arial.ttf",
+    True: "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+}
+_REF_PT = 100  # måler én gang ved denne størrelse og skalerer lineært
+_font_cache: Dict[bool, Any] = {}
+_width_cache: Dict[tuple, float] = {}
+
+# Hvor meget luft der er mellem linjerne, og hvor langt ned vi må skrue
+_LINE_HEIGHT = 1.22
+_MIN_SCALE = 0.62      # aldrig under 62% af den ønskede størrelse
+_MIN_PT = 8
+
+
+def _measure_font(bold: bool):
+    if bold not in _font_cache:
+        try:
+            from PIL import ImageFont
+            _font_cache[bold] = ImageFont.truetype(_MEASURE_FONTS[bold], _REF_PT)
+        except Exception:
+            _font_cache[bold] = None  # falder tilbage til tegnbredde-tilnærmelse
+    return _font_cache[bold]
+
+
+def _text_width_pt(text: str, pt: float, bold: bool) -> float:
+    """Bredden af en tekststreng i punkter ved given skriftstørrelse."""
+    if not text:
+        return 0.0
+    key = (text, bold)
+    if key not in _width_cache:
+        font = _measure_font(bold)
+        if font is not None:
+            _width_cache[key] = font.getbbox(text)[2] / _REF_PT
+        else:
+            # Ingen skrifttype at måle med — 0.52 em pr. tegn er et rimeligt
+            # gennemsnit for en grotesk med blandet store og små bogstaver.
+            _width_cache[key] = len(text) * 0.52
+    return _width_cache[key] * pt
+
+
+def _wrapped_line_count(text: str, pt: float, bold: bool, width_emu) -> int:
+    """Hvor mange linjer teksten fylder når den ombrydes til den givne bredde."""
+    if not text:
+        return 0
+    width_pt = Emu(int(width_emu)).pt
+    lines = 0
+    for para in text.split("\n"):
+        words = para.split()
+        if not words:
+            lines += 1
+            continue
+        current = ""
+        for word in words:
+            trial = f"{current} {word}".strip()
+            if _text_width_pt(trial, pt, bold) <= width_pt or not current:
+                current = trial
+            else:
+                lines += 1
+                current = word
+        if current:
+            lines += 1
+    return lines
+
+
+def _fit_font_size(text: str, requested_pt: int, bold: bool, width_emu, height_emu) -> int:
+    """Find den største skriftstørrelse hvor teksten kan være i kassen.
+
+    Skruer kun ned, aldrig op — layoutet er designet til den ønskede størrelse,
+    og en overskrift der pludselig blev større ville se lige så forkert ud.
+    """
+    if not text or not height_emu:
+        return requested_pt
+
+    height_pt = Emu(int(height_emu)).pt
+    floor = max(_MIN_PT, int(requested_pt * _MIN_SCALE))
+
+    pt = requested_pt
+    while pt > floor:
+        lines = _wrapped_line_count(text, pt, bold, width_emu)
+        if lines * pt * _LINE_HEIGHT <= height_pt:
+            return pt
+        pt -= 1
+    return floor
+
+
+def _clip(text: str, limit: int) -> str:
+    """Afkort ved ordgraense med ellipse, aldrig midt i et ord.
+
+    En haard afkortning gav slides med 'med en dedikeret Resource Manager s'.
+    Naar teksten alligevel skal skaeres, skal det se ud som en beslutning.
+    """
+    text = str(text or "").strip()
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip(" ,.;:—–-")
+    return f"{cut}…" if cut else text[:limit]
+
+
+def _split_accent(text: str) -> List[tuple]:
+    """Del tekst op i (stykke, er_fremhævet) ud fra **stjerne**-markering."""
+    parts = []
+    for i, chunk in enumerate(re.split(r"\*\*(.+?)\*\*", text or "")):
+        if chunk:
+            parts.append((chunk, i % 2 == 1))
+    return parts or [(text or "", False)]
+
+
 def _add_text(
     slide,
     x, y, w, h,
@@ -91,8 +210,25 @@ def _add_text(
     align: int = PP_ALIGN.LEFT,
     anchor: int = MSO_ANCHOR.TOP,
     letter_spacing: Optional[float] = None,
+    accent: Optional[RGBColor] = None,
+    shrink: bool = True,
 ):
-    """Tilføj et tekstboks."""
+    """Tilføj en tekstboks der tilpasser sig indholdet.
+
+    `shrink` skruer skriftstørrelsen ned indtil teksten kan være i kassen. Uden
+    det ville lange AI-genererede overskrifter lappe ind over indholdet nedenunder.
+    Sæt den til False for tekst hvor størrelsen er vigtigere end at alt er synligt.
+
+    `accent` farver ord markeret med **stjerner** — samme fremhævning som i
+    HTML-versionen, så de to formater viser den samme overskrift.
+    """
+    text = text or ""
+    segments = _split_accent(text) if accent else [(text, False)]
+    plain = "".join(seg for seg, _ in segments)
+
+    if shrink:
+        font_size = _fit_font_size(plain, font_size, bold, w, h)
+
     tb = slide.shapes.add_textbox(x, y, w, h)
     tf = tb.text_frame
     tf.word_wrap = True
@@ -104,16 +240,18 @@ def _add_text(
 
     p = tf.paragraphs[0]
     p.alignment = align
-    run = p.add_run()
-    run.text = text or ""
-    run.font.name = font_name
-    run.font.size = Pt(font_size)
-    run.font.bold = bold
-    run.font.color.rgb = color
-
-    if letter_spacing is not None:
-        rPr = run._r.get_or_add_rPr()
-        rPr.set("spc", str(int(letter_spacing * 100)))  # Letter-spacing i 1/100 pt
+    for segment, is_accent in segments:
+        if not segment:
+            continue
+        run = p.add_run()
+        run.text = segment
+        run.font.name = font_name
+        run.font.size = Pt(font_size)
+        run.font.bold = bold
+        run.font.color.rgb = accent if (is_accent and accent) else color
+        if letter_spacing is not None:
+            rPr = run._r.get_or_add_rPr()
+            rPr.set("spc", str(int(letter_spacing * 100)))  # 1/100 pt
 
     return tb
 
@@ -307,7 +445,8 @@ def _slide_research(prs, ctx):
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
               eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              heading, font_size=56, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=56, bold=True, color=BLACK_CURRANT,
+              font_name=FONT_DISPLAY, accent=RASPBERRY)
 
     # 2x2 grid med facts
     facts = ctx.get("research_facts", [])[:4]
@@ -354,7 +493,8 @@ def _slide_priorities(prs, ctx):
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
               eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              heading, font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=44, bold=True, color=BLACK_CURRANT,
+              font_name=FONT_DISPLAY, accent=RASPBERRY)
 
     priorities = ctx.get("strategic_priorities", [])[:3]
     y = Inches(3.4)
@@ -375,7 +515,7 @@ def _slide_priorities(prs, ctx):
         # Description
         _add_text(slide, MARGIN + Inches(1.2), y + Inches(0.55),
                   SLIDE_W - MARGIN - Inches(1.5), Inches(0.5),
-                  p.get("description", "")[:280],
+                  _clip(p.get("description", ""), 280),
                   font_size=12, color=GREY, font_name=FONT_BODY)
         y += Inches(1.18)
 
@@ -390,7 +530,8 @@ def _slide_mapping(prs, ctx):
     _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
               eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(12), Inches(1.0),
-              heading, font_size=44, bold=True, color=BLACK_CURRANT, font_name=FONT_DISPLAY)
+              heading, font_size=44, bold=True, color=BLACK_CURRANT,
+              font_name=FONT_DISPLAY, accent=RASPBERRY)
 
     mappings = ctx.get("value_mappings", [])[:4]
     col1_w = Inches(5.5)
@@ -416,7 +557,7 @@ def _slide_mapping(prs, ctx):
         _add_rect(slide, MARGIN, y, col1_w, row_h, WHITE, line=ALU_GREY)
         _add_text(slide, MARGIN + Inches(0.2), y + Inches(0.1),
                   col1_w - Inches(0.4), row_h - Inches(0.2),
-                  m.get("challenge", "")[:200],
+                  _clip(m.get("challenge", ""), 200),
                   font_size=11, color=GREY, font_name=FONT_BODY,
                   anchor=MSO_ANCHOR.MIDDLE)
         # Arrow
@@ -427,7 +568,7 @@ def _slide_mapping(prs, ctx):
                   font_name=FONT_DISPLAY)
         _add_rect(slide, MARGIN + col1_w + arrow_w, y, col2_w, row_h,
                   RGBColor(0xFA, 0xF9, 0xF5), line=ALU_GREY)
-        sol_text = f"{m.get('epico_service', '')}: {m.get('solution', '')[:180]}"
+        sol_text = f"{m.get('epico_service', '')}: {_clip(m.get('solution', ''), 180)}"
         _add_text(slide, MARGIN + col1_w + arrow_w + Inches(0.2),
                   y + Inches(0.1),
                   col2_w - Inches(0.4), row_h - Inches(0.2),
@@ -473,11 +614,11 @@ def _slide_case(prs, ctx):
               font_size=11, bold=True, color=RASPBERRY,
               font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.45), Inches(12), Inches(1.2),
-              case.get("headline", "")[:180],
+              _clip(case.get("headline", ""), 180),
               font_size=36, bold=True, color=BLACK_CURRANT,
               font_name=FONT_DISPLAY)
     _add_text(slide, MARGIN, Inches(2.7), Inches(12), Inches(0.8),
-              case.get("intro", "")[:300],
+              _clip(case.get("intro", ""), 300),
               font_size=14, color=GREY, font_name=FONT_BODY)
 
     # 4 kolonner
@@ -487,9 +628,14 @@ def _slide_case(prs, ctx):
         ("RESULTAT", case.get("result", []), RED, WHITE, KIWI),
         ("VÆRDI", case.get("value", []), WHITE, GREY, RASPBERRY),
     ]
+    # Case-bullets er hele saetninger fra AI'en. Med 0,55" pr. bullet skrumpede
+    # de ned i 8pt for at passe — mens der stod en tom tomme i bunden af sliden.
+    # Her faar de pladsen i stedet, saa teksten kan blive laesbar paa en projektor.
     col_w = (SLIDE_W - (MARGIN * 2) - Inches(0.15)) / 4
-    cell_h = Inches(2.7)
-    y = Inches(3.8)
+    cell_h = Inches(3.5)
+    y = Inches(3.6)
+    bullet_h = Inches(0.78)
+    bullet_step = Inches(0.82)
     for i, (label, bullets, bg, txt, accent) in enumerate(cols):
         x = MARGIN + i * (col_w + Inches(0.05))
         _add_rect(slide, x, y, col_w, cell_h, bg)
@@ -500,10 +646,10 @@ def _slide_case(prs, ctx):
         bl_y = y + Inches(0.65)
         for b in bullets[:3]:
             _add_text(slide, x + Inches(0.25), bl_y,
-                      col_w - Inches(0.5), Inches(0.55),
-                      f"• {str(b)[:110]}", font_size=10, color=txt,
+                      col_w - Inches(0.5), bullet_h,
+                      f"• {_clip(b, 150)}", font_size=11, color=txt,
                       font_name=FONT_BODY)
-            bl_y += Inches(0.6)
+            bl_y += bullet_step
 
 
 def _slide_next_steps(prs, ctx):
@@ -518,7 +664,7 @@ def _slide_next_steps(prs, ctx):
               font_name=FONT_BODY)
     _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
               heading, font_size=44, bold=True, color=BLACK_CURRANT,
-              font_name=FONT_DISPLAY)
+              font_name=FONT_DISPLAY, accent=RASPBERRY)
 
     steps = ctx.get("next_steps", [])[:3]
     col_w = (SLIDE_W - (MARGIN * 2) - Inches(0.1)) / 3
@@ -537,7 +683,7 @@ def _slide_next_steps(prs, ctx):
                   color=BLACK_CURRANT, font_name=FONT_DISPLAY)
         _add_text(slide, x + Inches(0.3), y + Inches(1.65),
                   col_w - Inches(0.5), Inches(0.9),
-                  step.get("description", "")[:200],
+                  _clip(step.get("description", ""), 200),
                   font_size=11, color=GREY, font_name=FONT_BODY)
         # When-badge
         _add_rect(slide, x + Inches(0.3), y + cell_h - Inches(0.55),
