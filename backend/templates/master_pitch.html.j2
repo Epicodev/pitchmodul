@@ -87,19 +87,29 @@ section[data-ai="dark"] .accent{color:#fff}
 
 {# ---------- 4 · UDFORDRING → LØSNING (AI) ---------- #}
 {% if value_mappings %}
+{# Sliden er 1080px høj og kan ikke rulle. Fire mappings med lange AI-tekster
+   løb 127px ud over kanten og hen over sidefoden. Vi skruer indholdet ned efter
+   hvor meget der er — tre korte rækker får fuld størrelse, fire lange får mindre. #}
+{% set _map_chars = (value_mappings | map(attribute='challenge') | join | length)
+                  + (value_mappings | map(attribute='solution') | join | length)
+                  + (value_mappings | map(attribute='epico_service') | join | length) %}
+{% set _map_rows = value_mappings | length %}
+{% set _map_fs  = 24 if (_map_rows <= 3 and _map_chars <= 950) else (21 if _map_chars <= 1350 else 19) %}
+{% set _map_pad = 30 if _map_fs >= 24 else (26 if _map_fs >= 21 else 22) %}
+{% set _map_h2  = 64 if _map_chars <= 1350 else 56 %}
 <section data-label="Udfordring → løsning" data-ai="light" style="background:#fff;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
 <div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | {{ client.name }}</div>
 <svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#690F23"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
-<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:64px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.mapping.heading_html|safe }}</h2>
+<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:{{ _map_h2 }}px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.mapping.heading_html|safe }}</h2>
 <p class="fx" style="--d:.2s;color:#919199;font-size:27px;margin:18px 0 0">{{ headlines.mapping.eyebrow }}</p>
-<div style="display:grid;grid-template-columns:1fr 72px 1fr;gap:2px;margin-top:48px;align-items:stretch">
+<div style="display:grid;grid-template-columns:1fr 72px 1fr;gap:2px;margin-top:{{ 48 if _map_fs >= 24 else 34 }}px;align-items:stretch">
 <div class="fx" style="--d:.24s;color:#919199;font-size:21px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:0 36px 10px">Jeres udfordring</div>
 <div></div>
 <div class="fx" style="--d:.24s;color:#919199;font-size:21px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:0 36px 10px">Vores håndtag</div>
 {% for m in value_mappings %}
-<div class="fxp" style="--d:{{ '%.2f'|format(0.3 + loop.index0 * 0.12) }}s;background:#FFFCF2;padding:30px 36px;color:#242126;font-size:24px;line-height:1.45">{{ m.challenge }}</div>
+<div class="fxp" style="--d:{{ '%.2f'|format(0.3 + loop.index0 * 0.12) }}s;background:#FFFCF2;padding:{{ _map_pad }}px 36px;color:#242126;font-size:{{ _map_fs }}px;line-height:1.45">{{ m.challenge }}</div>
 <div class="fx" style="--d:{{ '%.2f'|format(0.36 + loop.index0 * 0.12) }}s;display:flex;align-items:center;justify-content:center;color:#690F23;font-size:30px;font-weight:700">→</div>
-<div class="fxp" style="--d:{{ '%.2f'|format(0.36 + loop.index0 * 0.12) }}s;background:#1B1B50;padding:30px 36px;color:rgba(255,255,255,.85);font-size:24px;line-height:1.45"><b style="color:#fff">{{ m.epico_service }}.</b> {{ m.solution }}</div>
+<div class="fxp" style="--d:{{ '%.2f'|format(0.36 + loop.index0 * 0.12) }}s;background:#1B1B50;padding:{{ _map_pad }}px 36px;color:rgba(255,255,255,.85);font-size:{{ _map_fs }}px;line-height:1.45"><b style="color:#fff">{{ m.epico_service }}.</b> {{ m.solution }}</div>
 {% endfor %}
 </div>
 </section>
