@@ -871,8 +871,7 @@ body.composer-body {
 }
 
 .plan-slide input:not(:checked) ~ .plan-slide-title {
-  color: var(--light-grey);
-  text-decoration: line-through;
+  color: var(--grey);
 }
 
 .plan-slide-tag {
@@ -1618,3 +1617,71 @@ body.composer-body {
 }
 
 .composer-body .e-mark-small span:nth-child(2) { width: 65%; align-self: flex-start; }
+
+
+/* ── Vælgeren: decket først, resten bag én linje ───────────────────── */
+
+.plan-group-head--why {
+  color: var(--grey);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plan-more {
+  margin-top: 20px;
+  border-top: 1px solid var(--alu-grey);
+  padding-top: 4px;
+}
+
+.plan-more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 2px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--black-currant);
+  list-style: none;
+}
+
+.plan-more-toggle::-webkit-details-marker { display: none; }
+
+.plan-more-toggle::before {
+  content: "+";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  background: var(--black-currant);
+  color: var(--raw-silk);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.plan-more[open] > .plan-more-toggle::before { content: "−"; }
+
+.plan-more-hint {
+  color: var(--raspberry);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+}
+
+.plan-more[open] .plan-more-hint { visibility: hidden; }
+
+.plan-more-body { padding-top: 4px; }
+
+/* Kort blink så et tilvalgt slide kan ses flytte op i decket */
+@keyframes plan-just-added {
+  from { background: var(--kiwi); }
+  to   { background: transparent; }
+}
+
+.plan-slide.is-just-added { animation: plan-just-added 900ms ease-out; }

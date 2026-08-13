@@ -212,14 +212,30 @@ def plan(
     pitch_length: str = "medium",
     services: Optional[List[str]] = None,
 ) -> List[Dict[str, Any]]:
-    """Alle valgbare slides + hvilke der er forvalgt — til composerens vælger."""
+    """Alle valgbare slides + hvilke der er forvalgt — til composerens vælger.
+
+    Hvert fravalgt slide får en grund med. Uden den kan vælgeren ikke skelne
+    mellem "passer ikke i et kort møde" og "hører til en service du ikke
+    pitcher" — to helt forskellige beskeder til sælgeren, som ellers ville
+    se ens ud.
+    """
     defaults = set(default_slide_ids(pitch_length, services))
+    chosen = set(services or [])
     out = []
     for s in MANIFEST:
         if s.reserved:
             continue
         d = s.to_plan_dict()
         d["default_on"] = s.id in defaults
+
+        if d["default_on"]:
+            d["off_reason"] = None
+        elif s.services and not (chosen & set(s.services)):
+            # Sælgeren kan låse den op ved at vælge en af disse services
+            d["off_reason"] = "service"
+            d["unlock_services"] = list(s.services)
+        else:
+            d["off_reason"] = "length"
         out.append(d)
     return out
 

@@ -1166,37 +1166,59 @@ function currentSelectedSlideIds() {
 
 function renderSlidePlan(plan) {
   const container = $('#slide-plan');
+  // Gen-tegningen nulstiller <details>. Uden det her ville panelet klappe i
+  // hver gang sælgeren tilvalgte et slide, og han skulle åbne det igen.
+  const wasOpen = !!container.querySelector('.plan-more[open]');
   const chapterLabels = plan.chapter_labels || {};
   const isOn = s => (s.id in slideOverrides) ? slideOverrides[s.id] : s.default_on;
+  const shortName = x => x.replace('Epico ', '');
 
-  // Gruppér master-slides efter kapitel
-  const groups = {};
-  plan.library_slides.forEach(s => {
-    (groups[s.category] = groups[s.category] || []).push(s);
-  });
+  // Sælgeren skal se sit deck først. Tidligere viste vi alle 34 master-slides
+  // med de fravalgte overstreget — ved et medium Freelance-møde gav det 21
+  // gennemstregede linjer mod 13 aktive, hvilket læses som "noget er i stykker"
+  // frem for "her er hvad du kan tilvælge".
+  const on = plan.library_slides.filter(isOn);
+  const off = plan.library_slides.filter(s => !isOn(s));
 
   const fixed = [...plan.client_slides, ...plan.closing_slides]
-    .map(s => `<span class="plan-chip">${s.title}</span>`).join('');
+    .map(s => `<span class="plan-chip">${escapeHtml(s.title)}</span>`).join('');
 
-  const groupHtml = Object.entries(groups).map(([cat, slides]) => `
+  const row = (s, checked) => `
+    <label class="plan-slide">
+      <input type="checkbox" value="${escapeHtml(s.id)}" ${checked ? 'checked' : ''}>
+      <span class="plan-slide-title">${escapeHtml(s.title)}</span>
+    </label>`;
+
+  // Det deck han får — grupperet efter masterdeckets egne kapitler
+  const onGroups = {};
+  on.forEach(s => (onGroups[s.category] = onGroups[s.category] || []).push(s));
+  const onHtml = Object.entries(onGroups).map(([cat, slides]) => `
     <div class="plan-group">
-      <div class="plan-group-head">${chapterLabels[cat] || cat}</div>
-      ${slides.map(s => `
-        <label class="plan-slide">
-          <input type="checkbox" value="${s.id}" ${isOn(s) ? 'checked' : ''}>
-          <span class="plan-slide-title">${s.title}</span>
-          ${s.services.length ? `<span class="plan-slide-tag">${s.services.map(x => x.replace('Epico ','')).join(', ')}</span>` : ''}
-        </label>
-      `).join('')}
-    </div>
-  `).join('');
+      <div class="plan-group-head">${escapeHtml(chapterLabels[cat] || cat)}</div>
+      ${slides.map(s => row(s, true)).join('')}
+    </div>`).join('');
+
+  // Resten, grupperet efter HVORFOR de ikke er med — så grunden står som
+  // overskrift i stedet for at være et mærkat sælgeren selv skal tolke.
+  const buckets = new Map();
+  off.forEach(s => {
+    const key = s.off_reason === 'service' && (s.unlock_services || []).length
+      ? `Kræver at du vælger ${s.unlock_services.map(shortName).join(' eller ')}`
+      : 'Ikke forvalgt ved denne mødelængde';
+    (buckets.get(key) || buckets.set(key, []).get(key)).push(s);
+  });
+  const offHtml = [...buckets.entries()].map(([why, slides]) => `
+    <div class="plan-group">
+      <div class="plan-group-head plan-group-head--why">${escapeHtml(why)}</div>
+      ${slides.map(s => row(s, false)).join('')}
+    </div>`).join('');
 
   const fixedCount = plan.client_slides.length + plan.closing_slides.length;
   const updateSummary = () => {
     const n = container.querySelectorAll('.plan-slide input:checked').length;
     $('#plan-count').textContent = fixedCount + n;
-    container.querySelector('.plan-breakdown').textContent =
-      `${fixedCount} kunde-slides · ${n} Epico-slides`;
+    const bd = container.querySelector('.plan-breakdown');
+    if (bd) bd.textContent = `${fixedCount} kunde-slides · ${n} fra masterdecket`;
   };
 
   container.innerHTML = `
@@ -1211,7 +1233,16 @@ function renderSlidePlan(plan) {
       <div class="plan-chips">${fixed}</div>
     </div>
 
-    ${groupHtml || '<div class="slide-plan-loading">Masterdecket er ikke indlæst.</div>'}
+    ${onHtml || '<div class="slide-plan-loading">Masterdecket er ikke indlæst.</div>'}
+
+    ${off.length ? `
+      <details class="plan-more" ${wasOpen ? "open" : ""}>
+        <summary class="plan-more-toggle">
+          <span>${off.length} flere slides fra masterdecket</span>
+          <span class="plan-more-hint">tilføj</span>
+        </summary>
+        <div class="plan-more-body">${offHtml}</div>
+      </details>` : ''}
   `;
 
   container.querySelectorAll('.plan-slide input[type="checkbox"]').forEach(cb => {
@@ -1220,6 +1251,13 @@ function renderSlidePlan(plan) {
       if (cb.checked === def) delete slideOverrides[cb.value];
       else slideOverrides[cb.value] = cb.checked;
       updateSummary();
+      // Slidet skal flytte sig over i decket med det samme — ellers ser det ud
+      // som om tilvalget ikke skete.
+      renderSlidePlan(plan);
+      if (cb.checked) {
+        const moved = container.querySelector(`.plan-slide input[value="${cb.value}"]`);
+        if (moved) moved.closest('.plan-slide').classList.add('is-just-added');
+      }
     });
   });
   updateSummary();
