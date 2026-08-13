@@ -1232,19 +1232,39 @@ function currentSelectedSlideIds() {
   return Array.from(boxes).filter(c => c.checked).map(c => c.value);
 }
 
+// Vælgeren har to halvdele: en liste (hurtig at skimme, viser hvorfor noget
+// mangler) og en miniature-visning (viser hvad sliden faktisk indeholder).
+// Sælgeren kan ikke vælge fornuftigt ud fra en titel som "Fra A til Z", men
+// 34 miniaturer er også for meget at læse — derfor begge, med listen som
+// udgangspunkt og billederne et klik væk.
+let _previewReady = false;
+
+function currentSelection(plan) {
+  const isOn = s => (s.id in slideOverrides) ? slideOverrides[s.id] : s.default_on;
+  return plan.library_slides.filter(isOn).map(s => s.id);
+}
+
+function pushSelectionToPreview(plan) {
+  const f = document.getElementById('slide-preview-frame');
+  if (!f || !f.contentWindow || !_previewReady) return;
+  f.contentWindow.postMessage(
+    { type: 'slide-selection', ids: currentSelection(plan) }, '*');
+}
+
 function renderSlidePlan(plan) {
   const container = $('#slide-plan');
-  // Gen-tegningen nulstiller <details>. Uden det her ville panelet klappe i
-  // hver gang sælgeren tilvalgte et slide, og han skulle åbne det igen.
-  const wasOpen = !!container.querySelector('.plan-more[open]');
   const chapterLabels = plan.chapter_labels || {};
   const isOn = s => (s.id in slideOverrides) ? slideOverrides[s.id] : s.default_on;
   const shortName = x => x.replace('Epico ', '');
 
-  // Sælgeren skal se sit deck først. Tidligere viste vi alle 34 master-slides
-  // med de fravalgte overstreget — ved et medium Freelance-møde gav det 21
-  // gennemstregede linjer mod 13 aktive, hvilket læses som "noget er i stykker"
-  // frem for "her er hvad du kan tilvælge".
+  // Gen-tegningen nulstiller <details>. Uden det her ville panelerne klappe i
+  // hver gang sælgeren tilvalgte et slide.
+  const wasOpen = !!container.querySelector('.plan-more[open]');
+  const previewOpen = !!container.querySelector('.plan-preview[open]');
+
+  // Sælgeren skal se sit deck først. Viste vi alle 34 med de fravalgte
+  // overstreget, gav det ved et medium Freelance-møde 21 gennemstregede linjer
+  // mod 13 aktive — det læses som "noget er i stykker".
   const on = plan.library_slides.filter(isOn);
   const off = plan.library_slides.filter(s => !isOn(s));
 
@@ -1257,7 +1277,6 @@ function renderSlidePlan(plan) {
       <span class="plan-slide-title">${escapeHtml(s.title)}</span>
     </label>`;
 
-  // Det deck han får — grupperet efter masterdeckets egne kapitler
   const onGroups = {};
   on.forEach(s => (onGroups[s.category] = onGroups[s.category] || []).push(s));
   const onHtml = Object.entries(onGroups).map(([cat, slides]) => `
@@ -1266,8 +1285,8 @@ function renderSlidePlan(plan) {
       ${slides.map(s => row(s, true)).join('')}
     </div>`).join('');
 
-  // Resten, grupperet efter HVORFOR de ikke er med — så grunden står som
-  // overskrift i stedet for at være et mærkat sælgeren selv skal tolke.
+  // Resten grupperes efter HVORFOR de mangler — grunden som overskrift i
+  // stedet for et mærkat sælgeren selv skal tolke.
   const buckets = new Map();
   off.forEach(s => {
     const key = s.off_reason === 'service' && (s.unlock_services || []).length
@@ -1311,6 +1330,20 @@ function renderSlidePlan(plan) {
         </summary>
         <div class="plan-more-body">${offHtml}</div>
       </details>` : ''}
+
+    <details class="plan-preview" ${previewOpen ? "open" : ""}>
+      <summary class="plan-more-toggle">
+        <span>Se hvad de enkelte slides indeholder</span>
+        <span class="plan-more-hint">vis</span>
+      </summary>
+      <div class="plan-preview-body">
+        <p class="plan-preview-note">
+          Masterdecket som det ser ud uden kundetilpasning. Klik en miniature for
+          at tage sliden med eller fra — de fremhævede er dem du får.
+        </p>
+        <iframe id="slide-preview-frame" title="Masterdeckets slides" loading="lazy"></iframe>
+      </div>
+    </details>
   `;
 
   container.querySelectorAll('.plan-slide input[type="checkbox"]').forEach(cb => {
@@ -1318,18 +1351,51 @@ function renderSlidePlan(plan) {
       const def = plan.library_slides.find(s => s.id === cb.value)?.default_on;
       if (cb.checked === def) delete slideOverrides[cb.value];
       else slideOverrides[cb.value] = cb.checked;
-      updateSummary();
-      // Slidet skal flytte sig over i decket med det samme — ellers ser det ud
-      // som om tilvalget ikke skete.
       renderSlidePlan(plan);
-      if (cb.checked) {
-        const moved = container.querySelector(`.plan-slide input[value="${cb.value}"]`);
-        if (moved) moved.closest('.plan-slide').classList.add('is-just-added');
-      }
     });
   });
+
+  // Iframen indlæses først når sælgeren folder den ud — 850 KB skal ikke
+  // hentes for de fleste, der bare kører videre med standardvalget.
+  const details = container.querySelector('.plan-preview');
+  const frame = container.querySelector('#slide-preview-frame');
+  if (details && frame) {
+    const load = () => {
+      if (!frame.src) { _previewReady = false; frame.src = `${API_BASE}/api/master-preview`; }
+      else pushSelectionToPreview(plan);
+    };
+    if (details.open) load();
+    details.addEventListener('toggle', () => { if (details.open) load(); });
+    frame.addEventListener('load', () => { _previewReady = true; pushSelectionToPreview(plan); });
+  }
+
+  _planForPreview = plan;
   updateSummary();
+  pushSelectionToPreview(plan);
 }
+
+// Miniaturerne melder klik tilbage hertil; composeren ejer state, så de to
+// visninger kan ikke komme ud af trit.
+let _planForPreview = null;
+addEventListener('message', e => {
+  const d = e.data || {};
+  const plan = _planForPreview;
+  if (!plan) return;
+
+  if (d.type === 'slide-toggle') {
+    const slide = plan.library_slides.find(s => s.id === d.id);
+    if (!slide) return;
+    const isOn = (slide.id in slideOverrides) ? slideOverrides[slide.id] : slide.default_on;
+    if (!isOn === slide.default_on) delete slideOverrides[slide.id];
+    else slideOverrides[slide.id] = !isOn;
+    renderSlidePlan(plan);
+  }
+
+  if (d.type === 'slide-preview-height') {
+    const f = document.getElementById('slide-preview-frame');
+    if (f && d.height) f.style.height = Math.min(d.height + 20, 2400) + 'px';
+  }
+});
 
 function schedulePlanRefresh() {
   clearTimeout(_planTimer);

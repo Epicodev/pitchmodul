@@ -10,6 +10,7 @@ Endpoints:
 """
 import os
 import json
+import hashlib
 import time
 import uuid
 import asyncio
@@ -522,6 +523,26 @@ async def _do_research(
 
     except Exception as e:
         job.update(status="error", error=_readable_api_error(e))
+
+
+@app.get("/api/master-preview", response_class=HTMLResponse)
+async def master_preview():
+    """Miniaturer af alle valgbare master-slides — vælgeren i composeren.
+
+    Sælgeren skal kunne se hvad han slår til og fra. En titel som "Fra A til Z"
+    siger intet uden sliden ved siden af.
+
+    Siden er ~850 KB fordi billederne inlines (masterens slides refererer dem
+    som bare uuid'er uden filendelse, så en statisk rute ville ikke matche).
+    Den hentes én gang pr. sidevisning — til- og fravalg går via postMessage,
+    ikke ved genindlæsning — og ETag'en gør gentagne besøg gratis.
+    """
+    if not master_deck.deck_available():
+        raise HTTPException(status_code=503, detail="Masterdecket er ikke indlæst.")
+
+    html = master_deck.inline_assets(master_deck.thumbnails_html())
+    etag = '"' + hashlib.sha256(html.encode()).hexdigest()[:16] + '"'
+    return HTMLResponse(html, headers={"ETag": etag, "Cache-Control": "private, max-age=300"})
 
 
 @app.post("/api/generate-deck")

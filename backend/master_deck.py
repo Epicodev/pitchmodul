@@ -11,6 +11,7 @@ styrer kun forvalget.
 from __future__ import annotations
 
 import base64
+from html import escape as html_escape
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -189,6 +190,112 @@ def inline_assets(html: str) -> str:
 
 
 # ─── Udvælgelse ──────────────────────────────────────────────────────
+
+
+def thumbnails_html() -> str:
+    """En selvstændig side med alle valgbare master-slides som miniaturer.
+
+    Sælgeren skal kunne se hvad han slår til og fra. En titel som "Fra A til Z"
+    eller "Seks kriterier" siger intet uden sliden ved siden af, og så bliver
+    valget gætteri — eller han springer det over og tager standarddecket.
+
+    Siden lever i en iframe, så masterens skrifter og fx-animationer ikke
+    kolliderer med composerens egen stil. Billederne hentes fra /master-assets
+    i stedet for at blive inlinet, så browseren kan cache dem på tværs af de
+    34 miniaturer.
+    """
+    _load()
+
+    cards = []
+    for s in MANIFEST:
+        if s.reserved:
+            continue
+        # data-deck-active får fx-animationerne til at vise deres slut-tilstand
+        # i stedet for at stå usynlige og vente på at sliden bliver fremvist.
+        cards.append(
+            f'<button class="t" data-id="{s.id}" type="button" '
+            f'title="{html_escape(s.label)}">'
+            f'<div class="frame"><div class="stage" data-deck-active>{slide_html(s.num)}</div></div>'
+            f'<span class="cap">{html_escape(s.label)}</span>'
+            f'<span class="mark" aria-hidden="true"></span>'
+            f'</button>'
+        )
+
+    return f"""<!DOCTYPE html>
+<html lang="da"><head><meta charset="utf-8">
+<style>
+{_head_css or ""}
+* {{ box-sizing: border-box; }}
+body {{ margin: 0; background: transparent; font-family: 'DM Sans', sans-serif; }}
+#grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }}
+.t {{
+  position: relative; display: block; width: 100%; padding: 0;
+  border: 2px solid transparent; background: none; cursor: pointer;
+  text-align: left; font: inherit;
+}}
+.frame {{
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  overflow: hidden; background: #FFFCF2; border: 1px solid #d8d3c4;
+}}
+.stage {{
+  position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+  transform-origin: top left; pointer-events: none;
+}}
+.stage > section {{ position: absolute; inset: 0; width: 1920px; height: 1080px; }}
+.cap {{
+  display: block; padding: 6px 2px 0; font-size: 12px; font-weight: 600;
+  color: #1B1B50; line-height: 1.3;
+}}
+.mark {{
+  position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
+  background: #4CE17F; color: #1B1B50; font-size: 15px; font-weight: 700;
+  display: none; align-items: center; justify-content: center;
+}}
+.mark::before {{ content: "✓"; }}
+.t[data-on="1"] .mark {{ display: flex; }}
+.t[data-on="0"] .frame {{ opacity: .38; filter: grayscale(.55); }}
+.t[data-on="0"] .cap {{ color: #8a8578; }}
+.t[data-on="0"]:hover .frame {{ opacity: .72; filter: none; }}
+.t:hover {{ border-color: #E01E37; }}
+.t:focus-visible {{ outline: 2px solid #E01E37; outline-offset: 2px; }}
+</style></head>
+<body><div id="grid">{''.join(cards)}</div>
+<script>
+// Miniaturerne skaleres til den bredde de får — så virker det uanset
+// hvor bredt composeren giver os lov til at være.
+function fit() {{
+  document.querySelectorAll('.frame').forEach(f => {{
+    const st = f.querySelector('.stage');
+    if (st) st.style.transform = 'scale(' + (f.clientWidth / 1920) + ')';
+  }});
+}}
+addEventListener('resize', fit);
+fit();
+
+// Klik melder tilbage til composeren, som ejer state. Vi tegner ikke selv
+// ændringen — vi venter på at få den valgte liste tilbage, så de to aldrig
+// kan komme ud af trit.
+document.getElementById('grid').addEventListener('click', e => {{
+  const t = e.target.closest('.t');
+  if (t) parent.postMessage({{ type: 'slide-toggle', id: t.dataset.id }}, '*');
+}});
+
+addEventListener('message', e => {{
+  const d = e.data || {{}};
+  if (d.type !== 'slide-selection') return;
+  const on = new Set(d.ids || []);
+  document.querySelectorAll('.t').forEach(t => {{
+    t.dataset.on = on.has(t.dataset.id) ? '1' : '0';
+  }});
+  parent.postMessage({{ type: 'slide-preview-height', height: document.body.scrollHeight }}, '*');
+}});
+
+// Fortæl composeren hvor høj siden er, så iframen kan følge indholdet
+new ResizeObserver(() => parent.postMessage(
+  {{ type: 'slide-preview-height', height: document.body.scrollHeight }}, '*'
+)).observe(document.body);
+</script></body></html>"""
+
 
 def default_slide_ids(
     pitch_length: str = "medium",
