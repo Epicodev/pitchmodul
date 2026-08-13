@@ -30,7 +30,8 @@ from claude_client import (
     build_pitch_contract,
     suggest_brief_questions,
 )
-from deck_gen import render_deck, preview_slide_plan
+import master_deck
+from deck_gen import render_deck, render_master_deck, preview_slide_plan
 from slide_library import library_summary, reload_library
 from pptx_gen import render_pptx
 from pdf_reader import extract_text
@@ -74,11 +75,13 @@ class GenerateDeckRequest(BaseModel):
     analysis: dict
     meeting: Optional[dict] = None
     team: Optional[dict] = None
-    # Styrer hvilke slides fra biblioteket der kommer med
+    # Styrer hvilke slides fra masterdecket der kommer med
     pitch_length: Optional[str] = "medium"
     services: Optional[list] = None
     stakeholder: Optional[str] = None
     excluded_slide_ids: Optional[list] = None
+    # Sælgerens fulde valg fra slide-vælgeren — vinder over forvalget
+    selected_slide_ids: Optional[list] = None
 
 
 # ---------- Routes ----------
@@ -124,13 +127,24 @@ async def slide_plan(
     """
     Vis hvilke slides der ville komme med — uden at generere noget.
     Bruges af Composer til live-overblik når sælger ændrer længde/services.
+    Slides kommer fra masterdecket; default_on angiver forvalget.
     """
     service_list = [s.strip() for s in services.split(",") if s.strip()] if services else None
-    return preview_slide_plan(
-        pitch_length=pitch_length,
-        services=service_list,
-        stakeholder=stakeholder,
-    )
+    return {
+        "pitch_length": pitch_length,
+        "client_slides": [
+            {"title": "Titel (med kundens navn)"},
+            {"title": "Research"},
+            {"title": "Jeres prioriteter"},
+            {"title": "Udfordring → løsning"},
+        ],
+        "library_slides": master_deck.plan(pitch_length, service_list),
+        "closing_slides": [
+            {"title": "Næste skridt"},
+            {"title": "Afslutning"},
+        ],
+        "chapter_labels": master_deck.CHAPTER_LABELS,
+    }
 
 
 @app.post("/api/cvr-lookup")
@@ -397,17 +411,15 @@ async def run_research(
 
 @app.post("/api/generate-deck")
 async def generate_deck(req: GenerateDeckRequest):
-    """Render det færdige pitch deck som HTML."""
-    html = render_deck(
+    """Render det færdige pitch deck som HTML (masterdeckets design)."""
+    html = render_master_deck(
         client_name=req.client_name,
         analysis=req.analysis,
         meeting=req.meeting,
-        team=req.team,
         pitch_length=req.pitch_length or "medium",
         services=req.services,
-        stakeholder=req.stakeholder,
         excluded_slide_ids=req.excluded_slide_ids,
-        asset_base="/static",
+        selected_slide_ids=req.selected_slide_ids,
     )
 
     # Gem til disk

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+import master_deck
 from slide_library import select_slides, bold_to_accent
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -132,6 +133,53 @@ def render_deck(
     }
 
     return _env.get_template("pitch.html.j2").render(**context)
+
+
+def render_master_deck(
+    client_name: str,
+    analysis: Dict[str, Any],
+    meeting: Optional[Dict[str, str]] = None,
+    pitch_length: str = "medium",
+    services: Optional[List[str]] = None,
+    excluded_slide_ids: Optional[List[str]] = None,
+    selected_slide_ids: Optional[List[str]] = None,
+) -> str:
+    """Render pitch i masterdeckets design: AI-kundeslides + sælgerens
+    udvalgte master-slides, samlet i én selvbærende HTML-fil med
+    masterens egen viewer og animationer.
+
+    selected_slide_ids (fra composerens vælger) er den fulde liste af
+    valgte master-slides og vinder over længde/service-forvalget.
+    """
+    meeting = meeting or {}
+
+    library = master_deck.select_slides(
+        pitch_length=pitch_length,
+        services=services,
+        excluded_slide_ids=excluded_slide_ids,
+        selected_slide_ids=selected_slide_ids,
+    )
+
+    context = {
+        "client": {"name": client_name},
+        "meeting": {
+            "date": meeting.get("date") or "[DATO]",
+            "city": meeting.get("city") or "",
+            "contact_person": meeting.get("contact_person") or "",
+        },
+        "research_facts": analysis.get("research_facts", []),
+        "strategic_priorities": analysis.get("strategic_priorities", []),
+        "value_mappings": analysis.get("value_mappings", []),
+        "next_steps": analysis.get("next_steps", []),
+        "headlines": _slide_headlines(analysis, client_name),
+        "library_slides": library,
+        "outro_html": master_deck.slide_html(37),
+        "head_css": master_deck.head_css(),
+        "pitch_length": pitch_length,
+    }
+
+    html = _env.get_template("master_pitch.html.j2").render(**context)
+    return master_deck.inline_assets(html)
 
 
 def preview_slide_plan(

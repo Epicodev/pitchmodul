@@ -1,0 +1,106 @@
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("5683d672-69e5-4b95-ba66-93182d5aaab1") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("8cb45a82-0af3-4104-8f07-dad8b9ce162e") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("d599ce45-461c-43b5-96c8-5e5d0f8c5172") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("e0afd8d4-5e51-413f-9139-dce0329237a5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("d599ce45-461c-43b5-96c8-5e5d0f8c5172") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("e0afd8d4-5e51-413f-9139-dce0329237a5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("d599ce45-461c-43b5-96c8-5e5d0f8c5172") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("e0afd8d4-5e51-413f-9139-dce0329237a5") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+html,body{margin:0;background:#1B1B50}
+@keyframes eRise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes eWipe{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes eZoom{from{transform:scale(1.09)}to{transform:scale(1)}}
+[data-deck-active] .fxz{animation:eZoom 9s cubic-bezier(.2,0,.4,1) both}
+@keyframes eGhost{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+@keyframes ePop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes eTile{0%{opacity:0;transform:translateY(46px) scale(.9)}60%{opacity:1}80%{transform:translateY(-6px) scale(1.01)}100%{opacity:1;transform:none}}
+@keyframes eGlyph{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+[data-deck-active] .fx{animation:eRise .7s cubic-bezier(.2,0,0,1) both;animation-delay:var(--d,0s)}
+[data-deck-active] .fxp{animation:ePop .55s cubic-bezier(.2,0,0,1) both;animation-delay:var(--d,0s)}
+[data-deck-active] .fxw{animation:eWipe .9s cubic-bezier(.2,0,0,1) both;transform-origin:left;animation-delay:var(--d,0s)}
+[data-deck-active] .fxg{animation:eGhost 1.6s cubic-bezier(.2,0,0,1) both}
+[data-deck-active] .fxt{animation:eTile .75s cubic-bezier(.2,0,.3,1) both;animation-delay:var(--d,0s)}
+[data-deck-active] .fxt img{animation:eGlyph .5s cubic-bezier(.2,0,0,1) both;animation-delay:calc(var(--d,0s) + .3s)}
+}
+@property --n{syntax:"<integer>";initial-value:0;inherits:true}
+.num{counter-reset:nn var(--n)}.num::after{content:counter(nn)}
+@keyframes eCount{from{--n:0}}
+@keyframes eDim{to{opacity:.13}}
+@keyframes eLift{to{transform:scale(1.1);background:#690F23;border-color:#690F23}}
+@media (prefers-reduced-motion:no-preference){
+[data-deck-active] .fdim{animation:eDim .7s cubic-bezier(.2,0,0,1) both;animation-delay:1.2s}
+[data-deck-active] .flift{animation:eLift .7s cubic-bezier(.2,0,0,1) both;animation-delay:1.35s}
+}
+@keyframes eRing{from{stroke-dashoffset:565.5}}
+@keyframes eDraw{from{stroke-dashoffset:1}}
+@media (prefers-reduced-motion:no-preference){
+[data-deck-active] .fxn{animation:eCount 1.8s cubic-bezier(.2,0,0,1) both;animation-delay:var(--d,0s)}
+[data-deck-active] .fxr{animation:eRing 1.6s cubic-bezier(.2,0,0,1) both;animation-delay:var(--d,0s)}
+[data-deck-active] .fxd{animation:eDraw 1.2s cubic-bezier(.2,0,0,1) both;animation-delay:var(--d,0s)}
+}

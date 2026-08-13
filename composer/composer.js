@@ -1027,6 +1027,7 @@ async function generateDeck() {
         services: state.brief.services_to_highlight,
         stakeholder: state.brief.meeting_stakeholder,
         excluded_slide_ids: state.brief.excluded_slide_ids || [],
+        selected_slide_ids: currentSelectedSlideIds(),
       }),
     });
 
@@ -1136,11 +1137,6 @@ async function refreshSlidePlan() {
   const params = currentPlanParams();
   if (!params) return;
 
-  // Husk hvad sælger allerede har fravalgt så det ikke nulstilles
-  const previouslyExcluded = new Set(
-    Array.from(container.querySelectorAll('.plan-slide input[type="checkbox"]:not(:checked)')).map(c => c.value)
-  );
-
   const qs = new URLSearchParams({ pitch_length: params.length });
   if (params.services.length) qs.set('services', params.services.join(','));
   if (params.stakeholder) qs.set('stakeholder', params.stakeholder);
@@ -1149,24 +1145,31 @@ async function refreshSlidePlan() {
     const res = await fetch(`${API_BASE}/api/slide-plan?${qs}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const plan = await res.json();
-    renderSlidePlan(plan, previouslyExcluded);
+    renderSlidePlan(plan);
   } catch (e) {
     container.innerHTML = `<div class="slide-plan-loading">Kunne ikke hente slide-plan (${e.message})</div>`;
   }
 }
 
-const CATEGORY_LABELS = {
-  market: 'Marked', intro: 'Om Epico', services: 'Services',
-  'deep-dive': 'Specialer', competencies: 'Kompetencer', process: 'Proces',
-};
+// Sælgerens manuelle til-/fravalg — overlever at forvalget genberegnes
+// når længde eller services ændres. id → true (til) / false (fra).
+const slideOverrides = {};
 
-function renderSlidePlan(plan, excluded) {
+// De master-slides der er slået til lige nu (sendes til generate-deck)
+function currentSelectedSlideIds() {
   const container = $('#slide-plan');
-  const activeLibrary = plan.library_slides.filter(s => !excluded.has(s.id)).length;
-  const total = plan.client_slides.length + activeLibrary + plan.closing_slides.length +
-                (activeLibrary > 0 && plan.pitch_length !== 'short' ? 1 : 0);
+  if (!container) return null;
+  const boxes = container.querySelectorAll('.plan-slide input[type="checkbox"]');
+  if (!boxes.length) return null;
+  return Array.from(boxes).filter(c => c.checked).map(c => c.value);
+}
 
-  // Gruppér bibliotek-slides efter kategori
+function renderSlidePlan(plan) {
+  const container = $('#slide-plan');
+  const chapterLabels = plan.chapter_labels || {};
+  const isOn = s => (s.id in slideOverrides) ? slideOverrides[s.id] : s.default_on;
+
+  // Gruppér master-slides efter kapitel
   const groups = {};
   plan.library_slides.forEach(s => {
     (groups[s.category] = groups[s.category] || []).push(s);
@@ -1177,10 +1180,10 @@ function renderSlidePlan(plan, excluded) {
 
   const groupHtml = Object.entries(groups).map(([cat, slides]) => `
     <div class="plan-group">
-      <div class="plan-group-head">${CATEGORY_LABELS[cat] || cat}</div>
+      <div class="plan-group-head">${chapterLabels[cat] || cat}</div>
       ${slides.map(s => `
         <label class="plan-slide">
-          <input type="checkbox" value="${s.id}" ${excluded.has(s.id) ? '' : 'checked'}>
+          <input type="checkbox" value="${s.id}" ${isOn(s) ? 'checked' : ''}>
           <span class="plan-slide-title">${s.title}</span>
           ${s.services.length ? `<span class="plan-slide-tag">${s.services.map(x => x.replace('Epico ','')).join(', ')}</span>` : ''}
         </label>
@@ -1188,11 +1191,19 @@ function renderSlidePlan(plan, excluded) {
     </div>
   `).join('');
 
+  const fixedCount = plan.client_slides.length + plan.closing_slides.length;
+  const updateSummary = () => {
+    const n = container.querySelectorAll('.plan-slide input:checked').length;
+    $('#plan-count').textContent = fixedCount + n;
+    container.querySelector('.plan-breakdown').textContent =
+      `${fixedCount} kunde-slides · ${n} Epico-slides`;
+  };
+
   container.innerHTML = `
     <div class="plan-summary">
-      <span class="plan-count" id="plan-count">${total}</span>
+      <span class="plan-count" id="plan-count"></span>
       <span class="plan-count-label">slides i alt</span>
-      <span class="plan-breakdown">${plan.client_slides.length + plan.closing_slides.length} kunde-slides · ${activeLibrary} Epico-slides</span>
+      <span class="plan-breakdown"></span>
     </div>
 
     <div class="plan-fixed">
@@ -1200,22 +1211,18 @@ function renderSlidePlan(plan, excluded) {
       <div class="plan-chips">${fixed}</div>
     </div>
 
-    ${groupHtml || '<div class="slide-plan-loading">Ingen Epico-slides ved denne kombination.</div>'}
+    ${groupHtml || '<div class="slide-plan-loading">Masterdecket er ikke indlæst.</div>'}
   `;
 
   container.querySelectorAll('.plan-slide input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', () => {
-      const newExcluded = new Set(
-        Array.from(container.querySelectorAll('.plan-slide input:not(:checked)')).map(c => c.value)
-      );
-      const n = plan.library_slides.filter(s => !newExcluded.has(s.id)).length;
-      const t = plan.client_slides.length + n + plan.closing_slides.length +
-                (n > 0 && plan.pitch_length !== 'short' ? 1 : 0);
-      $('#plan-count').textContent = t;
-      container.querySelector('.plan-breakdown').textContent =
-        `${plan.client_slides.length + plan.closing_slides.length} kunde-slides · ${n} Epico-slides`;
+      const def = plan.library_slides.find(s => s.id === cb.value)?.default_on;
+      if (cb.checked === def) delete slideOverrides[cb.value];
+      else slideOverrides[cb.value] = cb.checked;
+      updateSummary();
     });
   });
+  updateSummary();
 }
 
 function schedulePlanRefresh() {

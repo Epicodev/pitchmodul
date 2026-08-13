@@ -1,0 +1,139 @@
+{# ============================================================
+   MASTER PITCH — Benjamins salgsdeck som ramme.
+
+   Decket består af:
+     1) AI-kundeslides (cover, research, prioriteter, udfordring→løsning)
+        bygget i masterdeckets designsprog (navy/bordeaux/cream, DM Sans,
+        fx-animationer)
+     2) Sælgerens udvalgte master-slides, urørt markup fra master_deck/
+     3) AI-personaliseret "Næste skridt" i master-slide 36's design
+        + masterens afslutningsslide
+
+   Vises med masterens egen deck-stage-viewer (rail, tastatur, print).
+   Alle asset-referencer (uuid'er) erstattes med data-URI'er bagefter,
+   så filen er 100 % selvbærende.
+   ============================================================ #}
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ client.name }} × Epico — Pitch</title>
+<style>{{ head_css|safe }}</style>
+<style>
+.accent{font-weight:700}
+section[data-ai="light"] .accent{color:#690F23}
+section[data-ai="dark"] .accent{color:#fff}
+</style>
+</head>
+<body>
+<deck-stage width="1920" height="1080">
+
+{# ---------- 1 · COVER — masterens titelslide med kundens navn ---------- #}
+<section data-label="Titel" style="background:#690F23;padding:110px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden">
+<div class="fxg" aria-hidden="true" style="position:absolute;right:0;top:0;bottom:0;width:820px;overflow:hidden">
+<img class="fxz" src="f31975b8-cbc6-4acb-bdbd-98bdb0fa3860" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(105,15,35,.35),rgba(105,15,35,0) 30%)"></div>
+<div class="fx" style="--d:.35s;position:absolute;left:0;top:0;width:100%;height:100%;background:rgba(255,252,242,.42);backdrop-filter:blur(9px) saturate(.55) brightness(1.12);-webkit-backdrop-filter:blur(9px) saturate(.55) brightness(1.12);clip-path:polygon(0 0,100% 0,100% 21.1%,30.9% 21.1%,30.9% 78.9%,100% 78.9%,100% 100%,0 100%)"></div>
+<div class="fxp" style="--d:.6s;position:absolute;left:53.2%;top:38.05%;width:46.8%;height:21.2%;background:rgba(255,252,242,.42);backdrop-filter:blur(9px) saturate(.55) brightness(1.12);-webkit-backdrop-filter:blur(9px) saturate(.55) brightness(1.12)"></div>
+</div>
+<img class="fx" src="f0738cab-7c1a-4948-85b8-447e25578a57" alt="Epico" style="height:72px;position:absolute;right:70px;top:70px;z-index:3">
+<div style="position:absolute;left:140px;right:900px;bottom:140px">
+<h1 class="fx" style="--d:.25s;color:#fff;font-size:110px;line-height:1.05;letter-spacing:-.03em;font-weight:700;margin:0">Human first.<br><span style="font-weight:500">Technology always.</span></h1>
+<p class="fx" style="--d:.45s;color:rgba(255,255,255,.7);font-size:28px;line-height:1.5;margin:36px 0 0;max-width:660px">Skræddersyet til {{ client.name }}{% if meeting.date and meeting.date != '[DATO]' %} · {{ meeting.date }}{% endif %}</p>
+</div>
+<p class="fx" style="--d:.6s;position:absolute;left:140px;bottom:64px;color:rgba(255,255,255,.45);font-size:22px;margin:0">epicogroup.com</p>
+</section>
+
+{# ---------- 2 · RESEARCH — hvad vi ved om kunden (AI) ---------- #}
+{% if research_facts %}
+<section data-label="Research" data-ai="dark" style="background:#1B1B50;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
+<div class="fx" style="position:absolute;left:140px;bottom:56px;color:rgba(255,255,255,.45);font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | {{ client.name }}</div>
+<svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#FFFFFF"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
+<p class="fx" style="color:rgba(255,255,255,.55);font-size:24px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin:0 0 18px">{{ headlines.research.eyebrow }}</p>
+<h2 class="fx" style="--d:.12s;color:#fff;font-size:64px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.research.heading_html|safe }}</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:56px">
+{% for fact in research_facts[:4] %}
+<div class="fxp" style="--d:{{ '%.2f'|format(0.18 + loop.index0 * 0.12) }}s;background:rgba(255,255,255,.05);padding:44px 48px">
+<div style="color:rgba(255,255,255,.55);font-size:21px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">{{ fact.key }}</div>
+<div style="color:#fff;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-top:14px;font-size:{% if fact.value|length > 26 %}33px{% else %}46px{% endif %}">{{ fact.value }}</div>
+<div style="color:rgba(255,255,255,.4);font-size:19px;margin-top:14px">Kilde: {{ fact.source }}</div>
+</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{# ---------- 3 · PRIORITETER — jeres retning, som vi læser den (AI) ---------- #}
+{% if strategic_priorities %}
+<section data-label="Jeres prioriteter" data-ai="light" style="background:#FFFCF2;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
+<div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | {{ client.name }}</div>
+<svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#690F23"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
+<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:64px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.priorities.heading_html|safe }}</h2>
+<p class="fx" style="--d:.2s;color:#919199;font-size:27px;margin:18px 0 0">{{ headlines.priorities.eyebrow }}</p>
+<div style="margin-top:44px;max-width:1560px">
+{% for p in strategic_priorities %}
+<div class="fx" style="--d:{{ '%.2f'|format(0.26 + loop.index0 * 0.1) }}s;display:flex;gap:34px;align-items:baseline;border-top:1px solid #E4E1DC;{% if loop.last %}border-bottom:1px solid #E4E1DC;{% endif %}padding:26px 0">
+<span style="color:#690F23;font-size:34px;font-weight:700;letter-spacing:-.02em;flex-shrink:0">{{ '%02d'|format(loop.index) }}</span>
+<div>
+<div style="color:#1B1B50;font-size:29px;font-weight:700;letter-spacing:-.02em">{{ p.title }}</div>
+<div style="color:#919199;font-size:24px;line-height:1.45;margin-top:8px;max-width:1280px">{{ p.description }}</div>
+</div>
+</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{# ---------- 4 · UDFORDRING → LØSNING (AI) ---------- #}
+{% if value_mappings %}
+<section data-label="Udfordring → løsning" data-ai="light" style="background:#fff;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
+<div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | {{ client.name }}</div>
+<svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#690F23"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
+<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:64px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.mapping.heading_html|safe }}</h2>
+<p class="fx" style="--d:.2s;color:#919199;font-size:27px;margin:18px 0 0">{{ headlines.mapping.eyebrow }}</p>
+<div style="display:grid;grid-template-columns:1fr 72px 1fr;gap:2px;margin-top:48px;align-items:stretch">
+<div class="fx" style="--d:.24s;color:#919199;font-size:21px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:0 36px 10px">Jeres udfordring</div>
+<div></div>
+<div class="fx" style="--d:.24s;color:#919199;font-size:21px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:0 36px 10px">Vores håndtag</div>
+{% for m in value_mappings %}
+<div class="fxp" style="--d:{{ '%.2f'|format(0.3 + loop.index0 * 0.12) }}s;background:#FFFCF2;padding:30px 36px;color:#242126;font-size:24px;line-height:1.45">{{ m.challenge }}</div>
+<div class="fx" style="--d:{{ '%.2f'|format(0.36 + loop.index0 * 0.12) }}s;display:flex;align-items:center;justify-content:center;color:#690F23;font-size:30px;font-weight:700">→</div>
+<div class="fxp" style="--d:{{ '%.2f'|format(0.36 + loop.index0 * 0.12) }}s;background:#1B1B50;padding:30px 36px;color:rgba(255,255,255,.85);font-size:24px;line-height:1.45"><b style="color:#fff">{{ m.epico_service }}.</b> {{ m.solution }}</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{# ---------- 5 · MASTER-SLIDES — sælgerens udvalg, urørt ---------- #}
+{% for s in library_slides %}
+{{ s.html|safe }}
+{% endfor %}
+
+{# ---------- 6 · NÆSTE SKRIDT — masterens design, AI-indhold ---------- #}
+{% if next_steps %}
+<section data-label="Næste skridt" data-ai="light" style="background:#FFFCF2;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
+<div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | Next step</div>
+<svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#690F23"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
+<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:70px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0">{{ headlines.next_steps.heading_html|safe }}</h2>
+<p class="fx" style="--d:.22s;color:#919199;font-size:27px;line-height:1.5;margin:22px 0 0;max-width:1100px">{{ headlines.next_steps.eyebrow }}</p>
+<div style="display:grid;grid-template-columns:repeat({{ next_steps[:3]|length }},1fr);gap:2px;margin-top:56px">
+{% for step in next_steps[:3] %}
+<div class="fxp" style="--d:{{ '%.2f'|format(0.3 + loop.index0 * 0.12) }}s;background:{% if loop.last %}#690F23{% else %}#1B1B50{% endif %};padding:44px 44px">
+<div style="color:#fff;font-size:64px;font-weight:700;letter-spacing:-.03em;line-height:1">{{ loop.index }}</div>
+<h3 style="color:#fff;font-size:29px;font-weight:700;letter-spacing:-.02em;margin:20px 0 0">{{ step.title }}</h3>
+<p style="color:rgba(255,255,255,.65);font-size:24px;line-height:1.5;margin:14px 0 0">{{ step.description }}</p>
+{% if step.when %}<p style="color:rgba(255,255,255,.45);font-size:20px;margin:14px 0 0">{{ step.when }}</p>{% endif %}
+</div>
+{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{# ---------- 7 · AFSLUTNING — masterens outro, urørt ---------- #}
+{{ outro_html|safe }}
+
+</deck-stage>
+<script src="__DECK_RUNTIME__"></script>
+</body>
+</html>
