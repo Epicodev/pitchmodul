@@ -135,10 +135,25 @@ def render_deck(
     return _env.get_template("pitch.html.j2").render(**context)
 
 
+def _master_team_member(member: Optional[Dict[str, str]], role: str, fallback_title: str) -> Dict[str, Any]:
+    """Kontaktkort til master-decket: kun med hvis sælgeren har udfyldt et navn."""
+    member = member or {}
+    name = (member.get("name") or "").strip()
+    return {
+        "filled": bool(name),
+        "role": role,
+        "name": name,
+        "title": (member.get("title") or "").strip() or fallback_title,
+        "phone": (member.get("phone") or "").strip(),
+        "email": (member.get("email") or "").strip(),
+    }
+
+
 def render_master_deck(
     client_name: str,
     analysis: Dict[str, Any],
     meeting: Optional[Dict[str, str]] = None,
+    team: Optional[Dict[str, Dict[str, str]]] = None,
     pitch_length: str = "medium",
     services: Optional[List[str]] = None,
     excluded_slide_ids: Optional[List[str]] = None,
@@ -152,6 +167,7 @@ def render_master_deck(
     valgte master-slides og vinder over længde/service-forvalget.
     """
     meeting = meeting or {}
+    team = team or {}
 
     library = master_deck.select_slides(
         pitch_length=pitch_length,
@@ -171,6 +187,12 @@ def render_master_deck(
         "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
         "next_steps": analysis.get("next_steps", []),
+        "case": analysis.get("case_recommendation", {}),
+        "industry_tag": analysis.get("industry_tag", "branchen"),
+        "team": {
+            "kam": _master_team_member(team.get("kam"), "Din Key Account Manager", "Senior Key Account Manager"),
+            "rm": _master_team_member(team.get("rm"), "Din Resource Manager", "Resource Manager"),
+        },
         "headlines": _slide_headlines(analysis, client_name),
         "library_slides": library,
         "outro_html": master_deck.slide_html(37),

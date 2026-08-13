@@ -137,6 +137,7 @@ async def slide_plan(
             {"title": "Research"},
             {"title": "Jeres prioriteter"},
             {"title": "Udfordring → løsning"},
+            {"title": "Relevant case"},
         ],
         "library_slides": master_deck.plan(pitch_length, service_list),
         "closing_slides": [
@@ -416,6 +417,7 @@ async def generate_deck(req: GenerateDeckRequest):
         client_name=req.client_name,
         analysis=req.analysis,
         meeting=req.meeting,
+        team=req.team,
         pitch_length=req.pitch_length or "medium",
         services=req.services,
         excluded_slide_ids=req.excluded_slide_ids,
