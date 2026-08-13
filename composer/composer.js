@@ -645,24 +645,14 @@ async function runResearch(e) {
   resetSteps();
   $('#research-summary').hidden = true;
 
-  // Visuel feedback — vis trin sekventielt mens vi venter
   setStepActive('cvr');
-  await new Promise(r => setTimeout(r, 400));
-  setStepComplete('cvr');
-  setStepActive('pdf');
-  if (pdfFile) {
-    await new Promise(r => setTimeout(r, 600));
-  }
-  setStepComplete('pdf');
-  setStepActive('crawl');
-  await new Promise(r => setTimeout(r, 800));
-  setStepComplete('crawl');
-  setStepActive('websearch');
-  await new Promise(r => setTimeout(r, 1200));
-  setStepComplete('websearch');
-  setStepActive('claude');
 
-  // Kald backend
+  // Kørslen tager 4-5 minutter, så backend'en svarer med et job-id og arbejder
+  // videre bagefter. Tidligere holdt vi HTTP-forbindelsen åben hele vejen, og
+  // Railways proxy skar den over ved 300 sekunder — sælgeren mistede kørslen få
+  // sekunder før den var færdig. Trinnene nedenfor er nu ægte fremdrift fra
+  // serveren, ikke en animation der gætter.
+  let data;
   try {
     const res = await fetch(`${API_BASE}/api/research`, {
       method: 'POST',
@@ -670,12 +660,13 @@ async function runResearch(e) {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      setStepError('claude', err.detail || 'Claude-analyse fejlede.');
+      setStepError('claude', await readError(res));
       return;
     }
 
-    const data = await res.json();
+    const { job_id } = await res.json();
+    data = await pollResearch(job_id);
+    if (!data) return;   // pollResearch har allerede vist fejlen
     state.analysis = data.analysis;
 
     setStepComplete('claude');
@@ -707,8 +698,85 @@ async function runResearch(e) {
     setTimeout(() => setActiveTab('review'), 1500);
 
   } catch (e) {
-    setStepError('claude', `Netværksfejl: ${e.message}`);
+    // Her fanges kun rigtige netværksfejl — svar med fejlkode håndteres ovenfor
+    setStepError('claude', 'Forbindelsen til serveren blev afbrudt. '
+      + 'Tager analysen over et par minutter, kan den blive lukket ned undervejs — '
+      + 'prøv en kortere pitch-længde.');
   }
+}
+
+// Vores backend svarer med JSON, men proxyer imellem gør ikke. Railway sender
+// fx "upstream error" som ren tekst når et kald tager for lang tid, og et
+// res.json() på det gav sælgeren "Unexpected token 'u'" i stedet for en besked
+// han kan handle på.
+async function readError(res) {
+  let body = '';
+  try { body = (await res.text()).trim(); } catch { /* forbindelsen er væk */ }
+
+  try {
+    const parsed = JSON.parse(body);
+    if (parsed && parsed.detail) return String(parsed.detail);
+  } catch { /* ikke JSON — så er det en proxy der svarer */ }
+
+  if (res.status === 502 || res.status === 503 || res.status === 504 || /upstream|timeout|gateway/i.test(body)) {
+    return 'Analysen tog for lang tid, og forbindelsen blev afbrudt undervejs. '
+         + 'Prøv med en kortere pitch-længde, eller slå web-søgning fra under Avanceret.';
+  }
+  if (res.status === 413) return 'Årsrapporten er for stor til at blive sendt. Prøv en mindre PDF.';
+  if (res.status === 429) return 'For mange kald lige nu. Vent et halvt minut og prøv igen.';
+
+  return body.slice(0, 200) || `Serveren svarede ${res.status}.`;
+}
+
+// Følg en research-kørsel til dørs. Returnerer resultatet, eller null hvis
+// noget gik galt (fejlen er så allerede vist på det rigtige trin).
+async function pollResearch(jobId) {
+  const STEPS = ['cvr', 'pdf', 'crawl', 'websearch', 'claude', 'done'];
+  const DEADLINE_MS = 15 * 60 * 1000;   // rigeligt; kørslen tager 4-5 min
+  const started = Date.now();
+  let shown = new Set();
+  let misses = 0;
+
+  while (Date.now() - started < DEADLINE_MS) {
+    await new Promise(r => setTimeout(r, 3000));
+
+    let job;
+    try {
+      const res = await fetch(`${API_BASE}/api/research/${encodeURIComponent(jobId)}`);
+      if (res.status === 404) {
+        setStepError('claude', 'Kørslen findes ikke længere — serveren er formentlig '
+          + 'genstartet undervejs. Kør research igen.');
+        return null;
+      }
+      if (!res.ok) throw new Error(await readError(res));
+      job = await res.json();
+      misses = 0;
+    } catch (e) {
+      // Et enkelt mislykket opslag er ikke værd at afbryde en 5-minutters kørsel for
+      if (++misses < 5) continue;
+      setStepError('claude', 'Mistede forbindelsen til serveren undervejs. '
+        + 'Kørslen er muligvis stadig i gang — prøv igen om lidt.');
+      return null;
+    }
+
+    (job.done_steps || []).forEach(st => {
+      if (!shown.has(st)) { setStepComplete(st); shown.add(st); }
+    });
+    if (job.step && !shown.has(job.step)) setStepActive(job.step);
+
+    if (job.status === 'done') {
+      STEPS.forEach(st => { if (!shown.has(st)) { setStepComplete(st); shown.add(st); } });
+      return job.result;
+    }
+    if (job.status === 'error') {
+      setStepError(job.step || 'claude', job.detail || 'Analysen fejlede.');
+      return null;
+    }
+  }
+
+  setStepError('claude', 'Kørslen tog usædvanlig lang tid og blev opgivet. Prøv igen, '
+    + 'eller vælg en kortere pitch-længde.');
+  return null;
 }
 
 // ---------- Dækningsrapport (hvordan briefen blev brugt) ----------

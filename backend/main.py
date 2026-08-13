@@ -10,8 +10,11 @@ Endpoints:
 """
 import os
 import json
+import time
+import uuid
+import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -174,6 +177,60 @@ async def cvr_lookup(req: CVRLookupRequest):
     return {"found": True, "data": result}
 
 
+
+# ─── Research-job ─────────────────────────────────────────────────────
+# En fuld research-kørsel tager 4-5 minutter. Holdt vi HTTP-forbindelsen åben
+# så længe, skar Railways proxy den over ved 300 sekunder og svarede "upstream
+# error" i ren tekst — sælgeren mistede hele kørslen få sekunder før den var
+# færdig. Nu starter kaldet et job og svarer med det samme; klienten spørger til
+# status undervejs.
+#
+# Jobbene ligger i hukommelsen. Det er bevidst: værktøjet kører én proces med
+# nogle få samtidige brugere, og en genstart midt i en kørsel er sjælden nok til
+# at "kør igen" er et rimeligt svar. Skal det skaleres til flere processer, skal
+# det her flyttes til Redis eller en database.
+
+_RESEARCH_JOBS: Dict[str, Dict[str, Any]] = {}
+_JOB_TTL_SECONDS = 3600
+_JOB_MAX = 50
+
+# Trin-id'erne matcher dem composeren viser, så statusvisningen er ægte
+# fremdrift og ikke bare en animation.
+RESEARCH_STEPS = ["cvr", "pdf", "crawl", "websearch", "claude", "done"]
+
+
+def _new_job() -> str:
+    """Opret et job og ryd op i de gamle."""
+    now = time.time()
+    stale = [k for k, v in _RESEARCH_JOBS.items() if now - v["created"] > _JOB_TTL_SECONDS]
+    for k in stale:
+        _RESEARCH_JOBS.pop(k, None)
+    while len(_RESEARCH_JOBS) >= _JOB_MAX:
+        oldest = min(_RESEARCH_JOBS, key=lambda k: _RESEARCH_JOBS[k]["created"])
+        _RESEARCH_JOBS.pop(oldest, None)
+
+    job_id = uuid.uuid4().hex[:16]
+    _RESEARCH_JOBS[job_id] = {
+        "created": now,
+        "status": "running",
+        "step": "cvr",
+        "done_steps": [],
+        "result": None,
+        "error": None,
+    }
+    return job_id
+
+
+def _job_step(job_id: str, step: str) -> None:
+    job = _RESEARCH_JOBS.get(job_id)
+    if not job:
+        return
+    prev = job.get("step")
+    if prev and prev not in job["done_steps"]:
+        job["done_steps"].append(prev)
+    job["step"] = step
+
+
 async def _try_cvr(cvr_number: Optional[str], client_name: str):
     """Slå CVR op, men lad det aldrig vælte kaldet.
 
@@ -266,7 +323,7 @@ async def brief_questions(
 
 
 @app.post("/api/research")
-async def run_research(
+async def start_research(
     client_name: str = Form(...),
     cvr_number: Optional[str] = Form(None),
     pitch_length: Optional[str] = Form("medium"),
@@ -290,18 +347,12 @@ async def run_research(
     enable_website_crawl: Optional[str] = Form("true"),
     annual_report: Optional[UploadFile] = File(None),
 ):
-    """
-    Kør fuld research-pipeline — brief FØRST, research bagefter.
+    """Start en research-kørsel og svar med det samme.
 
-    Rækkefølgen er bevidst: pitch-kontrakten bygges på sælgers brief og CVR alene,
-    og dét er kontrakten der bestemmer hvad der bliver søgt efter. Omvendt rækkefølge
-    ville give os generisk firmanyt, som pitchen så skulle presses ned over.
-
-    1. CVR-opslag
-    2. Parse årsrapport-PDF hvis vedhæftet
-    3. Byg pitch-kontrakt (brief + CVR + årsrapport) → giver research_queries
-    4. Målrettet web-search efter kontraktens spørgsmål + crawl
-    5. Claude-analyse bundet til kontrakten
+    Kørslen tager 4-5 minutter. Holdt vi forbindelsen åben så længe, skar
+    Railways proxy den over ved 300 sekunder og svarede "upstream error" i ren
+    tekst — sælgeren mistede hele kørslen få sekunder før den var færdig.
+    Klienten spørger i stedet til `/api/research/{job_id}` undervejs.
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise HTTPException(
@@ -309,78 +360,139 @@ async def run_research(
             detail="ANTHROPIC_API_KEY er ikke sat. Kopier .env.example til .env og indsæt din API-key.",
         )
 
-    # ── Step 1: CVR-lookup ──
-    cvr_data = await _try_cvr(cvr_number, client_name)
-
-    # ── Step 2: Parse årsrapport ──
-    annual_report_text = None
+    # Filen skal læses her — den lever kun så længe requesten gør
+    pdf_bytes = None
     if annual_report and annual_report.filename:
         pdf_bytes = await annual_report.read()
-        try:
-            annual_report_text = extract_text(pdf_bytes)
-        except Exception as e:
-            return JSONResponse({"error": f"Kunne ikke læse PDF: {e}"}, status_code=400)
 
-    services_list = []
-    if services_to_highlight:
-        services_list = [s.strip() for s in services_to_highlight.split(",") if s.strip()]
+    job_id = _new_job()
+    asyncio.create_task(_do_research(
+        job_id,
+        client_name=client_name, cvr_number=cvr_number, pitch_length=pitch_length,
+        meeting_stage=meeting_stage, meeting_stakeholder=meeting_stakeholder,
+        meeting_history=meeting_history, personal_angle=personal_angle,
+        insider_insights=insider_insights, exclusions=exclusions,
+        pitch_focus=pitch_focus, services_to_highlight=services_to_highlight,
+        dict_research_facts=dict_research_facts, dict_priorities=dict_priorities,
+        dict_mappings=dict_mappings, dict_next_steps=dict_next_steps,
+        enable_web_search=enable_web_search, enable_website_crawl=enable_website_crawl,
+        pdf_bytes=pdf_bytes,
+    ))
+    return {"job_id": job_id, "status": "running", "step": "cvr"}
 
-    seller_brief = {
-        "meeting_stage": meeting_stage,
-        "meeting_history": meeting_history,
-        "personal_angle": personal_angle,
-        "insider_insights": insider_insights,
-        "exclusions": exclusions,
+
+@app.get("/api/research/{job_id}")
+async def research_status(job_id: str):
+    """Hvor langt er kørslen? Klienten spørger hvert par sekunder."""
+    job = _RESEARCH_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Kørslen blev ikke fundet. Serveren er muligvis genstartet — kør research igen.",
+        )
+    out = {
+        "status": job["status"],
+        "step": job["step"],
+        "done_steps": job["done_steps"],
     }
+    if job["status"] == "done":
+        out["result"] = job["result"]
+    if job["status"] == "error":
+        out["detail"] = job["error"]
+    return out
 
-    slide_dictation = {
-        "research_facts": dict_research_facts,
-        "priorities": dict_priorities,
-        "mappings": dict_mappings,
-        "next_steps": dict_next_steps,
-    }
 
-    # ── Step 3: Pitch-kontrakt FØR research ──
-    # Kontrakten ved endnu intet om web-fund. Det er pointen: den beslutter
-    # hvad mødet handler om, og udleder derfra hvad vi mangler at få afklaret.
-    pitch_contract = await run_in_threadpool(
-        build_pitch_contract,
-        client_name=client_name,
-        cvr_data=cvr_data,
-        annual_report_text=annual_report_text,
-        seller_brief=seller_brief,
-        slide_dictation=slide_dictation,
-        pitch_focus=pitch_focus,
-        services_to_highlight=services_list,
-        stakeholder_key=meeting_stakeholder,
-        pitch_length=pitch_length,
-    )
+async def _do_research(
+    job_id: str, *,
+    client_name: str, cvr_number, pitch_length,
+    meeting_stage, meeting_stakeholder, meeting_history, personal_angle,
+    insider_insights, exclusions, pitch_focus, services_to_highlight,
+    dict_research_facts, dict_priorities, dict_mappings, dict_next_steps,
+    enable_web_search, enable_website_crawl, pdf_bytes,
+):
+    """Selve kørslen. Rækkefølgen er bevidst: pitch-kontrakten bygges på sælgers
+    brief og CVR alene, og dét er kontrakten der bestemmer hvad der bliver søgt
+    efter. Omvendt rækkefølge ville give os generisk firmanyt, som pitchen så
+    skulle presses ned over.
+    """
+    job = _RESEARCH_JOBS.get(job_id)
+    if job is None:
+        return
 
-    # ── Step 4: Målrettet research ──
-    website_data = None
-    if enable_website_crawl == "true" and cvr_data and cvr_data.get("website"):
-        try:
-            website_data = await crawl_website(cvr_data["website"], max_pages=6)
-        except Exception:
-            website_data = None  # Ikke kritisk
-
-    web_intelligence = None
-    if enable_web_search == "true":
-        try:
-            web_intelligence = await run_in_threadpool(
-                gather_web_intelligence,
-                client_name=client_name,
-                industry_hint=cvr_data.get("industry_desc") if cvr_data else None,
-                pitch_focus=pitch_focus,
-                research_queries=(pitch_contract or {}).get("research_queries"),
-                core_intent=(pitch_contract or {}).get("core_intent"),
-                max_searches=4,
-            )
-        except Exception:
-            web_intelligence = None
-
-    # ── Step 5: Analyse, bundet til kontrakten ──
     try:
+        # ── CVR ──
+        _job_step(job_id, "cvr")
+        cvr_data = await _try_cvr(cvr_number, client_name)
+
+        # ── Årsrapport ──
+        _job_step(job_id, "pdf")
+        annual_report_text = None
+        if pdf_bytes:
+            try:
+                annual_report_text = extract_text(pdf_bytes)
+            except Exception as e:
+                job.update(status="error", error=f"Kunne ikke læse PDF: {e}")
+                return
+
+        services_list = []
+        if services_to_highlight:
+            services_list = [x.strip() for x in services_to_highlight.split(",") if x.strip()]
+
+        seller_brief = {
+            "meeting_stage": meeting_stage,
+            "meeting_history": meeting_history,
+            "personal_angle": personal_angle,
+            "insider_insights": insider_insights,
+            "exclusions": exclusions,
+        }
+        slide_dictation = {
+            "research_facts": dict_research_facts,
+            "priorities": dict_priorities,
+            "mappings": dict_mappings,
+            "next_steps": dict_next_steps,
+        }
+
+        # ── Kontrakt FØR research ──
+        pitch_contract = await run_in_threadpool(
+            build_pitch_contract,
+            client_name=client_name,
+            cvr_data=cvr_data,
+            annual_report_text=annual_report_text,
+            seller_brief=seller_brief,
+            slide_dictation=slide_dictation,
+            pitch_focus=pitch_focus,
+            services_to_highlight=services_list,
+            stakeholder_key=meeting_stakeholder,
+            pitch_length=pitch_length,
+        )
+
+        # ── Målrettet research ──
+        _job_step(job_id, "crawl")
+        website_data = None
+        if enable_website_crawl == "true" and cvr_data and cvr_data.get("website"):
+            try:
+                website_data = await crawl_website(cvr_data["website"], max_pages=6)
+            except Exception:
+                website_data = None  # Ikke kritisk
+
+        _job_step(job_id, "websearch")
+        web_intelligence = None
+        if enable_web_search == "true":
+            try:
+                web_intelligence = await run_in_threadpool(
+                    gather_web_intelligence,
+                    client_name=client_name,
+                    industry_hint=cvr_data.get("industry_desc") if cvr_data else None,
+                    pitch_focus=pitch_focus,
+                    research_queries=(pitch_contract or {}).get("research_queries"),
+                    core_intent=(pitch_contract or {}).get("core_intent"),
+                    max_searches=4,
+                )
+            except Exception:
+                web_intelligence = None
+
+        # ── Analyse, bundet til kontrakten ──
+        _job_step(job_id, "claude")
         analysis = await run_in_threadpool(
             analyze_client,
             client_name=client_name,
@@ -396,18 +508,20 @@ async def run_research(
             pitch_length=pitch_length,
             pitch_contract=pitch_contract,
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=_readable_api_error(e))
 
-    return {
-        "client_name": client_name,
-        "cvr_data": cvr_data,
-        "pdf_pages_parsed": annual_report_text.count("--- Side ") if annual_report_text else 0,
-        "website_pages_crawled": len(website_data["pages"]) if website_data else 0,
-        "web_searches_performed": web_intelligence.get("search_count", 0) if web_intelligence else 0,
-        "pitch_contract": pitch_contract,
-        "analysis": analysis,
-    }
+        _job_step(job_id, "done")
+        job.update(status="done", result={
+            "client_name": client_name,
+            "cvr_data": cvr_data,
+            "pdf_pages_parsed": annual_report_text.count("--- Side ") if annual_report_text else 0,
+            "website_pages_crawled": len(website_data["pages"]) if website_data else 0,
+            "web_searches_performed": web_intelligence.get("search_count", 0) if web_intelligence else 0,
+            "pitch_contract": pitch_contract,
+            "analysis": analysis,
+        })
+
+    except Exception as e:
+        job.update(status="error", error=_readable_api_error(e))
 
 
 @app.post("/api/generate-deck")
