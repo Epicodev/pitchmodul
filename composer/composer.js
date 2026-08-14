@@ -1495,6 +1495,58 @@ async function generateDeck() {
   }
 }
 
+// ---------- Deck-tilstand: skræddersyet eller kun masterdeck ----------
+// "Kun masterdeck" er den garanterede fallback: cover med kundens navn +
+// præcis de master-slides sælgeren selv vælger + afslutning. Ingen spørgsmål,
+// ingen research, ingen AI-slides — backend'en springer selv alle AI-sektioner
+// over når analysen er tom.
+function deckMode() {
+  return document.querySelector('input[name="deck_mode"]:checked')?.value || 'tailored';
+}
+
+function applyDeckMode() {
+  const master = deckMode() === 'master';
+
+  // Spørgsmålsblokken og research hører kun til det skræddersyede spor
+  const qBlock = $('#brief-questions-block') || $('#brief-questions-head')?.closest('fieldset');
+  if (qBlock) qBlock.hidden = master;
+  const runBtn = $('#run-analysis-btn');
+  const note = $('#run-analysis-note');
+  if (runBtn) runBtn.hidden = master;
+  if (note) note.hidden = master;
+
+  const genBtn = $('#master-generate-btn');
+  if (genBtn) genBtn.hidden = !master;
+  updateMasterGenerateBtn();
+}
+
+function updateMasterGenerateBtn() {
+  const btn = $('#master-generate-btn');
+  if (!btn) return;
+  const ready = !!($('#brief-form [name="client_name"]')?.value || '').trim();
+  btn.disabled = !ready;
+  btn.title = ready ? '' : 'Udfyld kundenavn først';
+}
+
+async function generateMasterOnlyDeck() {
+  const form = $('#brief-form');
+  const services = [...form.querySelectorAll('input[name="services"]:checked')].map(c => c.value);
+
+  // Kun det backend'en skal bruge: navn på coveret, længde/services til
+  // slide-udvalget. Alt AI-indhold er bevidst tomt.
+  state.brief = {
+    client_name: form.client_name.value.trim(),
+    pitch_length: form.querySelector('input[name="pitch_length"]:checked')?.value || 'medium',
+    services_to_highlight: services,
+    contact_person: (form.contact_person?.value || '').trim(),
+    date: (form.date?.value || '').trim(),
+    team: { kam: {}, rm: {} },
+  };
+  state.analysis = {};
+
+  await generateDeck();
+}
+
 // ---------- Indlejret deck-visning ----------
 // Decket vises i en iframe på samme origin, så vi kan læse hvilket slide der
 // er aktivt (vieweren sætter data-deck-active) og fjerne det med samme
@@ -1956,6 +2008,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#generate-deck-btn').addEventListener('click', generateDeck);
   const rmBtn = $('#remove-current-slide');
   if (rmBtn) rmBtn.addEventListener('click', removeCurrentDeckSlide);
+
+  // Deck-tilstand: masterdeck som fallback uden AI
+  $$('input[name="deck_mode"]').forEach(r => r.addEventListener('change', applyDeckMode));
+  const mgBtn = $('#master-generate-btn');
+  if (mgBtn) mgBtn.addEventListener('click', generateMasterOnlyDeck);
+  const cn = $('#brief-form [name="client_name"]');
+  if (cn) cn.addEventListener('input', updateMasterGenerateBtn);
+  applyDeckMode();
   $('#download-deck-btn').addEventListener('click', downloadDeck);
   const pptxBtn = $('#download-pptx-btn');
   if (pptxBtn) pptxBtn.addEventListener('click', downloadPptx);

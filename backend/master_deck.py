@@ -447,6 +447,7 @@ def select_slides(
     excluded_slide_ids: Optional[List[str]] = None,
     selected_slide_ids: Optional[List[str]] = None,
     lang: Optional[str] = None,
+    order: str = "deck",
 ) -> List[Dict[str, Any]]:
     """Endelig slide-liste til rendering, i masterens rækkefølge.
 
@@ -460,8 +461,14 @@ def select_slides(
         chosen = set(default_slide_ids(pitch_length, services))
         chosen -= set(excluded_slide_ids or [])
     data = _load(lang)
+    # "deck": services først, historien sekundært — til skræddersyede pitches
+    # hvor kundeslidesne allerede har argumenteret.
+    # "master": masterens egen rækkefølge — til rene master-decks uden
+    # kundeindhold, hvor firmahistorien ER fortællingen.
+    pool = [m for m in MANIFEST if not m.reserved]
+    ordered = deck_ordered(pool) if order == "deck" else pool
     out = []
-    for s in deck_ordered([m for m in MANIFEST if not m.reserved]):
+    for s in ordered:
         if s.id not in chosen:
             continue
         out.append({"id": s.id, "title": s.label, "html": data["slides"][s.num]})

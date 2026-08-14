@@ -167,8 +167,15 @@ def render_master_deck(
     meeting = meeting or {}
     team = team or {}
 
+    # Uden kundeindhold er decket en ren master-pitch — så skal det følge
+    # masterens egen fortælling (historien først), ikke den skræddersyede orden.
+    has_client_content = bool(
+        analysis.get("value_mappings") or analysis.get("research_facts")
+        or analysis.get("next_steps")
+    )
     library = master_deck.select_slides(
         lang=lang,
+        order="deck" if has_client_content else "master",
         pitch_length=pitch_length,
         services=services,
         excluded_slide_ids=excluded_slide_ids,

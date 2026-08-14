@@ -86,6 +86,16 @@
 
         <div class="form-row">
           <div class="field">
+            <span class="field-label">Hvilket deck? <span class="hint">(du kan altid falde tilbage på masterdecket)</span></span>
+            <div class="chip-group">
+              <label class="chip"><input type="radio" name="deck_mode" value="tailored" checked><span>Skræddersyet med AI</span></label>
+              <label class="chip"><input type="radio" name="deck_mode" value="master"><span>Kun masterdeck — jeg vælger selv slides</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
             <span class="field-label">Sprog <span class="hint">(gælder både Epico-slides og AI-teksten)</span></span>
             <div class="chip-group" id="lang-group">
               <span class="lang-loading">Henter tilgængelige sprog…</span>
@@ -385,6 +395,9 @@
         <button type="submit" class="btn btn--primary btn--lg" id="run-analysis-btn" disabled
                 title="Kør spørgsmålene ovenfor først — eller spring dem over">
           Kør AI-research <span class="arrow">→</span>
+        </button>
+        <button type="button" class="btn btn--primary" id="master-generate-btn" hidden disabled title="Udfyld kundenavn først">
+          Generer deck <span class="arrow">→</span>
         </button>
       </div>
     </form>
