@@ -127,62 +127,106 @@ _MIME = {
     ".woff2": "font/woff2",
 }
 
-# ─── Indlæsning (caches ved første kald) ─────────────────────────────
-_slide_html: Dict[int, str] = {}
-_assets_b64: Dict[str, str] = {}
-_head_css: Optional[str] = None
-_runtime_js: Optional[str] = None
+# ─── Indlæsning (caches pr. sprog) ───────────────────────────────────
+# Masterdecket findes i én mappe pr. sprog. Sælgeren vælger sprog, og både
+# Epico-slidesne og AI'ens kundeslides følger det valg — ellers får kunden et
+# deck der skifter sprog undervejs.
+
+LANGUAGES = {"da": "Dansk", "en": "English"}
+DEFAULT_LANG = "da"
+
+_cache: Dict[str, Dict[str, Any]] = {}
 
 
-def _load() -> None:
-    global _head_css, _runtime_js
-    if _slide_html:
-        return
-    for f in sorted((DECK_DIR / "slides").glob("*.html")):
-        num = int(f.name.split("-", 1)[0])
-        _slide_html[num] = f.read_text(encoding="utf-8")
-    for f in (DECK_DIR / "assets").iterdir():
-        mime = _MIME.get(f.suffix)
-        if mime:
-            b64 = base64.b64encode(f.read_bytes()).decode()
-            _assets_b64[f.stem] = f"data:{mime};base64,{b64}"
-    _head_css = (DECK_DIR / "head.css").read_text(encoding="utf-8")
-    _runtime_js = (DECK_DIR / "runtime.js").read_text(encoding="utf-8")
+def lang_dir(lang: str) -> Path:
+    return DECK_DIR / lang
 
 
-def deck_available() -> bool:
-    return (DECK_DIR / "slides").is_dir() and any((DECK_DIR / "slides").glob("*.html"))
+def available_languages() -> List[str]:
+    """De sprog der faktisk er importeret — UI'et må kun tilbyde dem."""
+    return [
+        code for code in LANGUAGES
+        if (lang_dir(code) / "slides").is_dir()
+        and any((lang_dir(code) / "slides").glob("*.html"))
+    ]
 
 
-def head_css() -> str:
-    _load()
-    return _head_css or ""
+def resolve_lang(lang: Optional[str]) -> str:
+    """Vælg et sprog der rent faktisk findes.
+
+    Beder nogen om et sprog vi ikke har importeret, er det bedre at levere
+    decket på et andet sprog end at fejle midt i en pitch-generering.
+    """
+    have = available_languages()
+    if not have:
+        return DEFAULT_LANG
+    if lang in have:
+        return lang
+    return DEFAULT_LANG if DEFAULT_LANG in have else have[0]
 
 
-def runtime_js() -> str:
-    _load()
-    return _runtime_js or ""
+def _load(lang: Optional[str] = None) -> Dict[str, Any]:
+    lang = resolve_lang(lang)
+    if lang in _cache:
+        return _cache[lang]
+
+    d = lang_dir(lang)
+    slides: Dict[int, str] = {}
+    assets: Dict[str, str] = {}
+
+    if (d / "slides").is_dir():
+        for f in sorted((d / "slides").glob("*.html")):
+            slides[int(f.name.split("-", 1)[0])] = f.read_text(encoding="utf-8")
+    if (d / "assets").is_dir():
+        for f in (d / "assets").iterdir():
+            mime = _MIME.get(f.suffix)
+            if mime:
+                assets[f.stem] = f"data:{mime};base64,{base64.b64encode(f.read_bytes()).decode()}"
+
+    _cache[lang] = {
+        "slides": slides,
+        "assets": assets,
+        "head_css": (d / "head.css").read_text(encoding="utf-8") if (d / "head.css").exists() else "",
+        "runtime_js": (d / "runtime.js").read_text(encoding="utf-8") if (d / "runtime.js").exists() else "",
+    }
+    return _cache[lang]
 
 
-def slide_html(num: int) -> str:
-    _load()
-    return _slide_html[num]
+def clear_cache() -> None:
+    """Kaldes efter import, så en ny masterfil slår igennem uden genstart."""
+    _cache.clear()
+
+
+def deck_available(lang: Optional[str] = None) -> bool:
+    return bool(available_languages()) if lang is None else lang in available_languages()
+
+
+def head_css(lang: Optional[str] = None) -> str:
+    return _load(lang)["head_css"]
+
+
+def runtime_js(lang: Optional[str] = None) -> str:
+    return _load(lang)["runtime_js"]
+
+
+def slide_html(num: int, lang: Optional[str] = None) -> str:
+    return _load(lang)["slides"][num]
 
 
 def get_slide(num: int) -> MasterSlide:
     return next(s for s in MANIFEST if s.num == num)
 
 
-def inline_assets(html: str) -> str:
+def inline_assets(html: str, lang: Optional[str] = None) -> str:
     """Erstat uuid-referencer med data-URI'er så decket er én fil.
 
     Viewer-scriptet inlines som data-URI i stedet for et <script>-body,
     fordi det indeholder en literal '</script>' i sin dokumentation.
     """
-    _load()
-    for uuid, data_uri in _assets_b64.items():
+    data = _load(lang)
+    for uuid, data_uri in data["assets"].items():
         html = html.replace(uuid, data_uri)
-    runtime_b64 = base64.b64encode((_runtime_js or "").encode()).decode()
+    runtime_b64 = base64.b64encode(data["runtime_js"].encode()).decode()
     html = html.replace(
         "__DECK_RUNTIME__", f"data:text/javascript;base64,{runtime_b64}"
     )
@@ -192,7 +236,7 @@ def inline_assets(html: str) -> str:
 # ─── Udvælgelse ──────────────────────────────────────────────────────
 
 
-def thumbnails_html() -> str:
+def thumbnails_html(lang: Optional[str] = None) -> str:
     """En selvstændig side med alle valgbare master-slides som miniaturer.
 
     Sælgeren skal kunne se hvad han slår til og fra. En titel som "Fra A til Z"
@@ -204,7 +248,7 @@ def thumbnails_html() -> str:
     i stedet for at blive inlinet, så browseren kan cache dem på tværs af de
     34 miniaturer.
     """
-    _load()
+    data = _load(lang)
 
     cards = []
     for s in MANIFEST:
@@ -215,7 +259,7 @@ def thumbnails_html() -> str:
         cards.append(
             f'<button class="t" data-id="{s.id}" type="button" '
             f'title="{html_escape(s.label)}">'
-            f'<div class="frame"><div class="stage" data-deck-active>{slide_html(s.num)}</div></div>'
+            f'<div class="frame"><div class="stage" data-deck-active>{data['slides'][s.num]}</div></div>'
             f'<span class="cap">{html_escape(s.label)}</span>'
             f'<span class="mark" aria-hidden="true"></span>'
             f'</button>'
@@ -224,7 +268,7 @@ def thumbnails_html() -> str:
     return f"""<!DOCTYPE html>
 <html lang="da"><head><meta charset="utf-8">
 <style>
-{_head_css or ""}
+{data['head_css']}
 * {{ box-sizing: border-box; }}
 body {{ margin: 0; background: transparent; font-family: 'DM Sans', sans-serif; }}
 #grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }}
@@ -375,6 +419,7 @@ def select_slides(
     services: Optional[List[str]] = None,
     excluded_slide_ids: Optional[List[str]] = None,
     selected_slide_ids: Optional[List[str]] = None,
+    lang: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Endelig slide-liste til rendering, i masterens rækkefølge.
 
@@ -387,10 +432,10 @@ def select_slides(
     else:
         chosen = set(default_slide_ids(pitch_length, services))
         chosen -= set(excluded_slide_ids or [])
-    _load()
+    data = _load(lang)
     out = []
     for s in MANIFEST:
         if s.reserved or s.id not in chosen:
             continue
-        out.append({"id": s.id, "title": s.label, "html": _slide_html[s.num]})
+        out.append({"id": s.id, "title": s.label, "html": data["slides"][s.num]})
     return out

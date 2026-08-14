@@ -155,6 +155,7 @@ def render_master_deck(
     services: Optional[List[str]] = None,
     excluded_slide_ids: Optional[List[str]] = None,
     selected_slide_ids: Optional[List[str]] = None,
+    lang: Optional[str] = None,
 ) -> str:
     """Render pitch i masterdeckets design: AI-kundeslides + sælgerens
     udvalgte master-slides, samlet i én selvbærende HTML-fil med
@@ -167,6 +168,7 @@ def render_master_deck(
     team = team or {}
 
     library = master_deck.select_slides(
+        lang=lang,
         pitch_length=pitch_length,
         services=services,
         excluded_slide_ids=excluded_slide_ids,
@@ -191,13 +193,13 @@ def render_master_deck(
         },
         "headlines": _slide_headlines(analysis, client_name),
         "library_slides": library,
-        "outro_html": master_deck.slide_html(37),
-        "head_css": master_deck.head_css(),
+        "outro_html": master_deck.slide_html(37, lang),
+        "head_css": master_deck.head_css(lang),
         "pitch_length": pitch_length,
     }
 
     html = _env.get_template("master_pitch.html.j2").render(**context)
-    return master_deck.inline_assets(html)
+    return master_deck.inline_assets(html, lang)
 
 
 def preview_slide_plan(

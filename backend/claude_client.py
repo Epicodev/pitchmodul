@@ -101,6 +101,7 @@ def refine_slide(
     client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
 
     knowledge = _get_knowledge(stakeholder_key)
+    language_rule = _language_rule(lang)
 
     parts = [
         f"## Kunde: {client_name or 'kunden'}\n",
@@ -1216,6 +1217,22 @@ def _format_master_slides(master_slides: Optional[List[Dict[str, str]]]) -> str:
     )
 
 
+_LANGUAGE_RULES = {
+    "da": "Skriv på dansk — også når kilderne er på engelsk.",
+    "en": (
+        "Write in English. The master deck this pitch is built on is in English, "
+        "and a deck that switches language halfway through reads as careless. "
+        "Danish source material (annual reports, press releases, the seller's brief) "
+        "should be translated, not quoted verbatim — except for proper nouns and "
+        "official figures."
+    ),
+}
+
+
+def _language_rule(lang: Optional[str]) -> str:
+    return _LANGUAGE_RULES.get(lang or "da", _LANGUAGE_RULES["da"])
+
+
 def _build_system_prompt(
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
@@ -1224,6 +1241,7 @@ def _build_system_prompt(
     stakeholder_key: Optional[str] = None,
     pitch_length: Optional[str] = "medium",
     master_slides: Optional[List[Dict[str, str]]] = None,
+    lang: Optional[str] = None,
 ) -> str:
     # Sælger-direktiver — disse er styrende
     directives = []
@@ -1375,6 +1393,7 @@ def _build_system_prompt(
 
     # Knowledge base — hele Epico's vidensbase (inkl. stakeholder-profil hvis angivet)
     knowledge = _get_knowledge(stakeholder_key)
+    language_rule = _language_rule(lang)
 
     return f"""Du er en strategisk analytiker hos Epico, et af Nordens største IT-konsulenthuse.
 
@@ -1470,7 +1489,7 @@ Dette er den ENESTE sandhed du må bruge om Epico. Hold dig til det.
 
 ## Outputregler
 
-- **Skriv på dansk** — selvom kilderne er på engelsk.
+- **Sprog**: {language_rule}
 - **Tone**: Følg `messaging.md` strikt. Ingen "synergi", "best-in-class", "next-gen" (medmindre det er Epico NextGen-servicen).
 - **Konkret > generisk**: Hellere "Manglende Oracle-DBA til ERP-migration" end "Behov for IT-konsulenter".
 - **Kildehenvis kundefakta**: Hver `research_facts.source` skal pege på årsrapport-side eller anden konkret kilde. Hvis du ikke har en konkret kilde, brug "(branche-estimat)".
@@ -1494,6 +1513,7 @@ def analyze_client(
     pitch_length: Optional[str] = "medium",
     pitch_contract: Optional[Dict[str, Any]] = None,
     master_slides: Optional[List[Dict[str, str]]] = None,
+    lang: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -1630,6 +1650,7 @@ def analyze_client(
             stakeholder_key=stakeholder_key,
             pitch_length=pitch_length,
             master_slides=master_slides,
+            lang=lang,
         ),
         tools=[analysis_tool],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},

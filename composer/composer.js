@@ -532,6 +532,54 @@ async function askBriefQuestions(append = false) {
   }
 }
 
+// ---------- Sprog ----------
+// Masterdecket findes i én udgave pr. sprog. Vælgeren viser kun de sprog der
+// faktisk er importeret — ellers kunne sælgeren vælge dansk og få et engelsk
+// deck uden at opdage det.
+async function loadLanguages() {
+  const group = $('#lang-group');
+  if (!group) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/languages`);
+    const { available, default: def } = await res.json();
+
+    if (!available.length) {
+      group.innerHTML = '<span class="lang-loading">Intet masterdeck importeret.</span>';
+      return;
+    }
+    if (available.length === 1) {
+      // Ét sprog er ikke et valg — vis det som en oplysning
+      const only = available[0];
+      group.innerHTML = `
+        <label class="chip">
+          <input type="radio" name="lang" value="${escapeHtml(only.code)}" checked>
+          <span>${escapeHtml(only.label)}</span>
+        </label>
+        <span class="lang-note">Kun ${escapeHtml(only.label.toLowerCase())} er importeret indtil videre.</span>`;
+    } else {
+      group.innerHTML = available.map(l => `
+        <label class="chip">
+          <input type="radio" name="lang" value="${escapeHtml(l.code)}" ${l.code === def ? 'checked' : ''}>
+          <span>${escapeHtml(l.label)}</span>
+        </label>`).join('');
+    }
+    // Sproget skifter masterdeckets indhold, så miniaturer og plan skal hentes igen
+    group.querySelectorAll('input[name="lang"]').forEach(r =>
+      r.addEventListener('change', () => {
+        const f = document.getElementById('slide-preview-frame');
+        if (f) f.src = '';        // tvinger genindlæsning på det nye sprog
+        _previewReady = false;
+        schedulePlanRefresh();
+      }));
+  } catch {
+    group.innerHTML = '<span class="lang-loading">Kunne ikke hente sprog.</span>';
+  }
+}
+
+function currentLang() {
+  return document.querySelector('input[name="lang"]:checked')?.value || null;
+}
+
 // ---------- Dit Epico-team (samme værdier hver gang — så husk dem) ----------
 const TEAM_STORAGE_KEY = 'epico-composer-team';
 const TEAM_FIELDS = [
@@ -728,6 +776,8 @@ async function runResearch(e) {
   // Freelance-slide siger det samme.
   const picked = currentSelectedSlideIds();
   if (picked && picked.length) formData.append('selected_slide_ids', picked.join(','));
+  const lang = currentLang();
+  if (lang) formData.append('lang', lang);
 
   // Skift til research tab
   enableTab('research');
@@ -1409,6 +1459,7 @@ async function generateDeck() {
         // efter research kørte
         excluded_slide_ids: currentExcludedSlideIds(),
         selected_slide_ids: currentSelectedSlideIds(),
+        lang: currentLang(),
       }),
     });
 
@@ -1737,7 +1788,7 @@ function renderSlidePlan(plan) {
   const frame = container.querySelector('#slide-preview-frame');
   if (details && frame) {
     const load = () => {
-      if (!frame.src) { _previewReady = false; frame.src = `${API_BASE}/api/master-preview`; }
+      if (!frame.src) { _previewReady = false; frame.src = `${API_BASE}/api/master-preview` + (currentLang() ? `?lang=${encodeURIComponent(currentLang())}` : ''); }
       else pushSelectionToPreview(plan);
     };
     if (details.open) load();
@@ -1784,6 +1835,7 @@ function schedulePlanRefresh() {
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', () => {
   checkHealth();
+  loadLanguages();
   setupUpload();
   refreshSlidePlan();
 

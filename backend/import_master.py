@@ -27,7 +27,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from master_deck import MANIFEST
+
 DECK_DIR = Path(__file__).parent / "master_deck"
+
+# Masterdecket findes i én mappe pr. sprog — master_deck/da, master_deck/en.
+LANGS = ("da", "en")
 
 _EXT = {
     "image/png": "png",
@@ -43,7 +48,7 @@ def _block(html: str, kind: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
-def import_master(source: Path) -> dict:
+def import_master(source: Path, lang: str) -> dict:
     html = source.read_text(encoding="utf-8")
     manifest_raw = _block(html, "manifest")
     template_raw = _block(html, "template")
@@ -56,8 +61,9 @@ def import_master(source: Path) -> dict:
     assets: dict = json.loads(manifest_raw)
     template: str = json.loads(template_raw)
 
-    slides_dir = DECK_DIR / "slides"
-    assets_dir = DECK_DIR / "assets"
+    out = DECK_DIR / lang
+    slides_dir = out / "slides"
+    assets_dir = out / "assets"
     for d in (slides_dir, assets_dir):
         d.mkdir(parents=True, exist_ok=True)
         for old in d.iterdir():
@@ -76,7 +82,7 @@ def import_master(source: Path) -> dict:
         (assets_dir / f"{uuid}.{ext}").write_bytes(raw)
 
     if runtime_js:
-        (DECK_DIR / "runtime.js").write_bytes(runtime_js)
+        (out / "runtime.js").write_bytes(runtime_js)
 
     # Head-CSS: font-faces + animationsregler, i dokumentrækkefølge
     head = template.split("<section", 1)[0]
@@ -84,7 +90,7 @@ def import_master(source: Path) -> dict:
         m.group(1).strip()
         for m in re.finditer(r"<style>(.*?)</style>", head, re.S)
     ]
-    (DECK_DIR / "head.css").write_text("\n\n".join(css_blocks), encoding="utf-8")
+    (out / "head.css").write_text("\n\n".join(css_blocks), encoding="utf-8")
 
     # Slides: én fil pr. <section>, nummereret i deck-rækkefølge
     sections = re.findall(r"<section .*?</section>", template, re.S)
@@ -103,16 +109,32 @@ def import_master(source: Path) -> dict:
         "labels": labels,
         "assets": {u: m["mime"] for u, m in assets.items()},
     }
-    (DECK_DIR / "source.json").write_text(
+    (out / "source.json").write_text(
         json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return info
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise SystemExit(__doc__)
-    result = import_master(Path(sys.argv[1]))
-    print(f"Importerede {result['slide_count']} slides fra {result['source_file']}:")
-    for i, label in enumerate(result["labels"], 1):
-        print(f"  {i:02d}  {label}")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    lang = next((f.split("=", 1)[1] for f in flags if f.startswith("--lang=")), None)
+
+    if len(args) != 1 or lang not in LANGS:
+        print("Brug: python import_master.py <fil.html> --lang=da|en")
+        print()
+        print("Masterdecket importeres pr. sprog. Sælgeren vælger sprog i composeren,")
+        print("og både Epico-slidesne og AI'ens kundeslides følger valget.")
+        sys.exit(1)
+
+    result = import_master(Path(args[0]), lang)
+    print(f"Importeret til master_deck/{lang}/: "
+          f"{result['slides']} slides, {result['assets']} assets")
+
+    expected = len([s for s in MANIFEST])
+    if result["slides"] != expected:
+        print()
+        print(f"ADVARSEL: masterfilen har {result['slides']} slides, men MANIFEST "
+              f"forventer {expected}.")
+        print("Slide-numrene styrer hvad der vises hvor, så en anden rækkefølge eller")
+        print("et andet antal betyder at MANIFEST i master_deck.py skal rettes til.")

@@ -1983,3 +1983,14 @@ body.composer-body {
   margin: 0;
   max-width: 68ch;
 }
+
+/* ── Sprogvalg ─────────────────────────────────────────────────────── */
+
+.lang-loading, .lang-note {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--grey);
+  align-self: center;
+}
+
+.lang-note { margin-left: 4px; }

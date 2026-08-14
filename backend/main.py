@@ -86,6 +86,7 @@ class GenerateDeckRequest(BaseModel):
     excluded_slide_ids: Optional[list] = None
     # Sælgerens fulde valg fra slide-vælgeren — vinder over forvalget
     selected_slide_ids: Optional[list] = None
+    lang: Optional[str] = None
 
 
 # ---------- Routes ----------
@@ -367,6 +368,7 @@ async def start_research(
     enable_web_search: Optional[str] = Form("true"),
     enable_website_crawl: Optional[str] = Form("true"),
     selected_slide_ids: Optional[str] = Form(None),  # komma-separeret
+    lang: Optional[str] = Form(None),
     annual_report: Optional[UploadFile] = File(None),
 ):
     """Start en research-kørsel og svar med det samme.
@@ -398,7 +400,7 @@ async def start_research(
         dict_research_facts=dict_research_facts, dict_priorities=dict_priorities,
         dict_mappings=dict_mappings, dict_next_steps=dict_next_steps,
         enable_web_search=enable_web_search, enable_website_crawl=enable_website_crawl,
-        selected_slide_ids=selected_slide_ids, pdf_bytes=pdf_bytes,
+        selected_slide_ids=selected_slide_ids, lang=lang, pdf_bytes=pdf_bytes,
     ))
     return {"job_id": job_id, "status": "running", "step": "cvr"}
 
@@ -430,7 +432,7 @@ async def _do_research(
     meeting_stage, meeting_stakeholder, meeting_history, personal_angle,
     insider_insights, exclusions, pitch_focus, services_to_highlight,
     dict_research_facts, dict_priorities, dict_mappings, dict_next_steps,
-    enable_web_search, enable_website_crawl, selected_slide_ids, pdf_bytes,
+    enable_web_search, enable_website_crawl, selected_slide_ids, lang, pdf_bytes,
 ):
     """Selve kørslen. Rækkefølgen er bevidst: pitch-kontrakten bygges på sælgers
     brief og CVR alene, og dét er kontrakten der bestemmer hvad der bliver søgt
@@ -537,6 +539,7 @@ async def _do_research(
             pitch_length=pitch_length,
             pitch_contract=pitch_contract,
             master_slides=master_slides,
+            lang=master_deck.resolve_lang(lang),
         )
 
         _job_step(job_id, "done")
@@ -554,8 +557,18 @@ async def _do_research(
         job.update(status="error", error=_readable_api_error(e))
 
 
+@app.get("/api/languages")
+async def languages():
+    """Hvilke sprog masterdecket er importeret på — UI'et må kun tilbyde dem."""
+    have = master_deck.available_languages()
+    return {
+        "available": [{"code": c, "label": master_deck.LANGUAGES[c]} for c in have],
+        "default": master_deck.resolve_lang(None),
+    }
+
+
 @app.get("/api/master-preview", response_class=HTMLResponse)
-async def master_preview():
+async def master_preview(lang: Optional[str] = None):
     """Miniaturer af alle valgbare master-slides — vælgeren i composeren.
 
     Sælgeren skal kunne se hvad han slår til og fra. En titel som "Fra A til Z"
@@ -566,10 +579,10 @@ async def master_preview():
     Den hentes én gang pr. sidevisning — til- og fravalg går via postMessage,
     ikke ved genindlæsning — og ETag'en gør gentagne besøg gratis.
     """
-    if not master_deck.deck_available():
+    if not master_deck.deck_available(master_deck.resolve_lang(lang)):
         raise HTTPException(status_code=503, detail="Masterdecket er ikke indlæst.")
 
-    html = master_deck.inline_assets(master_deck.thumbnails_html())
+    html = master_deck.inline_assets(master_deck.thumbnails_html(lang), lang)
     etag = '"' + hashlib.sha256(html.encode()).hexdigest()[:16] + '"'
     return HTMLResponse(html, headers={"ETag": etag, "Cache-Control": "private, max-age=300"})
 
@@ -586,6 +599,7 @@ async def generate_deck(req: GenerateDeckRequest):
         services=req.services,
         excluded_slide_ids=req.excluded_slide_ids,
         selected_slide_ids=req.selected_slide_ids,
+        lang=master_deck.resolve_lang(req.lang),
     )
 
     # Gem til disk
