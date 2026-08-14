@@ -69,20 +69,32 @@ def import_master(source: Path, lang: str) -> dict:
         for old in d.iterdir():
             old.unlink()
 
-    # Assets — gemmes under deres uuid så slide-markup kan bruges urørt
-    runtime_js = None
+    # Assets — gemmes under deres uuid så slide-markup kan bruges urørt.
+    # Eksporten indeholder flere JavaScript-assets (React, design-system,
+    # editor-runtime) som kun redigeringsværktøjet bruger — slides er ren
+    # statisk markup. Det eneste script decket behøver er deck-stage-vieweren:
+    # den kendes på at den registrerer custom-elementet.
+    js_assets = []
     for uuid, meta in assets.items():
         raw = base64.b64decode(meta["data"])
         if meta.get("compressed") in (True, "True"):
             raw = gzip.decompress(raw)
-        if meta["mime"] == "text/javascript":
-            runtime_js = raw
+        if "javascript" in meta["mime"]:
+            js_assets.append(raw)
             continue
         ext = _EXT.get(meta["mime"], "bin")
         (assets_dir / f"{uuid}.{ext}").write_bytes(raw)
 
+    runtime_js = next(
+        (js for js in js_assets
+         if b"define('deck-stage'" in js or b'define("deck-stage"' in js),
+        None,
+    )
+    if runtime_js is None and len(js_assets) == 1:
+        runtime_js = js_assets[0]
     if runtime_js:
         (out / "runtime.js").write_bytes(runtime_js)
+    (out / "extra.js").unlink(missing_ok=True)
 
     # Head-CSS: font-faces + animationsregler, i dokumentrækkefølge
     head = template.split("<section", 1)[0]
@@ -92,7 +104,17 @@ def import_master(source: Path, lang: str) -> dict:
     ]
     (out / "head.css").write_text("\n\n".join(css_blocks), encoding="utf-8")
 
-    # Slides: én fil pr. <section>, nummereret i deck-rækkefølge
+    # Slides: én fil pr. <section>, nummereret i deck-rækkefølge.
+    # Eksporten HTML-serialiserer camelCase-SVG-attributter som
+    # "sc-camel-view-box" o.l. og lader sin runtime gendanne dem i browseren.
+    # Vi renderer slides statisk, så vi gendanner dem her i stedet — uden
+    # viewBox tegnes fx Epico-logoet som en massiv farvet boks.
+    def _restore_camel(m: re.Match) -> str:
+        first, *rest = m.group(1).split("-")
+        return first + "".join(w.capitalize() for w in rest)
+
+    template = re.sub(r"sc-camel-([a-z-]+)", _restore_camel, template)
+
     sections = re.findall(r"<section .*?</section>", template, re.S)
     labels = []
     for i, section in enumerate(sections, 1):

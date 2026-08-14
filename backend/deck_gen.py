@@ -28,17 +28,64 @@ _AGENDA_TIMINGS = {
 
 
 
+# Statisk template-tekst pr. sprog. AI-indholdet følger sproget via prompten;
+# det her er de faste ord templaten selv ejer (cover-undertitel, kolonne-
+# overskrifter, kontakt-slide, rail-labels).
+_T = {
+    "da": {
+        "tailored_for": "Skræddersyet til",
+        "prepared_for": "udarbejdet til",
+        "source": "Kilde",
+        "map_left": "Jeres udfordring",
+        "map_right": "Vores håndtag",
+        "case_blocks": ["Situation", "Det gjorde vi", "Resultat", "Værdi for jer"],
+        "contact_heading": "Jeres team hos Epico",
+        "contact_sub": "Spørgsmål eller præciseringer? Skriv eller ring direkte — vi vender tilbage samme dag.",
+        "label_title": "Titel",
+        "label_mapping": "Udfordring → løsning",
+        "label_case": "Relevant case",
+        "label_next": "Næste skridt",
+        "label_contact": "Kontakt",
+        "role_kam": "Din Key Account Manager",
+        "role_rm": "Din Resource Manager",
+    },
+    "en": {
+        "tailored_for": "Tailored for",
+        "prepared_for": "prepared for",
+        "source": "Source",
+        "map_left": "Your challenge",
+        "map_right": "Our approach",
+        "case_blocks": ["Situation", "What we did", "Result", "Value for you"],
+        "contact_heading": "Your team at Epico",
+        "contact_sub": "Questions or details to clarify? Call or write directly — we reply the same day.",
+        "label_title": "Title",
+        "label_mapping": "Challenge → solution",
+        "label_case": "Relevant case",
+        "label_next": "Next steps",
+        "label_contact": "Contact",
+        "role_kam": "Your Key Account Manager",
+        "role_rm": "Your Resource Manager",
+    },
+}
+
 # Overskrifter til de fire kundespecifikke slides. AI'en genererer dem, så rammen
 # matcher hvem der sidder i lokalet — en Procurement-chef og en CIO skal ikke se
 # den samme sætning. Falder tilbage til de generiske hvis AI'en ikke leverede.
 _HEADLINE_FALLBACKS = {
-    "research": ("Vi har gjort hjemmearbejdet", "Dette ved vi om **{client}**"),
-    "mapping": ("Konkret kobling", "Jeres udfordring. **Vores håndtag.**"),
-    "next_steps": ("Hvis vi er enige om retningen", "{n} konkrete **næste skridt.**"),
+    "da": {
+        "research": ("Vi har gjort hjemmearbejdet", "Dette ved vi om **{client}**"),
+        "mapping": ("Konkret kobling", "Jeres udfordring. **Vores håndtag.**"),
+        "next_steps": ("Hvis vi er enige om retningen", "{n} konkrete **næste skridt.**"),
+    },
+    "en": {
+        "research": ("We did our homework", "What we know about **{client}**"),
+        "mapping": ("The concrete link", "Your challenge. **Our approach.**"),
+        "next_steps": ("If we agree on the direction", "{n} concrete **next steps.**"),
+    },
 }
 
 
-def _slide_headlines(analysis: Dict[str, Any], client_name: str) -> Dict[str, Dict[str, str]]:
+def _slide_headlines(analysis: Dict[str, Any], client_name: str, lang: str = "da") -> Dict[str, Dict[str, str]]:
     """Saml overskrifter til kunde-slidesne, med fallback til de generiske."""
     generated = analysis.get("slide_headlines") or {}
     counts = {
@@ -46,7 +93,7 @@ def _slide_headlines(analysis: Dict[str, Any], client_name: str) -> Dict[str, Di
     }
 
     out = {}
-    for key, (fb_eyebrow, fb_heading) in _HEADLINE_FALLBACKS.items():
+    for key, (fb_eyebrow, fb_heading) in _HEADLINE_FALLBACKS[lang].items():
         item = generated.get(key) or {}
         eyebrow = (item.get("eyebrow") or "").strip() or fb_eyebrow
         heading = (item.get("heading") or "").strip() or fb_heading.format(
@@ -166,6 +213,8 @@ def render_master_deck(
     """
     meeting = meeting or {}
     team = team or {}
+    lang = master_deck.resolve_lang(lang)
+    t = _T[lang]
 
     # Uden kundeindhold er decket en ren master-pitch — så skal det følge
     # masterens egen fortælling (historien først), ikke den skræddersyede orden.
@@ -184,6 +233,7 @@ def render_master_deck(
 
     context = {
         "client": {"name": client_name},
+        "cover": master_deck.title_assets(lang),
         "meeting": {
             "date": meeting.get("date") or "[DATO]",
             "city": meeting.get("city") or "",
@@ -195,10 +245,11 @@ def render_master_deck(
         "case": analysis.get("case_recommendation", {}),
         "industry_tag": analysis.get("industry_tag", "branchen"),
         "team": {
-            "kam": _master_team_member(team.get("kam"), "Din Key Account Manager", "Senior Key Account Manager"),
-            "rm": _master_team_member(team.get("rm"), "Din Resource Manager", "Resource Manager"),
+            "kam": _master_team_member(team.get("kam"), t["role_kam"], "Senior Key Account Manager"),
+            "rm": _master_team_member(team.get("rm"), t["role_rm"], "Resource Manager"),
         },
-        "headlines": _slide_headlines(analysis, client_name),
+        "headlines": _slide_headlines(analysis, client_name, lang),
+        "t": t,
         "library_slides": library,
         "outro_html": master_deck.slide_html(master_deck.OUTRO_NUM, lang),
         "head_css": master_deck.head_css(lang),

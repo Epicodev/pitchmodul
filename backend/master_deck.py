@@ -221,6 +221,23 @@ def slide_html(num: int, lang: Optional[str] = None) -> str:
     return _load(lang)["slides"][num]
 
 
+def title_assets(lang: Optional[str] = None) -> Dict[str, str]:
+    """Titelslidens baggrundsbillede og logo — til det personaliserede cover.
+
+    Coveret i templaten er masterens egen titelslide med kundens navn.
+    Uuid'erne er sprogspecifikke (DA og EN deler ingen assets), så de
+    slås op i den aktuelle sprogudgaves slide 1 i stedet for at stå
+    hardcodet i templaten.
+    """
+    html = _load(lang)["slides"].get(1, "")
+    bg = re.search(r'<img class="fxz" src="([0-9a-f-]{36})"', html)
+    logo = re.search(r'<img class="fx" src="([0-9a-f-]{36})"', html)
+    return {
+        "bg": bg.group(1) if bg else "",
+        "logo": logo.group(1) if logo else "",
+    }
+
+
 def get_slide(num: int) -> MasterSlide:
     return next(s for s in MANIFEST if s.num == num)
 

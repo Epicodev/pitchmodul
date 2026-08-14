@@ -590,6 +590,7 @@ async def master_preview(lang: Optional[str] = None):
 @app.post("/api/generate-deck")
 async def generate_deck(req: GenerateDeckRequest):
     """Render det færdige pitch deck som HTML (masterdeckets design)."""
+    lang = master_deck.resolve_lang(req.lang)
     html = render_master_deck(
         client_name=req.client_name,
         analysis=req.analysis,
@@ -599,13 +600,14 @@ async def generate_deck(req: GenerateDeckRequest):
         services=req.services,
         excluded_slide_ids=req.excluded_slide_ids,
         selected_slide_ids=req.selected_slide_ids,
-        lang=master_deck.resolve_lang(req.lang),
+        lang=lang,
     )
 
-    # Gem til disk
+    # Gem til disk — sproget med i navnet, så et DA- og EN-deck genereret i
+    # samme sekund ikke overskriver hinanden
     safe_name = "".join(c if c.isalnum() else "_" for c in req.client_name).lower()
     timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    filename = f"{safe_name}-{timestamp}.html"
+    filename = f"{safe_name}-{lang}-{timestamp}.html"
     out_path = GENERATED_DIR / filename
     out_path.write_text(html, encoding="utf-8")
 
