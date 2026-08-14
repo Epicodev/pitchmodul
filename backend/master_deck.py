@@ -59,52 +59,57 @@ class MasterSlide:
 
 
 MANIFEST: List[MasterSlide] = [
+    # Nummereringen følger Benjamins masterfiler (DK + EN eksporteret 2026-08-19,
+    # identisk rækkefølge). Lengths/services er genbrugt pr. slide fra den gamle
+    # struktur — det er de samme slides, de har bare fået nye numre.
     MasterSlide(1, "Titel", "reserved", reserved=True),
     # ── Historien om Epico ──
-    MasterSlide(2, "Udfordringen", "story"),
-    MasterSlide(3, "Fleksibel bemanding", "story", [MEDIUM, LONG]),
-    MasterSlide(4, "Det rette match", "story"),
-    MasterSlide(5, "Processen", "story", [MEDIUM, LONG]),
-    MasterSlide(6, "Hvem er vi", "story", [MEDIUM, LONG]),
-    MasterSlide(7, "Epico i tal", "story"),
-    MasterSlide(8, "Citat", "story", [LONG]),
-    MasterSlide(9, "Hvad vi gør", "story"),
-    # ── Freelance ──
-    MasterSlide(10, "Services forside", "freelance", [MEDIUM, LONG], [FREELANCE, PROJEKT]),
-    MasterSlide(11, "Freelance", "freelance", ALL, [FREELANCE, PROJEKT]),
-    MasterSlide(12, "Epic Process", "freelance", [MEDIUM, LONG], [FREELANCE, PROJEKT]),
+    MasterSlide(2, "Hvem er vi", "story", [MEDIUM, LONG]),
+    MasterSlide(3, "Udfordringen", "story"),
+    MasterSlide(4, "Processen", "story", [MEDIUM, LONG]),
+    MasterSlide(5, "Seks kriterier", "story", [MEDIUM, LONG]),
+    MasterSlide(6, "Citat", "story", [LONG]),
+    MasterSlide(7, "Hvad vi gør", "story"),
+    # ── Freelance & projektansættelser ──
+    MasterSlide(8, "Services forside", "freelance", [MEDIUM, LONG], [FREELANCE, PROJEKT]),
+    MasterSlide(9, "Fleksibel bemanding", "freelance", [MEDIUM, LONG], [FREELANCE, PROJEKT]),
+    MasterSlide(10, "Freelance", "freelance", ALL, [FREELANCE, PROJEKT]),
+    MasterSlide(11, "Epic Process", "freelance", [MEDIUM, LONG], [FREELANCE, PROJEKT]),
     # ── Kompetencer (generelle) ──
-    MasterSlide(13, "Kompetencer", "kompetencer", [MEDIUM, LONG]),
-    MasterSlide(14, "Fagområder", "kompetencer", [LONG]),
+    MasterSlide(12, "Kompetencer", "kompetencer", [MEDIUM, LONG]),
+    MasterSlide(13, "Fagområder", "kompetencer", [LONG]),
     # ── Headhunting & rekruttering ──
-    MasterSlide(15, "Headhunting forside", "search", [MEDIUM, LONG], [SEARCH]),
-    MasterSlide(16, "Headhunting", "search", ALL, [SEARCH]),
-    MasterSlide(17, "Rekrutteringsprocessen", "search", [MEDIUM, LONG], [SEARCH]),
-    MasterSlide(18, "Fra A til Z", "search", [LONG], [SEARCH]),
+    MasterSlide(14, "Headhunting forside", "search", [MEDIUM, LONG], [SEARCH]),
+    MasterSlide(15, "Headhunting", "search", ALL, [SEARCH]),
+    MasterSlide(16, "Rekrutteringsprocessen", "search", [MEDIUM, LONG], [SEARCH]),
+    MasterSlide(17, "Fra A til Z", "search", [LONG], [SEARCH]),
     # ── NextGen ──
-    MasterSlide(19, "NextGen forside", "nextgen", [MEDIUM, LONG], [NEXTGEN]),
-    MasterSlide(20, "NextGen", "nextgen", ALL, [NEXTGEN]),
-    MasterSlide(21, "NextGen proces", "nextgen", [MEDIUM, LONG], [NEXTGEN]),
+    MasterSlide(18, "NextGen forside", "nextgen", [MEDIUM, LONG], [NEXTGEN]),
+    MasterSlide(19, "NextGen", "nextgen", ALL, [NEXTGEN]),
+    MasterSlide(20, "NextGen proces", "nextgen", [MEDIUM, LONG], [NEXTGEN]),
     # ── Solution ──
-    MasterSlide(22, "Solution forside", "solution", [MEDIUM, LONG], [SOLUTION]),
-    MasterSlide(23, "Epico Solution", "solution", ALL, [SOLUTION]),
-    MasterSlide(24, "App as a Service", "solution", [LONG], [SOLUTION]),
-    MasterSlide(25, "Dataintegration", "solution", [LONG], [SOLUTION]),
-    MasterSlide(26, "Cloud", "solution", [LONG], [SOLUTION]),
-    MasterSlide(27, "SAP Basis", "solution", [LONG], [SOLUTION]),
+    MasterSlide(21, "Solution forside", "solution", [MEDIUM, LONG], [SOLUTION]),
+    MasterSlide(22, "Epico Solution", "solution", ALL, [SOLUTION]),
+    MasterSlide(23, "App as a Service", "solution", [LONG], [SOLUTION]),
+    MasterSlide(24, "Dataintegration", "solution", [LONG], [SOLUTION]),
+    MasterSlide(25, "Cloud", "solution", [LONG], [SOLUTION]),
+    MasterSlide(26, "SAP Basis", "solution", [LONG], [SOLUTION]),
     # ── Oracle / Mainframe (Solution-specialer) ──
-    MasterSlide(28, "Oracle forside", "oracle", [MEDIUM, LONG], [SOLUTION]),
-    MasterSlide(29, "Oracle", "oracle", ALL, [SOLUTION]),
-    MasterSlide(30, "Mainframe forside", "mainframe", [MEDIUM, LONG], [SOLUTION]),
-    MasterSlide(31, "Mainframe", "mainframe", ALL, [SOLUTION]),
+    MasterSlide(27, "Oracle forside", "oracle", [MEDIUM, LONG], [SOLUTION]),
+    MasterSlide(28, "Oracle", "oracle", ALL, [SOLUTION]),
+    MasterSlide(29, "Mainframe forside", "mainframe", [MEDIUM, LONG], [SOLUTION]),
+    MasterSlide(30, "Mainframe", "mainframe", ALL, [SOLUTION]),
     # ── Offentlig sektor ──
-    MasterSlide(32, "Offentlig sektor forside", "public", [MEDIUM, LONG], [PUBLIC]),
-    MasterSlide(33, "Offentlig sektor", "public", ALL, [PUBLIC]),
-    # ── Afrunding ──
-    MasterSlide(34, "Seks kriterier", "closing", [MEDIUM, LONG]),
-    MasterSlide(35, "Partnerskab", "closing"),
-    MasterSlide(36, "Næste skridt", "reserved", reserved=True),
-    MasterSlide(37, "Afslutning", "reserved", reserved=True),
+    MasterSlide(31, "Offentlig sektor forside", "public", [MEDIUM, LONG], [PUBLIC]),
+    MasterSlide(32, "Offentlig sektor", "public", ALL, [PUBLIC]),
+    # ── Afslutning ──
+    MasterSlide(33, "Human first", "reserved", reserved=True),  # masterens outro
+    # ── Bonus (masterens eget appendix: "vises kun hvis samtalen kalder på det") ──
+    # Aldrig forvalgt — sælgeren tager dem aktivt med.
+    MasterSlide(34, "Bonusslides", "bonus", []),
+    MasterSlide(35, "Epico i tal", "bonus", []),
+    MasterSlide(36, "Partnerskab", "bonus", []),
+    MasterSlide(37, "Det rette match", "bonus", []),
 ]
 
 CHAPTER_LABELS = {
@@ -117,7 +122,7 @@ CHAPTER_LABELS = {
     "oracle": "Oracle",
     "mainframe": "Mainframe",
     "public": "Offentlig sektor",
-    "closing": "Afrunding",
+    "bonus": "Bonus — vises kun hvis samtalen kalder på det",
 }
 
 _MIME = {
@@ -134,6 +139,9 @@ _MIME = {
 
 LANGUAGES = {"da": "Dansk", "en": "English"}
 DEFAULT_LANG = "da"
+
+# Masterens afslutningsslide ("Human first. Technology always.")
+OUTRO_NUM = 33
 
 _cache: Dict[str, Dict[str, Any]] = {}
 
@@ -375,12 +383,12 @@ def slides_following(ids: Optional[List[str]]) -> List[Dict[str, str]]:
 _DECK_CHAPTER_ORDER = [
     "freelance", "kompetencer", "search", "nextgen",
     "solution", "oracle", "mainframe", "public",
-    "story", "closing",
+    "story", "bonus",
 ]
 
 
 def _deck_sort_key(s: MasterSlide) -> tuple:
-    if s.num == 9:  # Hvad vi gør — broen ind i service-delen
+    if s.num == 7:  # Hvad vi gør — broen ind i service-delen
         return (-1, s.num)
     try:
         rank = _DECK_CHAPTER_ORDER.index(s.chapter)

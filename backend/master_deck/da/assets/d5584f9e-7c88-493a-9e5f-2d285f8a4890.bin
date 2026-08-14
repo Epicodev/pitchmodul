@@ -1,0 +1,2448 @@
+/* @ds-bundle: {"format":4,"namespace":"EpicoDesignSystem_8e9494","components":[{"name":"Badge","sourcePath":"components/core/Badge.jsx"},{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"EMark","sourcePath":"components/core/EMark.jsx"},{"name":"IconButton","sourcePath":"components/core/IconButton.jsx"},{"name":"Logo","sourcePath":"components/core/Logo.jsx"},{"name":"SectionLabel","sourcePath":"components/core/SectionLabel.jsx"},{"name":"Tag","sourcePath":"components/core/Tag.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Card","sourcePath":"components/surfaces/Card.jsx"},{"name":"Dialog","sourcePath":"components/surfaces/Dialog.jsx"},{"name":"Toast","sourcePath":"components/surfaces/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/surfaces/Tooltip.jsx"}],"sourceHashes":{"components/core/Badge.jsx":"de263cda8a2b","components/core/Button.jsx":"1203a30afc5b","components/core/EMark.jsx":"2d046f3a724c","components/core/IconButton.jsx":"2ff91df307a0","components/core/Logo.jsx":"f7ee24dda2ef","components/core/SectionLabel.jsx":"fdf0984dde2b","components/core/Tag.jsx":"b0ca021b187e","components/forms/Checkbox.jsx":"2fa5fec6f887","components/forms/Input.jsx":"60d75c9c826f","components/forms/Radio.jsx":"8af7945158ae","components/forms/Select.jsx":"22024ba96f49","components/forms/Switch.jsx":"c72c96108f76","components/navigation/Tabs.jsx":"cbe8ff0b992b","components/surfaces/Card.jsx":"7313fec750be","components/surfaces/Dialog.jsx":"0617cb134e3c","components/surfaces/Toast.jsx":"5a1feca52e53","components/surfaces/Tooltip.jsx":"298ba5d7edc2","ui_kits/website/About.jsx":"b44bda809ad7","ui_kits/website/Chrome.jsx":"c2d0ccd41dfa","ui_kits/website/Companies.jsx":"16a68d56966a","ui_kits/website/Home.jsx":"8aa17c2b9e6a","ui_kits/website/JobDetail.jsx":"d4ff330544d8","ui_kits/website/Jobs.jsx":"9eb94264f34a"},"inlinedExternals":[],"unexposedExports":[]} */
+
+(() => {
+
+const __ds_ns = (window.EpicoDesignSystem_8e9494 = window.EpicoDesignSystem_8e9494 || {});
+
+const __ds_scope = {};
+
+(__ds_ns.__errors = __ds_ns.__errors || []);
+
+// components/core/Badge.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const tones = {
+  blueberry: {
+    background: 'var(--blueberry)',
+    color: '#fff'
+  },
+  kiwi: {
+    background: 'var(--kiwi)',
+    color: 'var(--black-currant)'
+  },
+  raspberry: {
+    background: 'var(--raspberry)',
+    color: '#fff'
+  },
+  blackberry: {
+    background: 'var(--blackberry)',
+    color: '#fff'
+  },
+  mulberry: {
+    background: 'var(--mulberry)',
+    color: 'var(--black-currant)'
+  },
+  currant: {
+    background: 'var(--black-currant)',
+    color: '#fff'
+  },
+  neutral: {
+    background: 'var(--beige)',
+    color: 'var(--grey)'
+  }
+};
+function Badge({
+  tone = 'blueberry',
+  children,
+  style,
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement("span", _extends({
+    style: {
+      display: 'inline-block',
+      fontFamily: 'var(--font-sans)',
+      fontSize: 'var(--text-badge)',
+      fontWeight: 'var(--fw-bold)',
+      letterSpacing: 'var(--ls-badge)',
+      textTransform: 'uppercase',
+      padding: '5px 12px',
+      borderRadius: 'var(--radius-pill)',
+      lineHeight: 1.3,
+      ...tones[tone],
+      ...style
+    }
+  }, rest), children);
+}
+Object.assign(__ds_scope, { Badge });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Badge.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Button.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const sizes = {
+  sm: {
+    padding: '9px 18px',
+    fontSize: '13px'
+  },
+  md: {
+    padding: '14px 28px',
+    fontSize: '15px'
+  },
+  lg: {
+    padding: '18px 36px',
+    fontSize: '17px'
+  }
+};
+const variants = {
+  primary: {
+    background: 'var(--action-primary-bg)',
+    color: 'var(--action-primary-fg)',
+    border: 'none'
+  },
+  secondary: {
+    background: 'var(--action-secondary-bg)',
+    color: 'var(--action-secondary-fg)',
+    border: 'none'
+  },
+  outline: {
+    background: 'transparent',
+    color: 'var(--text-heading)',
+    border: '1px solid var(--text-heading)'
+  },
+  ghost: {
+    background: 'transparent',
+    color: 'var(--text-heading)',
+    border: '1px solid transparent'
+  },
+  link: {
+    background: 'transparent',
+    color: 'inherit',
+    border: 'none',
+    padding: 0
+  }
+};
+const hovers = {
+  primary: {
+    background: 'var(--action-primary-bg-hover)'
+  },
+  secondary: {
+    background: 'var(--action-secondary-bg-hover)'
+  },
+  outline: {
+    background: 'var(--text-heading)',
+    color: '#fff'
+  },
+  ghost: {
+    borderColor: 'var(--border-hairline)'
+  },
+  link: {
+    opacity: .7
+  }
+};
+function Button({
+  variant = 'primary',
+  size = 'md',
+  arrow = false,
+  icon,
+  disabled = false,
+  onDark = false,
+  fullWidth = false,
+  children,
+  style,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  const base = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    fontFamily: 'var(--font-sans)',
+    fontWeight: 'var(--fw-bold)',
+    lineHeight: 1,
+    borderRadius: 'var(--radius-none)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'var(--transition-ui)',
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+    width: fullWidth ? '100%' : undefined,
+    ...sizes[size],
+    ...variants[variant],
+    ...(variant === 'link' ? {
+      padding: 0
+    } : null),
+    ...(onDark && variant === 'outline' ? {
+      color: '#fff',
+      borderColor: 'rgba(255,255,255,.4)'
+    } : null),
+    ...(hover && !disabled ? hovers[variant] : null),
+    ...(disabled ? {
+      background: variant === 'link' || variant === 'ghost' ? 'transparent' : 'var(--action-disabled-bg)',
+      color: 'var(--action-disabled-fg)',
+      borderColor: 'var(--action-disabled-bg)'
+    } : null),
+    ...style
+  };
+  return /*#__PURE__*/React.createElement("button", _extends({
+    type: "button",
+    disabled: disabled,
+    style: base,
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false)
+  }, rest), icon, children, arrow && /*#__PURE__*/React.createElement("span", {
+    style: {
+      transform: hover && !disabled ? 'translateX(3px)' : 'none',
+      transition: 'var(--transition-ui)'
+    }
+  }, "\u2192"));
+}
+Object.assign(__ds_scope, { Button });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Button.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/EMark.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/* Geometry traced from the supplied bomærke artwork (assets/logo/emark.svg): ratio 778 × 1000.
+   The middle arm is DETACHED from the stem and inset to 53% of the width — that gap is the mark. */
+function EMark({
+  size = 36,
+  color = 'var(--red)',
+  boxed = false,
+  boxColor,
+  style,
+  ...rest
+}) {
+  const width = Math.round(size * (778 / 1000));
+  const glyph = /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 778 1000",
+    width: width,
+    height: size,
+    fill: "currentColor",
+    role: "img",
+    "aria-label": "Epico",
+    style: {
+      display: 'block',
+      flex: '0 0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M0 0H778V211H240V790H778V1000H0Z"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "414",
+    y: "381",
+    width: "364",
+    height: "212"
+  }));
+  if (!boxed) return /*#__PURE__*/React.createElement("span", _extends({
+    style: {
+      color,
+      display: 'inline-flex',
+      ...style
+    }
+  }, rest), glyph);
+  const pad = Math.round(size * 0.28);
+  return /*#__PURE__*/React.createElement("span", _extends({
+    style: {
+      background: boxColor || 'var(--black-currant)',
+      color,
+      padding: pad + 'px ' + Math.round(pad * 1.15) + 'px',
+      display: 'inline-flex',
+      borderRadius: 'var(--radius-none)',
+      ...style
+    }
+  }, rest), glyph);
+}
+Object.assign(__ds_scope, { EMark });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/EMark.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/IconButton.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const sizes = {
+  sm: 32,
+  md: 40,
+  lg: 48
+};
+function IconButton({
+  variant = 'ghost',
+  size = 'md',
+  label,
+  disabled = false,
+  onDark = false,
+  children,
+  style,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  const s = sizes[size];
+  const palette = {
+    ghost: {
+      background: hover ? 'var(--surface-icon)' : 'transparent',
+      color: onDark ? '#fff' : 'var(--text-heading)',
+      border: '1px solid transparent'
+    },
+    outline: {
+      background: hover ? 'var(--surface-icon)' : 'transparent',
+      color: onDark ? '#fff' : 'var(--text-heading)',
+      border: '1px solid ' + (onDark ? 'rgba(255,255,255,.4)' : 'var(--border-hairline)')
+    },
+    solid: {
+      background: hover ? 'var(--action-secondary-bg-hover)' : 'var(--action-secondary-bg)',
+      color: '#fff',
+      border: 'none'
+    },
+    primary: {
+      background: hover ? 'var(--action-primary-bg-hover)' : 'var(--action-primary-bg)',
+      color: 'var(--action-primary-fg)',
+      border: 'none'
+    }
+  }[variant];
+  return /*#__PURE__*/React.createElement("button", _extends({
+    type: "button",
+    "aria-label": label,
+    disabled: disabled,
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    style: {
+      width: s,
+      height: s,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 'var(--radius-none)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      transition: 'var(--transition-ui)',
+      opacity: disabled ? .4 : 1,
+      ...palette,
+      ...style
+    }
+  }, rest), children);
+}
+Object.assign(__ds_scope, { IconButton });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/IconButton.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Logo.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const SRC = {
+  red: 'assets/logo/epico-logotype-red.png',
+  white: 'assets/logo/epico-logotype-white.png',
+  currant: 'assets/logo/epico-logotype-currant.png'
+};
+function Logo({
+  size = 32,
+  tone = 'red',
+  assetBase = '../../',
+  markOnly = false,
+  style,
+  ...rest
+}) {
+  const key = tone === 'light' ? 'white' : tone === 'dark' ? 'currant' : tone;
+  if (markOnly) {
+    return /*#__PURE__*/React.createElement(__ds_scope.EMark, _extends({
+      size: size,
+      color: key === 'white' ? '#fff' : key === 'currant' ? 'var(--black-currant)' : 'var(--red)',
+      style: style
+    }, rest));
+  }
+  return /*#__PURE__*/React.createElement("img", _extends({
+    src: assetBase + SRC[key],
+    alt: "Epico",
+    style: {
+      height: size,
+      width: 'auto',
+      display: 'block',
+      ...style
+    }
+  }, rest));
+}
+Object.assign(__ds_scope, { Logo });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Logo.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/SectionLabel.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function SectionLabel({
+  tone = 'raspberry',
+  as = 'div',
+  children,
+  style,
+  ...rest
+}) {
+  const Tag = as;
+  const color = tone === 'kiwi' ? 'var(--kiwi)' : tone === 'muted' ? 'var(--light-grey)' : 'var(--raspberry)';
+  return /*#__PURE__*/React.createElement(Tag, _extends({
+    style: {
+      fontFamily: 'var(--font-sans)',
+      fontSize: 'var(--text-label)',
+      fontWeight: 'var(--fw-bold)',
+      letterSpacing: 'var(--ls-label)',
+      textTransform: 'uppercase',
+      color,
+      ...style
+    }
+  }, rest), children);
+}
+Object.assign(__ds_scope, { SectionLabel });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/SectionLabel.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Tag.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Tag({
+  selected = false,
+  onRemove,
+  children,
+  style,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  return /*#__PURE__*/React.createElement("span", _extends({
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8,
+      fontFamily: 'var(--font-sans)',
+      fontSize: 13,
+      fontWeight: 'var(--fw-medium)',
+      padding: '7px 12px',
+      borderRadius: 'var(--radius-none)',
+      background: selected ? 'var(--black-currant)' : hover ? 'var(--beige)' : 'transparent',
+      color: selected ? '#fff' : 'var(--text-body)',
+      border: '1px solid ' + (selected ? 'var(--black-currant)' : 'var(--border-hairline)'),
+      cursor: rest.onClick ? 'pointer' : 'default',
+      transition: 'var(--transition-ui)',
+      ...style
+    }
+  }, rest), children, onRemove && /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      onRemove(e);
+    },
+    "aria-label": "Fjern",
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'inherit',
+      cursor: 'pointer',
+      padding: 0,
+      fontSize: 14,
+      lineHeight: 1
+    }
+  }, "\xD7"));
+}
+Object.assign(__ds_scope, { Tag });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Tag.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Checkbox.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Checkbox({
+  label,
+  checked,
+  defaultChecked,
+  disabled,
+  onChange,
+  description,
+  style,
+  ...rest
+}) {
+  const [inner, setInner] = React.useState(!!defaultChecked);
+  const isOn = checked !== undefined ? checked : inner;
+  return /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      gap: 12,
+      alignItems: description ? 'flex-start' : 'center',
+      fontFamily: 'var(--font-sans)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? .5 : 1,
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("input", _extends({
+    type: "checkbox",
+    checked: isOn,
+    disabled: disabled,
+    onChange: e => {
+      if (checked === undefined) setInner(e.target.checked);
+      onChange && onChange(e);
+    },
+    style: {
+      position: 'absolute',
+      opacity: 0,
+      width: 0,
+      height: 0
+    }
+  }, rest)), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      width: 20,
+      height: 20,
+      flex: '0 0 auto',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: isOn ? 'var(--black-currant)' : '#fff',
+      border: '1px solid ' + (isOn ? 'var(--black-currant)' : 'var(--border-hairline)'),
+      borderRadius: 'var(--radius-none)',
+      transition: 'var(--transition-ui)',
+      marginTop: description ? 2 : 0
+    }
+  }, isOn && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 10,
+      height: 6,
+      borderLeft: '2px solid var(--kiwi)',
+      borderBottom: '2px solid var(--kiwi)',
+      transform: 'rotate(-45deg) translate(1px,-1px)'
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-body)'
+    }
+  }, label), description && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text-muted)'
+    }
+  }, description)));
+}
+Object.assign(__ds_scope, { Checkbox });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Checkbox.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Input.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Input({
+  label,
+  hint,
+  error,
+  icon,
+  size = 'md',
+  style,
+  wrapperStyle,
+  ...rest
+}) {
+  const [focus, setFocus] = React.useState(false);
+  const pad = size === 'sm' ? '9px 12px' : '13px 14px';
+  return /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6,
+      fontFamily: 'var(--font-sans)',
+      ...wrapperStyle
+    }
+  }, label && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 'var(--fw-bold)',
+      color: 'var(--text-heading)'
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      padding: pad,
+      background: '#fff',
+      border: '1px solid ' + (error ? 'var(--raspberry)' : focus ? 'var(--focus-ring)' : 'var(--border-hairline)'),
+      boxShadow: focus && !error ? 'inset 0 0 0 1px var(--focus-ring)' : 'none',
+      borderRadius: 'var(--radius-none)',
+      transition: 'var(--transition-ui)'
+    }
+  }, icon, /*#__PURE__*/React.createElement("input", _extends({
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    style: {
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      font: 'inherit',
+      fontSize: size === 'sm' ? 14 : 15,
+      color: 'var(--text-body)',
+      width: '100%',
+      ...style
+    }
+  }, rest))), (hint || error) && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: error ? 'var(--raspberry)' : 'var(--text-muted)'
+    }
+  }, error || hint));
+}
+Object.assign(__ds_scope, { Input });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Input.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Radio.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Radio({
+  label,
+  description,
+  checked,
+  disabled,
+  name,
+  value,
+  onChange,
+  style,
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      gap: 12,
+      alignItems: description ? 'flex-start' : 'center',
+      fontFamily: 'var(--font-sans)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? .5 : 1,
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("input", _extends({
+    type: "radio",
+    name: name,
+    value: value,
+    checked: checked,
+    disabled: disabled,
+    onChange: onChange,
+    style: {
+      position: 'absolute',
+      opacity: 0,
+      width: 0,
+      height: 0
+    }
+  }, rest)), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      width: 20,
+      height: 20,
+      flex: '0 0 auto',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#fff',
+      border: '1px solid ' + (checked ? 'var(--black-currant)' : 'var(--border-hairline)'),
+      borderRadius: 'var(--radius-none)',
+      transition: 'var(--transition-ui)',
+      marginTop: description ? 2 : 0
+    }
+  }, checked && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 10,
+      height: 10,
+      background: 'var(--black-currant)'
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-body)'
+    }
+  }, label), description && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text-muted)'
+    }
+  }, description)));
+}
+Object.assign(__ds_scope, { Radio });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Radio.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Select.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Select({
+  label,
+  hint,
+  error,
+  options = [],
+  size = 'md',
+  style,
+  wrapperStyle,
+  ...rest
+}) {
+  const [focus, setFocus] = React.useState(false);
+  return /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6,
+      fontFamily: 'var(--font-sans)',
+      ...wrapperStyle
+    }
+  }, label && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 'var(--fw-bold)',
+      color: 'var(--text-heading)'
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'relative',
+      display: 'block'
+    }
+  }, /*#__PURE__*/React.createElement("select", _extends({
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    style: {
+      appearance: 'none',
+      width: '100%',
+      padding: size === 'sm' ? '9px 34px 9px 12px' : '13px 38px 13px 14px',
+      background: '#fff',
+      border: '1px solid ' + (error ? 'var(--raspberry)' : focus ? 'var(--focus-ring)' : 'var(--border-hairline)'),
+      borderRadius: 'var(--radius-none)',
+      font: 'inherit',
+      fontSize: size === 'sm' ? 14 : 15,
+      color: 'var(--text-body)',
+      outline: 'none',
+      cursor: 'pointer',
+      transition: 'var(--transition-ui)',
+      ...style
+    }
+  }, rest), options.map(o => /*#__PURE__*/React.createElement("option", {
+    key: o.value ?? o,
+    value: o.value ?? o
+  }, o.label ?? o))), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      position: 'absolute',
+      right: 14,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      pointerEvents: 'none',
+      fontSize: 11,
+      color: 'var(--text-heading)'
+    }
+  }, "\u25BC")), (hint || error) && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: error ? 'var(--raspberry)' : 'var(--text-muted)'
+    }
+  }, error || hint));
+}
+Object.assign(__ds_scope, { Select });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Select.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Switch.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Switch({
+  label,
+  checked,
+  defaultChecked,
+  disabled,
+  onChange,
+  style,
+  ...rest
+}) {
+  const [inner, setInner] = React.useState(!!defaultChecked);
+  const isOn = checked !== undefined ? checked : inner;
+  return /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 12,
+      fontFamily: 'var(--font-sans)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? .5 : 1,
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("input", _extends({
+    type: "checkbox",
+    role: "switch",
+    checked: isOn,
+    disabled: disabled,
+    onChange: e => {
+      if (checked === undefined) setInner(e.target.checked);
+      onChange && onChange(e);
+    },
+    style: {
+      position: 'absolute',
+      opacity: 0,
+      width: 0,
+      height: 0
+    }
+  }, rest)), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      width: 44,
+      height: 24,
+      padding: 3,
+      background: isOn ? 'var(--kiwi)' : 'var(--alu-grey)',
+      borderRadius: 'var(--radius-none)',
+      display: 'inline-flex',
+      transition: 'var(--transition-ui)'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 18,
+      height: 18,
+      background: isOn ? 'var(--black-currant)' : '#fff',
+      transform: 'translateX(' + (isOn ? 20 : 0) + 'px)',
+      transition: 'transform var(--dur-base) var(--ease-standard), background var(--dur-base)'
+    }
+  })), label && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-body)'
+    }
+  }, label));
+}
+Object.assign(__ds_scope, { Switch });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Switch.jsx", error: String((e && e.message) || e) }); }
+
+// components/navigation/Tabs.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Tabs({
+  items = [],
+  value,
+  defaultValue,
+  onChange,
+  tone = 'light',
+  style,
+  ...rest
+}) {
+  const [inner, setInner] = React.useState(defaultValue ?? (items[0] && (items[0].value ?? items[0])));
+  const active = value !== undefined ? value : inner;
+  const dark = tone === 'dark';
+  return /*#__PURE__*/React.createElement("div", _extends({
+    role: "tablist",
+    style: {
+      display: 'flex',
+      gap: 28,
+      borderBottom: '1px solid ' + (dark ? 'var(--divider-on-dark)' : 'var(--border-soft)'),
+      fontFamily: 'var(--font-sans)',
+      ...style
+    }
+  }, rest), items.map(it => {
+    const v = it.value ?? it,
+      label = it.label ?? it,
+      on = v === active;
+    return /*#__PURE__*/React.createElement("button", {
+      key: v,
+      role: "tab",
+      "aria-selected": on,
+      onClick: () => {
+        if (value === undefined) setInner(v);
+        onChange && onChange(v);
+      },
+      style: {
+        background: 'none',
+        border: 'none',
+        borderBottom: '3px solid ' + (on ? 'var(--kiwi)' : 'transparent'),
+        padding: '0 0 12px',
+        marginBottom: -1,
+        cursor: 'pointer',
+        font: 'inherit',
+        fontSize: 15,
+        fontWeight: on ? 'var(--fw-bold)' : 'var(--fw-medium)',
+        color: on ? dark ? '#fff' : 'var(--black-currant)' : dark ? 'var(--text-on-dark-muted)' : 'var(--light-grey)',
+        transition: 'var(--transition-ui)'
+      }
+    }, label);
+  }));
+}
+Object.assign(__ds_scope, { Tabs });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Tabs.jsx", error: String((e && e.message) || e) }); }
+
+// components/surfaces/Card.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function Card({
+  title,
+  body,
+  icon,
+  accent = 'var(--kiwi)',
+  href,
+  footer,
+  tone = 'light',
+  interactive = true,
+  children,
+  style,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  const dark = tone === 'dark';
+  return /*#__PURE__*/React.createElement("div", _extends({
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    style: {
+      background: dark ? 'var(--black-currant)' : '#fff',
+      borderTop: '3px solid ' + (interactive && hover ? accent : 'transparent'),
+      padding: '32px 28px 28px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      borderRadius: 'var(--radius-none)',
+      transition: 'var(--transition-ui)',
+      cursor: href ? 'pointer' : 'default',
+      ...style
+    }
+  }, rest), icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 40,
+      height: 40,
+      background: dark ? 'rgba(255,255,255,.08)' : 'var(--surface-icon)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: dark ? '#fff' : 'var(--black-currant)'
+    }
+  }, icon), title && /*#__PURE__*/React.createElement("h4", {
+    style: {
+      margin: 0,
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 'var(--fw-bold)',
+      fontSize: 20,
+      lineHeight: '26px',
+      letterSpacing: '-.01em',
+      color: dark ? '#fff' : 'var(--black-currant)'
+    }
+  }, title), body && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 15,
+      lineHeight: '23px',
+      color: dark ? 'var(--text-on-dark-muted)' : 'var(--light-grey)'
+    }
+  }, body), children, footer && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 'auto',
+      paddingTop: 14
+    }
+  }, footer), href && !footer && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginTop: 'auto',
+      paddingTop: 10,
+      fontSize: 14,
+      fontWeight: 'var(--fw-bold)',
+      color: dark ? '#fff' : 'var(--black-currant)'
+    }
+  }, "L\xE6s mere ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-block',
+      transform: hover ? 'translateX(3px)' : 'none',
+      transition: 'var(--transition-ui)'
+    }
+  }, "\u2192")));
+}
+Object.assign(__ds_scope, { Card });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/surfaces/Card.jsx", error: String((e && e.message) || e) }); }
+
+// components/surfaces/Dialog.jsx
+try { (() => {
+function Dialog({
+  open = false,
+  title,
+  description,
+  onClose,
+  footer,
+  width = 520,
+  children
+}) {
+  if (!open) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    role: "dialog",
+    "aria-modal": "true",
+    onClick: onClose,
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(27,27,80,.55)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      zIndex: 50
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: '#fff',
+      width,
+      maxWidth: '100%',
+      borderRadius: 'var(--radius-none)',
+      boxShadow: 'var(--shadow-dialog)',
+      borderTop: '3px solid var(--kiwi)',
+      padding: '28px 28px 24px',
+      fontFamily: 'var(--font-sans)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 16,
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("h4", {
+    style: {
+      margin: 0,
+      fontSize: 24,
+      lineHeight: '28px',
+      letterSpacing: '-.02em',
+      fontWeight: 'var(--fw-bold)',
+      color: 'var(--black-currant)'
+    }
+  }, title), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    "aria-label": "Luk",
+    style: {
+      background: 'none',
+      border: 'none',
+      fontSize: 20,
+      lineHeight: 1,
+      cursor: 'pointer',
+      color: 'var(--text-muted)'
+    }
+  }, "\xD7")), description && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: '12px 0 0',
+      fontSize: 15,
+      lineHeight: '23px',
+      color: 'var(--light-grey)'
+    }
+  }, description), children && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20
+    }
+  }, children), footer && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 24,
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end'
+    }
+  }, footer)));
+}
+Object.assign(__ds_scope, { Dialog });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/surfaces/Dialog.jsx", error: String((e && e.message) || e) }); }
+
+// components/surfaces/Toast.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+const tones = {
+  success: {
+    bar: 'var(--kiwi)',
+    label: 'OK'
+  },
+  info: {
+    bar: 'var(--blueberry)',
+    label: 'Info'
+  },
+  error: {
+    bar: 'var(--raspberry)',
+    label: 'Fejl'
+  }
+};
+function Toast({
+  tone = 'success',
+  title,
+  message,
+  onClose,
+  style,
+  ...rest
+}) {
+  const t = tones[tone];
+  return /*#__PURE__*/React.createElement("div", _extends({
+    role: "status",
+    style: {
+      display: 'flex',
+      gap: 14,
+      alignItems: 'flex-start',
+      background: 'var(--black-currant)',
+      color: '#fff',
+      padding: '16px 18px',
+      minWidth: 320,
+      maxWidth: 420,
+      borderLeft: '3px solid ' + t.bar,
+      borderRadius: 'var(--radius-none)',
+      fontFamily: 'var(--font-sans)',
+      ...style
+    }
+  }, rest), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      fontWeight: 'var(--fw-bold)'
+    }
+  }, title), message && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-on-dark-muted)',
+      lineHeight: '20px'
+    }
+  }, message)), onClose && /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    "aria-label": "Luk",
+    style: {
+      background: 'none',
+      border: 'none',
+      color: 'rgba(255,255,255,.6)',
+      fontSize: 18,
+      lineHeight: 1,
+      cursor: 'pointer'
+    }
+  }, "\xD7"));
+}
+Object.assign(__ds_scope, { Toast });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/surfaces/Toast.jsx", error: String((e && e.message) || e) }); }
+
+// components/surfaces/Tooltip.jsx
+try { (() => {
+function Tooltip({
+  content,
+  placement = 'top',
+  children,
+  style
+}) {
+  const [open, setOpen] = React.useState(false);
+  const pos = {
+    top: {
+      bottom: '100%',
+      left: '50%',
+      transform: 'translate(-50%,-8px)'
+    },
+    bottom: {
+      top: '100%',
+      left: '50%',
+      transform: 'translate(-50%,8px)'
+    },
+    left: {
+      right: '100%',
+      top: '50%',
+      transform: 'translate(-8px,-50%)'
+    },
+    right: {
+      left: '100%',
+      top: '50%',
+      transform: 'translate(8px,-50%)'
+    }
+  }[placement];
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'relative',
+      display: 'inline-flex',
+      ...style
+    },
+    onMouseEnter: () => setOpen(true),
+    onMouseLeave: () => setOpen(false),
+    onFocus: () => setOpen(true),
+    onBlur: () => setOpen(false)
+  }, children, open && /*#__PURE__*/React.createElement("span", {
+    role: "tooltip",
+    style: {
+      position: 'absolute',
+      ...pos,
+      background: 'var(--black-currant)',
+      color: '#fff',
+      fontFamily: 'var(--font-sans)',
+      fontSize: 13,
+      lineHeight: '18px',
+      padding: '7px 10px',
+      whiteSpace: 'nowrap',
+      borderRadius: 'var(--radius-none)',
+      zIndex: 20
+    }
+  }, content));
+}
+Object.assign(__ds_scope, { Tooltip });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/surfaces/Tooltip.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/About.jsx
+try { (() => {
+const {
+  Card,
+  Badge,
+  SectionLabel,
+  Button
+} = window.EpicoDesignSystem_8e9494;
+function About({
+  go
+}) {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Section, {
+    tone: "silk",
+    label: "Om Epico",
+    title: "Vi er rekrutteringsfolk med et fagligt sprog",
+    intro: "Epico er bygget af specialister, der selv har siddet i rollerne. Derfor kan vi tale med kandidaterne om andet end l\xF8npakken."
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4,1fr)',
+      gap: 'var(--grid-gap)'
+    }
+  }, [['2011', 'Grundlagt i København'], ['48', 'Kolleger'], ['4', 'Forretningsområder'], ['1.200+', 'Match om året']].map(([n, l]) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      background: '#fff',
+      padding: '32px 28px',
+      borderTop: '3px solid var(--raspberry)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontSize: 40,
+      fontWeight: 700,
+      letterSpacing: '-.02em',
+      color: 'var(--black-currant)'
+    }
+  }, n), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      color: 'var(--light-grey)',
+      marginTop: 8
+    }
+  }, l))))), /*#__PURE__*/React.createElement(Section, {
+    tone: "white",
+    label: "Teamet",
+    title: "Dem du kommer til at tale med"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4,1fr)',
+      gap: 'var(--grid-gap)'
+    }
+  }, [['Mette Sørensen', 'Partner, E Tech'], ['Jonas Lind', 'Partner, E Search'], ['Amira Haddad', 'Lead, E Freelance'], ['Peter Krogh', 'Lead, E NextGen']].map(([n, r]) => /*#__PURE__*/React.createElement("div", {
+    key: n,
+    style: {
+      background: 'var(--raw-silk)',
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      aspectRatio: '4 / 3',
+      background: 'var(--beige)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--light-grey)',
+      fontSize: 12,
+      letterSpacing: '.1em',
+      textTransform: 'uppercase',
+      fontWeight: 700
+    }
+  }, "Portr\xE6t"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '20px 22px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: 'var(--black-currant)'
+    }
+  }, n), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--light-grey)'
+    }
+  }, r))))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: 'var(--light-grey)',
+      marginTop: 20
+    }
+  }, "Portr\xE6tfelter st\xE5r bevidst tomme \u2014 der er ikke leveret fotomateriale med brandguiden.")), /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--black-currant)',
+      padding: '88px 64px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 40
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 620
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: "kiwi"
+  }, "Job hos os"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      marginTop: 16
+    }
+  }, "Vi s\xF8ger altid nye kolleger")), /*#__PURE__*/React.createElement(Button, {
+    size: "lg",
+    arrow: true,
+    onClick: () => go('jobs')
+  }, "Se stillinger")));
+}
+Object.assign(window, {
+  About
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/About.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/Chrome.jsx
+try { (() => {
+const {
+  Logo,
+  Button,
+  SectionLabel,
+  EMark
+} = window.EpicoDesignSystem_8e9494;
+function Icon({
+  name,
+  size = 20,
+  color
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      color
+    },
+    ref: el => {
+      if (el && !el.firstChild && window.lucide && lucide[name]) {
+        const s = lucide.createElement(lucide[name]);
+        s.setAttribute('width', size);
+        s.setAttribute('height', size);
+        el.appendChild(s);
+      }
+    }
+  });
+}
+function Nav({
+  route,
+  go
+}) {
+  const items = [['home', 'Forside'], ['jobs', 'Stillinger'], ['companies', 'For virksomheder'], ['about', 'Om Epico']];
+  return /*#__PURE__*/React.createElement("header", {
+    style: {
+      position: 'sticky',
+      top: 0,
+      zIndex: 30,
+      background: 'var(--raw-silk)',
+      borderBottom: '1px solid var(--beige)',
+      padding: '20px 64px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: e => {
+      e.preventDefault();
+      go('home');
+    },
+    style: {
+      borderBottom: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(Logo, {
+    size: 30
+  })), /*#__PURE__*/React.createElement("nav", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 32
+    }
+  }, items.map(([k, label]) => /*#__PURE__*/React.createElement("a", {
+    key: k,
+    href: "#",
+    onClick: e => {
+      e.preventDefault();
+      go(k);
+    },
+    style: {
+      fontSize: 15,
+      fontWeight: route === k ? 700 : 500,
+      color: route === k ? 'var(--black-currant)' : 'var(--grey)',
+      borderBottom: '2px solid ' + (route === k ? 'var(--kiwi)' : 'transparent'),
+      paddingBottom: 3
+    }
+  }, label)), /*#__PURE__*/React.createElement(Button, {
+    size: "sm",
+    arrow: true,
+    onClick: () => go('jobs')
+  }, "Se stillinger")));
+}
+function Footer({
+  go
+}) {
+  const cols = [['Services', ['E Search', 'E Freelance', 'E NextGen', 'E Tech']], ['Kandidat', ['Ledige stillinger', 'Opret profil', 'Karriereråd']], ['Virksomhed', ['Rekruttering', 'Vikarer', 'Priser']], ['Epico', ['Om os', 'Kontakt', 'Job hos os']]];
+  return /*#__PURE__*/React.createElement("footer", {
+    style: {
+      background: 'var(--grey)',
+      padding: '72px 64px 40px',
+      color: 'var(--text-on-footer)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1.4fr repeat(4, 1fr)',
+      gap: 40
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 18
+    }
+  }, /*#__PURE__*/React.createElement(Logo, {
+    size: 30,
+    tone: "light"
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      lineHeight: '22px',
+      maxWidth: 240
+    }
+  }, "Human first. Technology always.")), cols.map(([h, links]) => /*#__PURE__*/React.createElement("div", {
+    key: h,
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: '.12em',
+      textTransform: 'uppercase',
+      color: 'rgba(255,255,255,.75)'
+    }
+  }, h), links.map(l => /*#__PURE__*/React.createElement("a", {
+    key: l,
+    href: "#",
+    onClick: e => e.preventDefault(),
+    style: {
+      fontSize: 14,
+      color: 'var(--text-on-footer)'
+    }
+  }, l))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 56,
+      paddingTop: 24,
+      borderTop: '1px solid rgba(255,255,255,.12)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\xA9 2026 Epico-IT A/S \xB7 Borupvang 2C, 2750 Ballerup \xB7 CVR 32466249 \xB7 +45 30 52 30 50 \xB7 info@epico.dk"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      gap: 24
+    }
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: e => e.preventDefault(),
+    style: {
+      color: 'inherit'
+    }
+  }, "Privatlivspolitik"), /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: e => e.preventDefault(),
+    style: {
+      color: 'inherit'
+    }
+  }, "Cookies"))));
+}
+function Section({
+  tone = 'silk',
+  label,
+  labelTone,
+  title,
+  intro,
+  children,
+  style
+}) {
+  const bg = tone === 'dark' ? 'var(--black-currant)' : tone === 'white' ? '#fff' : 'var(--raw-silk)';
+  const dark = tone === 'dark';
+  return /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: bg,
+      padding: '88px 64px',
+      ...style
+    }
+  }, (label || title) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 720,
+      marginBottom: 48,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, label && /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: labelTone || (dark ? 'kiwi' : 'raspberry')
+  }, label), title && /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: dark ? '#fff' : 'var(--black-currant)'
+    }
+  }, title), intro && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 18,
+      lineHeight: '27px',
+      color: dark ? 'var(--text-on-dark-muted)' : 'var(--light-grey)'
+    }
+  }, intro)), children);
+}
+Object.assign(window, {
+  Icon,
+  Nav,
+  Footer,
+  Section
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/Chrome.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/Companies.jsx
+try { (() => {
+const {
+  Button,
+  Card,
+  Badge,
+  Input,
+  Select,
+  Radio,
+  Checkbox,
+  SectionLabel,
+  Tabs
+} = window.EpicoDesignSystem_8e9494;
+function Companies({
+  go
+}) {
+  const [type, setType] = React.useState('search');
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("section", {
+    style: {
+      position: 'relative',
+      background: 'var(--red)',
+      padding: '96px 64px',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: 'absolute',
+      left: -60,
+      bottom: -180,
+      fontSize: 460,
+      fontWeight: 700,
+      lineHeight: 1,
+      color: 'rgba(255,255,255,.05)',
+      fontFamily: 'var(--font-display)'
+    }
+  }, "E"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      maxWidth: 720
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: "kiwi"
+  }, "For virksomheder"), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      color: '#fff',
+      marginTop: 20,
+      fontSize: 56,
+      lineHeight: '60px'
+    }
+  }, "Tre kandidater. \xC9n begrundelse hver."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'rgba(255,255,255,.75)',
+      fontSize: 20,
+      lineHeight: '30px',
+      marginTop: 20
+    }
+  }, "Vi sender ikke bunker af CV'er. Vi sender de tre, der kan l\xF8se opgaven \u2014 og fort\xE6ller hvorfor."))), /*#__PURE__*/React.createElement(Section, {
+    tone: "white",
+    label: "Cases",
+    title: "Det har vi l\xF8st"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3,1fr)',
+      gap: 'var(--grid-gap)'
+    }
+  }, [['Energi', 'Fem udviklere på seks uger', 'Nyt produktteam bygget fra nul, alle fem er der stadig to år efter.'], ['Life Science', 'Interim QA under audit', 'På plads fire dage efter briefing.'], ['Finans', 'Ny økonomichef', 'Ni kandidater screenet, tre præsenteret, ansat på 21 dage.']].map(([tag, t, b]) => /*#__PURE__*/React.createElement(Card, {
+    key: t,
+    title: t,
+    body: b,
+    accent: "var(--raspberry)",
+    footer: /*#__PURE__*/React.createElement(Badge, {
+      tone: "neutral"
+    }, tag)
+  })))), /*#__PURE__*/React.createElement(Section, {
+    tone: "silk",
+    label: "Kom i gang",
+    title: "Fort\xE6l os om opgaven",
+    intro: "Udfyld kort \u2014 vi ringer inden for \xE9n arbejdsdag."
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1.1fr 1fr',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => e.preventDefault(),
+    style: {
+      background: '#fff',
+      padding: 40,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 20,
+      borderTop: '3px solid var(--kiwi)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    label: "Navn",
+    placeholder: "Fornavn Efternavn"
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: "Virksomhed",
+    placeholder: "Firmanavn A/S"
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: "E-mail",
+    placeholder: "navn@firma.dk"
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: "Fagomr\xE5de",
+    options: ['Tech', 'Finans', 'Life Science', 'Andet']
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Behov"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 28
+    }
+  }, /*#__PURE__*/React.createElement(Radio, {
+    name: "b",
+    checked: type === 'search',
+    onChange: () => setType('search'),
+    label: "Fastans\xE6ttelse"
+  }), /*#__PURE__*/React.createElement(Radio, {
+    name: "b",
+    checked: type === 'free',
+    onChange: () => setType('free'),
+    label: "Freelance"
+  }), /*#__PURE__*/React.createElement(Radio, {
+    name: "b",
+    checked: type === 'interim',
+    onChange: () => setType('interim'),
+    label: "Interim"
+  }))), /*#__PURE__*/React.createElement(Checkbox, {
+    label: "Jeg accepterer privatlivspolitikken"
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Button, {
+    arrow: true,
+    size: "lg"
+  }, "Kom i gang"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--black-currant)',
+      padding: 40,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 24,
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: "kiwi"
+  }, "Hvad du kan forvente"), [['Opkald inden for 1 dag', 'Vi ringer og forstår opgaven, før vi søger.'], ['Tre kandidater på 14 dage', 'Med begrundelse for hver enkelt.'], ['Garanti i 6 måneder', 'Vi genbesætter uden beregning.']].map(([t, b]) => /*#__PURE__*/React.createElement("div", {
+    key: t,
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6,
+      borderTop: '1px solid var(--divider-on-dark)',
+      paddingTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: 700
+    }
+  }, t), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text-on-dark-muted)',
+      fontSize: 15,
+      lineHeight: '23px'
+    }
+  }, b)))))));
+}
+Object.assign(window, {
+  Companies
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/Companies.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/Home.jsx
+try { (() => {
+const {
+  Button,
+  Card,
+  Badge,
+  SectionLabel,
+  Input,
+  Select,
+  Tag
+} = window.EpicoDesignSystem_8e9494;
+function Hero({
+  go
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    style: {
+      position: 'relative',
+      background: 'var(--black-currant)',
+      padding: '112px 64px 104px',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: 'absolute',
+      right: 40,
+      top: -140,
+      fontSize: 500,
+      fontWeight: 700,
+      letterSpacing: '-.06em',
+      lineHeight: 1,
+      color: 'var(--decor-e-on-dark)',
+      fontFamily: 'var(--font-display)'
+    }
+  }, "E"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      maxWidth: 'var(--container-max)'
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: "kiwi"
+  }, "Rekruttering der rammer"), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      color: '#fff',
+      marginTop: 24,
+      maxWidth: 780
+    }
+  }, "Vi finder det rette ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--kiwi)'
+    }
+  }, "match"), " \u2014 f\xF8rste gang"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      marginTop: 24,
+      maxWidth: 520,
+      fontSize: 20,
+      lineHeight: '30px',
+      color: 'var(--text-on-dark-muted)'
+    }
+  }, "Specialister til tech, finans og life science. Fast, freelance eller interim \u2014 klar til at starte."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 12,
+      marginTop: 40
+    }
+  }, /*#__PURE__*/React.createElement(Button, {
+    arrow: true,
+    size: "lg",
+    onClick: () => go('jobs')
+  }, "Se stillinger"), /*#__PURE__*/React.createElement(Button, {
+    variant: "outline",
+    onDark: true,
+    size: "lg",
+    onClick: () => go('companies')
+  }, "Jeg s\xF8ger folk")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 64,
+      marginTop: 72
+    }
+  }, [['1.200+', 'Match om året'], ['14 dage', 'Gennemsnitlig tid til kandidat'], ['96%', 'Bliver i jobbet efter et år']].map(([n, l]) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontSize: 40,
+      fontWeight: 700,
+      letterSpacing: '-.02em',
+      color: '#fff'
+    }
+  }, n), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-on-dark-muted)',
+      maxWidth: 180
+    }
+  }, l))))));
+}
+function Services({
+  go
+}) {
+  const items = [['Search', 'E Search', 'Executive- og specialistsøgning. Vi finder dem, der ikke søger.'], ['Users', 'E Freelance', 'Konsulenter i drift fra dag ét — typisk inden for en uge.'], ['GraduationCap', 'E NextGen', 'Nyuddannede og studerende, screenet og klar.'], ['Cpu', 'E Tech', 'Udviklere, data og infrastruktur til produktteams.']];
+  return /*#__PURE__*/React.createElement(Section, {
+    tone: "silk",
+    label: "Hvad vi tilbyder",
+    title: "Fire m\xE5der at f\xE5 de rette folk",
+    intro: "Samme metode, forskellige behov. V\xE6lg det spor der passer til opgaven."
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 'var(--grid-gap)'
+    }
+  }, items.map(([ic, t, b]) => /*#__PURE__*/React.createElement(Card, {
+    key: t,
+    icon: /*#__PURE__*/React.createElement(Icon, {
+      name: ic
+    }),
+    title: t,
+    body: b,
+    href: "#",
+    onClick: () => go('companies')
+  }))));
+}
+function JobTeaser({
+  go
+}) {
+  const jobs = [['Senior Frontend Developer', 'Netcompany', 'København', 'Fast', 'kiwi'], ['Financial Controller', 'Nordisk Kapital', 'Aarhus', 'Fast', 'kiwi'], ['Data Engineer (freelance)', 'Fortroligt', 'Remote', 'Freelance', 'blueberry'], ['QA Specialist, Life Science', 'Novozymes', 'Bagsværd', 'Interim', 'mulberry']];
+  return /*#__PURE__*/React.createElement(Section, {
+    tone: "white",
+    label: "Ledige stillinger",
+    title: "Aktuelle roller"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderTop: '1px solid var(--border-hairline)'
+    }
+  }, jobs.map(([t, c, loc, type, tone]) => /*#__PURE__*/React.createElement("a", {
+    key: t,
+    href: "#",
+    onClick: e => {
+      e.preventDefault();
+      go('job');
+    },
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '2.2fr 1.2fr 1fr auto',
+      alignItems: 'center',
+      gap: 24,
+      padding: '24px 0',
+      borderBottom: '1px solid var(--border-hairline)',
+      color: 'inherit'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20,
+      fontWeight: 700,
+      letterSpacing: '-.01em',
+      color: 'var(--black-currant)'
+    }
+  }, t), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--light-grey)'
+    }
+  }, c), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--light-grey)'
+    }
+  }, loc), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 20
+    }
+  }, /*#__PURE__*/React.createElement(Badge, {
+    tone: tone
+  }, type), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--black-currant)',
+      fontWeight: 700
+    }
+  }, "\u2192"))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 32
+    }
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "link",
+    arrow: true,
+    onClick: () => go('jobs')
+  }, "Alle 148 stillinger")));
+}
+function Process() {
+  const steps = [['01', 'Vi lytter', 'En time med jer om opgaven, teamet og hvad der faktisk skal løses.'], ['02', 'Vi søger', 'Aktiv search i vores netværk — ikke kun dem der har søgt.'], ['03', 'I møder tre', 'Tre kandidater, hver med en begrundelse. Ikke en bunke CV\'er.']];
+  return /*#__PURE__*/React.createElement(Section, {
+    tone: "dark",
+    label: "S\xE5dan arbejder vi",
+    title: "Tre trin til et match",
+    intro: "Ingen lange processer, ingen tomme l\xF8fter."
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: 'var(--grid-gap)'
+    }
+  }, steps.map(([n, t, b]) => /*#__PURE__*/React.createElement("div", {
+    key: n,
+    style: {
+      background: 'rgba(255,255,255,.04)',
+      borderTop: '3px solid var(--kiwi)',
+      padding: '32px 28px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontSize: 32,
+      fontWeight: 700,
+      color: 'var(--kiwi)',
+      letterSpacing: '-.02em'
+    }
+  }, n), /*#__PURE__*/React.createElement("h4", {
+    style: {
+      color: '#fff'
+    }
+  }, t), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      lineHeight: '23px',
+      color: 'var(--text-on-dark-muted)'
+    }
+  }, b)))));
+}
+function CtaBand({
+  go
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--kiwi)',
+      padding: '64px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 40
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: 'var(--black-currant)',
+      maxWidth: 620
+    }
+  }, "Skal vi finde jeres n\xE6ste kollega?"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    size: "lg",
+    arrow: true,
+    onClick: () => go('companies')
+  }, "Kom i gang"));
+}
+function Home({
+  go
+}) {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Hero, {
+    go: go
+  }), /*#__PURE__*/React.createElement(Services, {
+    go: go
+  }), /*#__PURE__*/React.createElement(JobTeaser, {
+    go: go
+  }), /*#__PURE__*/React.createElement(Process, null), /*#__PURE__*/React.createElement(CtaBand, {
+    go: go
+  }));
+}
+Object.assign(window, {
+  Home
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/Home.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/JobDetail.jsx
+try { (() => {
+const {
+  Button,
+  Badge,
+  Card,
+  Input,
+  Select,
+  Checkbox,
+  Dialog,
+  Toast,
+  SectionLabel,
+  Tag
+} = window.EpicoDesignSystem_8e9494;
+function JobDetail({
+  go
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [sent, setSent] = React.useState(false);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--black-currant)',
+      padding: '56px 64px'
+    }
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "link",
+    onDark: true,
+    onClick: () => go('jobs'),
+    style: {
+      color: 'rgba(255,255,255,.65)',
+      fontSize: 14,
+      marginBottom: 24
+    }
+  }, "\u2190 Alle stillinger"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 12,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement(Badge, {
+    tone: "kiwi"
+  }, "Fast"), /*#__PURE__*/React.createElement(Badge, {
+    tone: "neutral"
+  }, "Tech")), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      maxWidth: 760
+    }
+  }, "Senior Frontend Developer"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--text-on-dark-muted)',
+      fontSize: 18,
+      marginTop: 16
+    }
+  }, "Netcompany \xB7 K\xF8benhavn \xB7 Ans\xF8gningsfrist 14. september")), /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--raw-silk)',
+      padding: '64px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 340px',
+      gap: 2,
+      alignItems: 'start'
+    }
+  }, /*#__PURE__*/React.createElement("article", {
+    style: {
+      background: '#fff',
+      padding: '48px 56px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionLabel, null, "Om rollen"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      marginTop: 14,
+      fontSize: 18,
+      lineHeight: '28px',
+      color: 'var(--grey)'
+    }
+  }, "Du bliver en del af et produktteam p\xE5 ni, der bygger selvbetjening for en af Danmarks st\xF8rste energikunder. Du s\xE6tter retningen for frontend-arkitekturen og har mandatet til at rydde op undervejs.")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionLabel, null, "Du kommer til at"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      marginTop: 14,
+      paddingLeft: 20,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      fontSize: 17,
+      lineHeight: '26px',
+      color: 'var(--grey)'
+    }
+  }, /*#__PURE__*/React.createElement("li", null, "Bygge og vedligeholde komponentbiblioteket i React og TypeScript"), /*#__PURE__*/React.createElement("li", null, "Sparre t\xE6t med design om tilg\xE6ngelighed og performance"), /*#__PURE__*/React.createElement("li", null, "Mentorere to juniorudviklere"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionLabel, null, "Vi forventer"), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      marginTop: 14,
+      paddingLeft: 20,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      fontSize: 17,
+      lineHeight: '26px',
+      color: 'var(--grey)'
+    }
+  }, /*#__PURE__*/React.createElement("li", null, "5+ \xE5rs erfaring med moderne frontend"), /*#__PURE__*/React.createElement("li", null, "Erfaring med designsystemer i produktion"), /*#__PURE__*/React.createElement("li", null, "Dansk og engelsk p\xE5 arbejdsniveau"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexWrap: 'wrap',
+      paddingTop: 8
+    }
+  }, ['React', 'TypeScript', 'Designsystem', 'A11y'].map(t => /*#__PURE__*/React.createElement(Tag, {
+    key: t
+  }, t)))), /*#__PURE__*/React.createElement("aside", {
+    style: {
+      display: 'grid',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      padding: 28,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, [['Løn', '58.000–68.000 kr./md.'], ['Start', 'Snarest muligt'], ['Sted', 'København V'], ['Type', 'Fastansættelse']].map(([k, v]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 12,
+      fontSize: 15,
+      borderBottom: '1px solid var(--border-hairline)',
+      paddingBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--light-grey)'
+    }
+  }, k), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--black-currant)',
+      fontWeight: 700
+    }
+  }, v)))), /*#__PURE__*/React.createElement(Button, {
+    arrow: true,
+    fullWidth: true,
+    onClick: () => setOpen(true)
+  }, "Send ans\xF8gning"), /*#__PURE__*/React.createElement(Button, {
+    variant: "outline",
+    fullWidth: true
+  }, "Gem stilling")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--beige)',
+      padding: 28,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Din kontakt"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: 'var(--black-currant)'
+    }
+  }, "Mette S\xF8rensen"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--grey)'
+    }
+  }, "Partner, E Tech"), /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: e => e.preventDefault(),
+    style: {
+      fontSize: 15
+    }
+  }, "mette@epico.dk"))))), /*#__PURE__*/React.createElement(Dialog, {
+    open: open,
+    title: "Send ans\xF8gning",
+    description: "Vi vender tilbage inden for tre hverdage.",
+    onClose: () => setOpen(false),
+    footer: /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
+      variant: "ghost",
+      onClick: () => setOpen(false)
+    }, "Annuller"), /*#__PURE__*/React.createElement(Button, {
+      arrow: true,
+      onClick: () => {
+        setOpen(false);
+        setSent(true);
+        setTimeout(() => setSent(false), 4000);
+      }
+    }, "Send"))
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    label: "Navn",
+    placeholder: "Fornavn Efternavn"
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: "E-mail",
+    placeholder: "navn@firma.dk"
+  }), /*#__PURE__*/React.createElement(Select, {
+    label: "Hvorn\xE5r kan du starte?",
+    options: ['Snarest', 'Om 1 måned', 'Om 3 måneder']
+  }), /*#__PURE__*/React.createElement(Checkbox, {
+    label: "Jeg accepterer privatlivspolitikken"
+  }))), sent && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      right: 24,
+      bottom: 24,
+      zIndex: 60
+    }
+  }, /*#__PURE__*/React.createElement(Toast, {
+    title: "Ans\xF8gning sendt",
+    message: "Mette kigger p\xE5 den i morgen.",
+    onClose: () => setSent(false)
+  })));
+}
+Object.assign(window, {
+  JobDetail
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/JobDetail.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/website/Jobs.jsx
+try { (() => {
+const {
+  Button,
+  Badge,
+  Input,
+  Select,
+  Checkbox,
+  Switch,
+  Tag,
+  Tabs,
+  SectionLabel
+} = window.EpicoDesignSystem_8e9494;
+const ALL_JOBS = [['Senior Frontend Developer', 'Netcompany', 'København', 'Fast', 'Tech', 'kiwi'], ['Data Engineer', 'Fortroligt', 'Remote', 'Freelance', 'Tech', 'blueberry'], ['Financial Controller', 'Nordisk Kapital', 'Aarhus', 'Fast', 'Finans', 'kiwi'], ['QA Specialist', 'Novozymes', 'Bagsværd', 'Interim', 'Life Science', 'mulberry'], ['Platform Engineer', 'Trustpilot', 'København', 'Fast', 'Tech', 'kiwi'], ['Regnskabschef', 'Danske Fragtmænd', 'Odense', 'Fast', 'Finans', 'kiwi'], ['Clinical Project Manager', 'Fortroligt', 'Søborg', 'Freelance', 'Life Science', 'blueberry'], ['Junior Analyst', 'Epico NextGen', 'København', 'Fast', 'Finans', 'kiwi']];
+function JobRow({
+  j,
+  go
+}) {
+  const [t, c, loc, type, area, tone] = j;
+  const [hover, setHover] = React.useState(false);
+  return /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    onClick: e => {
+      e.preventDefault();
+      go('job');
+    },
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => setHover(false),
+    style: {
+      display: 'block',
+      background: '#fff',
+      borderTop: '3px solid ' + (hover ? 'var(--kiwi)' : 'transparent'),
+      padding: '24px 28px',
+      color: 'inherit',
+      transition: 'var(--transition-ui)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: 24,
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20,
+      fontWeight: 700,
+      letterSpacing: '-.01em',
+      color: 'var(--black-currant)'
+    }
+  }, t), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: 'var(--light-grey)'
+    }
+  }, c, " \xB7 ", loc, " \xB7 ", area)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 18
+    }
+  }, /*#__PURE__*/React.createElement(Badge, {
+    tone: tone
+  }, type), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--black-currant)',
+      fontWeight: 700,
+      transform: hover ? 'translateX(3px)' : 'none',
+      transition: 'var(--transition-ui)'
+    }
+  }, "\u2192"))));
+}
+function Jobs({
+  go
+}) {
+  const [area, setArea] = React.useState('Alle');
+  const [q, setQ] = React.useState('');
+  const [remote, setRemote] = React.useState(false);
+  const [types, setTypes] = React.useState({
+    Fast: true,
+    Freelance: true,
+    Interim: true
+  });
+  const list = ALL_JOBS.filter(j => (area === 'Alle' || j[4] === area) && (!remote || j[2] === 'Remote') && types[j[3]] && (q === '' || j[0].toLowerCase().includes(q.toLowerCase())));
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--black-currant)',
+      padding: '64px 64px 56px'
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, {
+    tone: "kiwi"
+  }, "Ledige stillinger"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      marginTop: 16
+    }
+  }, list.length, " roller lige nu"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 32,
+      display: 'flex',
+      gap: 2,
+      maxWidth: 720
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    placeholder: "S\xF8g titel, fx developer",
+    value: q,
+    onChange: e => setQ(e.target.value),
+    wrapperStyle: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement(Button, {
+    size: "md",
+    arrow: true,
+    style: {
+      height: 50
+    }
+  }, "S\xF8g"))), /*#__PURE__*/React.createElement("section", {
+    style: {
+      background: 'var(--raw-silk)',
+      padding: '48px 64px 88px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '260px 1fr',
+      gap: 48,
+      alignItems: 'start'
+    }
+  }, /*#__PURE__*/React.createElement("aside", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 28,
+      background: '#fff',
+      padding: 28,
+      borderTop: '3px solid var(--black-currant)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Ans\xE6ttelse"), Object.keys(types).map(k => /*#__PURE__*/React.createElement(Checkbox, {
+    key: k,
+    label: k,
+    checked: types[k],
+    onChange: e => setTypes({
+      ...types,
+      [k]: e.target.checked
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Lokation"), /*#__PURE__*/React.createElement(Select, {
+    options: ['Hele landet', 'København', 'Aarhus', 'Odense'],
+    size: "sm"
+  }), /*#__PURE__*/React.createElement(Switch, {
+    label: "Kun remote",
+    checked: remote,
+    onChange: e => setRemote(e.target.checked)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(SectionLabel, null, "Popul\xE6re s\xF8gninger"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 6
+    }
+  }, ['React', 'SAP', 'GMP', 'Python'].map(t => /*#__PURE__*/React.createElement(Tag, {
+    key: t,
+    onClick: () => setQ('')
+  }, t))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Tabs, {
+    items: ['Alle', 'Tech', 'Finans', 'Life Science'],
+    value: area,
+    onChange: setArea,
+    style: {
+      marginBottom: 24
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gap: 'var(--grid-gap)'
+    }
+  }, list.map(j => /*#__PURE__*/React.createElement(JobRow, {
+    key: j[0],
+    j: j,
+    go: go
+  })), list.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      padding: 48,
+      textAlign: 'center',
+      color: 'var(--light-grey)'
+    }
+  }, "Ingen stillinger matcher filtrene."))))));
+}
+Object.assign(window, {
+  Jobs
+});
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/website/Jobs.jsx", error: String((e && e.message) || e) }); }
+
+__ds_ns.Badge = __ds_scope.Badge;
+
+__ds_ns.Button = __ds_scope.Button;
+
+__ds_ns.EMark = __ds_scope.EMark;
+
+__ds_ns.IconButton = __ds_scope.IconButton;
+
+__ds_ns.Logo = __ds_scope.Logo;
+
+__ds_ns.SectionLabel = __ds_scope.SectionLabel;
+
+__ds_ns.Tag = __ds_scope.Tag;
+
+__ds_ns.Checkbox = __ds_scope.Checkbox;
+
+__ds_ns.Input = __ds_scope.Input;
+
+__ds_ns.Radio = __ds_scope.Radio;
+
+__ds_ns.Select = __ds_scope.Select;
+
+__ds_ns.Switch = __ds_scope.Switch;
+
+__ds_ns.Tabs = __ds_scope.Tabs;
+
+__ds_ns.Card = __ds_scope.Card;
+
+__ds_ns.Dialog = __ds_scope.Dialog;
+
+__ds_ns.Toast = __ds_scope.Toast;
+
+__ds_ns.Tooltip = __ds_scope.Tooltip;
+
+})();

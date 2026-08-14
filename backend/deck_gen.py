@@ -200,7 +200,7 @@ def render_master_deck(
         },
         "headlines": _slide_headlines(analysis, client_name),
         "library_slides": library,
-        "outro_html": master_deck.slide_html(37, lang),
+        "outro_html": master_deck.slide_html(master_deck.OUTRO_NUM, lang),
         "head_css": master_deck.head_css(lang),
         "pitch_length": pitch_length,
     }

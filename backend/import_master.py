@@ -129,12 +129,12 @@ if __name__ == "__main__":
 
     result = import_master(Path(args[0]), lang)
     print(f"Importeret til master_deck/{lang}/: "
-          f"{result['slides']} slides, {result['assets']} assets")
+          f"{result['slide_count']} slides, {len(result['assets'])} assets")
 
     expected = len([s for s in MANIFEST])
-    if result["slides"] != expected:
+    if result["slide_count"] != expected:
         print()
-        print(f"ADVARSEL: masterfilen har {result['slides']} slides, men MANIFEST "
+        print(f"ADVARSEL: masterfilen har {result['slide_count']} slides, men MANIFEST "
               f"forventer {expected}.")
         print("Slide-numrene styrer hvad der vises hvor, så en anden rækkefølge eller")
         print("et andet antal betyder at MANIFEST i master_deck.py skal rettes til.")
