@@ -739,15 +739,15 @@ EPICO_SERVICES = {
 # Kort = færre items, lang = flere — Claude tvinges fysisk til at respektere længden
 _SCHEMA_SIZES = {
     "short": {
-        "facts": (2, 3), "priorities": (2, 3), "mappings": (2, 3),
+        "facts": (0, 3), "priorities": (2, 3), "mappings": (2, 3),
         "case_bullets": (2, 3), "next_steps": (2, 3),
     },
     "medium": {
-        "facts": (4, 4), "priorities": (3, 3), "mappings": (4, 4),
+        "facts": (0, 4), "priorities": (3, 3), "mappings": (4, 4),
         "case_bullets": (3, 3), "next_steps": (3, 3),
     },
     "long": {
-        "facts": (4, 5), "priorities": (3, 4), "mappings": (4, 5),
+        "facts": (0, 5), "priorities": (3, 4), "mappings": (4, 5),
         "case_bullets": (3, 4), "next_steps": (3, 4),
     },
 }
@@ -799,6 +799,15 @@ ANALYSIS_TOOL = {
             "research_facts": {
                 "type": "array",
                 "description": (
+                    "**Returnér en TOM liste hvis researchen ikke tjener sælgerens vinkel.**\n\n"
+                    "Research-slidet er ikke obligatorisk. Det skal kun med når det du fandt "
+                    "faktisk understøtter det møde sælgeren skal til. Fandt du fire pæne fakta "
+                    "om kundens IT-setup, men mødet handler om at skaffe en ML-profil hurtigt, "
+                    "så er slidet en omvej — så viser vi at vi har googlet, ikke at vi har forstået.\n\n"
+                    "Tom liste er et gyldigt og ofte rigtigt svar. Et deck uden research-slide er "
+                    "bedre end et med et slide der ikke betyder noget. Nævn det kort i "
+                    "`coverage_report` når du udelader det, så sælgeren ved hvorfor.\n\n"
+                    "Tager du det med, gælder følgende:\n\n"
                     "Fakta om kunden der beviser at vi har gjort hjemmearbejdet. "
                     "**RELEVANS-TESTEN — hver fact skal bestå BEGGE dele:**\n"
                     "1) **Ikke-indlysende for modtageren.** Kunden kender sin egen omsætning. "
@@ -952,7 +961,7 @@ ANALYSIS_TOOL = {
                     },
                     "required": ["title", "description", "when"],
                 },
-                "minItems": 3,
+                "minItems": 0,
                 "maxItems": 3,
             },
             "slide_headlines": {
@@ -1437,6 +1446,23 @@ Hver stakeholder-profil i vidensbasen lister:
 Hvis sælger har angivet en konkurrent i sit brief (fx "de bruger ProData", "de er på rammeaftale med Tieto"), så skal value_mappings differentiere mod den specifikke konkurrent. Ikke generisk service-mapping.
 
 Hvis ingen konkurrent er nævnt — så er det ikke en konkurrence-pitch. **Nævn ikke konkurrenter på fri hånd.** Drop helt "alternativ-til"-vinklen og fokusér på Epico's egne styrker.
+
+## ⚖️ RESEARCH-SLIDET SKAL FORTJENE SIN PLADS
+
+Slidet "hvad vi ved om jer" er ikke obligatorisk. Spørg dig selv, før du fylder det:
+
+**Ville sælgeren selv sige det her højt i mødet?** Ikke "er det korrekt" eller "er det imponerende at vi fandt det" — men ville en erfaren sælger bruge mødetid på det.
+
+Tag det med når researchen har fundet noget der **ændrer samtalen**: et hul de selv har erkendt, en beslutning de lige har truffet, et tal der gør sælgerens argument uafviseligt.
+
+Lad det være når:
+- Du kun har generisk firmabaggrund — omsætning, medarbejdertal, branche. Det ved de selv.
+- Fakta peger et andet sted hen end sælgerens vinkel. Fire pæne observationer om deres IT-landskab hjælper ikke på et møde om at skaffe én profil hurtigt.
+- Du fandt intet ud over hvad sælgeren allerede skrev i sin brief.
+
+**Et deck uden research-slide er bedre end et med et slide der ikke betyder noget.** Udelader du det, så skriv kort hvorfor i `coverage_report.dropped` — sælgeren skal kunne se at det var en beslutning, ikke en fejl.
+
+Men lad være med at udelade det af dovenskab. Har du reelt fundet noget der flytter mødet, så er det ét af de stærkeste slides i decket.
 
 ## 🎯 KURATIONS-PRINCIP
 

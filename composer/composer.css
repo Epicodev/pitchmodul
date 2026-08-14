@@ -1959,3 +1959,27 @@ body.composer-body {
   border: 0;
   background: var(--light-silk);
 }
+
+/* ── Redigerbar slide-overskrift i review ──────────────────────────── */
+
+.review-item--headline {
+  border-left: 3px solid var(--kiwi);
+  padding-left: 14px;
+}
+
+.review-item--headline .field-hint em {
+  font-style: normal;
+  color: var(--light-grey);
+  font-weight: 400;
+}
+
+.review-block--omitted { opacity: .8; }
+
+.review-omitted-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--grey);
+  margin: 0;
+  max-width: 68ch;
+}

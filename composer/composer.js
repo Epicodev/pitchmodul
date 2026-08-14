@@ -1243,9 +1243,31 @@ function toggleDeckSlide(kind, id) {
 }
 
 // ---------- Build review UI ----------
+// Overskrifterne er AI-genererede og står øverst på hvert kundeslide. De var
+// ikke redigerbare, så sælgeren kunne rette brødteksten men ikke det største
+// på sliden. **Stjerner** omkring et ord farver det som accent — samme
+// markering som i decket.
+function headlineFields(key) {
+  const h = (state.analysis.slide_headlines || {})[key] || {};
+  return `
+    <div class="review-item review-item--headline">
+      <span class="field-hint">Overskrift på sliden <em>— **stjerner** fremhæver et ord</em></span>
+      <input class="editable" data-path="slide_headlines.${key}.eyebrow"
+             value="${escapeHtml(h.eyebrow || '')}" placeholder="Lille tekst over overskriften">
+      <input class="editable" data-path="slide_headlines.${key}.heading"
+             value="${escapeHtml(h.heading || '')}" placeholder="Overskrift">
+    </div>`;
+}
+
 function buildReviewUI() {
   const a = state.analysis;
   const c = $('#review-container');
+
+  // Path-setteren skriver direkte i objektet — findes grenen ikke, fejler den
+  a.slide_headlines = a.slide_headlines || {};
+  ['research', 'priorities', 'mapping', 'next_steps'].forEach(k => {
+    a.slide_headlines[k] = a.slide_headlines[k] || { eyebrow: '', heading: '' };
+  });
 
   const priorities = a.strategic_priorities.map((p, i) => `
     <div class="review-item">
@@ -1302,28 +1324,40 @@ function buildReviewUI() {
 
     ${deckListMarkup()}
 
+    ${(a.research_facts || []).length ? `
     <div class="review-block">
       <div class="review-block-head">
         <h3>Research-fakta om ${escapeHtml(state.brief.client_name)}</h3>
-        <span class="slide-ref">Slide 04</span>
       </div>
+      ${headlineFields('research')}
       <div class="facts-list" id="facts-list"></div>
-    </div>
+    </div>` : `
+    <div class="review-block review-block--omitted">
+      <div class="review-block-head"><h3>Intet research-slide</h3></div>
+      <p class="review-omitted-note">
+        AI'en fandt ikke research der understøtter din vinkel, så slidet er
+        udeladt. Grunden står i «Sådan brugte jeg din brief» ovenfor.
+        Vil du have det med alligevel, så skriv de fakta du selv vil vise
+        under Avanceret i briefen og kør research igen.
+      </p>
+    </div>`}
 
     <div class="review-block">
       <div class="review-block-head">
         <h3>Strategiske prioriteter</h3>
-        <span class="slide-ref">Slide 05</span>
+        <span class="slide-ref" hidden>Slide 05</span>
       </div>
-      ${priorities}
+      
+      ${headlineFields('priorities')}${priorities}
     </div>
 
     <div class="review-block">
       <div class="review-block-head">
         <h3>Udfordring → løsning mapping</h3>
-        <span class="slide-ref">Slide 06</span>
+        <span class="slide-ref" hidden>Slide 06</span>
       </div>
-      ${mappings}
+      
+      ${headlineFields('mapping')}${mappings}
     </div>
 
     <div class="review-block">
@@ -1337,9 +1371,10 @@ function buildReviewUI() {
     <div class="review-block">
       <div class="review-block-head">
         <h3>Næste skridt</h3>
-        <span class="slide-ref">Slide 17</span>
+        <span class="slide-ref" hidden>Slide 17</span>
       </div>
-      ${steps}
+      
+      ${headlineFields('next_steps')}${steps}
     </div>
   `;
 
