@@ -42,7 +42,7 @@ def reload_knowledge() -> int:
 _SLIDE_REFINE_SYSTEM_PROMPT = """Du er Epico's pitch-redaktør. Sælger har bedt dig om at SKÆRPE et specifikt slide-indhold med en bestemt direktive.
 
 Modtag:
-- Slide-type (research_facts / strategic_priorities / value_mappings / next_steps / case_recommendation)
+- Slide-type (research_facts / value_mappings / next_steps / case_recommendation)
 - Nuværende indhold (JSON)
 - Sælgers direktive (fritekst, fx "mere konkret", "mere kommerciel tone", "fokus på cybersecurity")
 
@@ -88,8 +88,7 @@ def refine_slide(
     Skærp et specifikt slide-indhold baseret på sælgers direktive.
 
     Args:
-        slide_type: 'research_facts' | 'strategic_priorities' | 'value_mappings' |
-                    'next_steps' | 'case_recommendation'
+        slide_type: 'research_facts' | 'value_mappings' | 'next_steps' | 'case_recommendation'
         current_content: Nuværende JSON-indhold for sliden
         directive: Sælgers ønske ("mere konkret", "mere kommerciel", "fokus på security", osv.)
         client_name: For kontekst
@@ -739,15 +738,15 @@ EPICO_SERVICES = {
 # Kort = færre items, lang = flere — Claude tvinges fysisk til at respektere længden
 _SCHEMA_SIZES = {
     "short": {
-        "facts": (0, 3), "priorities": (2, 3), "mappings": (2, 3),
+        "facts": (0, 3), "mappings": (2, 3),
         "case_bullets": (2, 3), "next_steps": (2, 3),
     },
     "medium": {
-        "facts": (0, 4), "priorities": (3, 3), "mappings": (4, 4),
+        "facts": (0, 4), "mappings": (4, 4),
         "case_bullets": (3, 3), "next_steps": (3, 3),
     },
     "long": {
-        "facts": (0, 5), "priorities": (3, 4), "mappings": (4, 5),
+        "facts": (0, 5), "mappings": (4, 5),
         "case_bullets": (3, 4), "next_steps": (3, 4),
     },
 }
@@ -758,7 +757,6 @@ def _build_analysis_tool(pitch_length: str = "medium") -> Dict[str, Any]:
     at respektere antal items (kort = færre, lang = flere)."""
     sizes = _SCHEMA_SIZES.get(pitch_length, _SCHEMA_SIZES["medium"])
     fmin, fmax = sizes["facts"]
-    pmin, pmax = sizes["priorities"]
     mmin, mmax = sizes["mappings"]
     cbmin, cbmax = sizes["case_bullets"]
     nsmin, nsmax = sizes["next_steps"]
@@ -768,8 +766,6 @@ def _build_analysis_tool(pitch_length: str = "medium") -> Dict[str, Any]:
 
     props["research_facts"]["minItems"] = fmin
     props["research_facts"]["maxItems"] = fmax
-    props["strategic_priorities"]["minItems"] = pmin
-    props["strategic_priorities"]["maxItems"] = pmax
     props["value_mappings"]["minItems"] = mmin
     props["value_mappings"]["maxItems"] = mmax
     props["next_steps"]["minItems"] = nsmin
@@ -883,26 +879,6 @@ ANALYSIS_TOOL = {
                 "minItems": 3,
                 "maxItems": 3,
             },
-            "strategic_priorities": {
-                "type": "array",
-                "description": "Nøjagtigt 3 strategiske prioriteter SOM SÆLGER VIL TALE OM I MØDET. Hvis sælgers brief nævner konkurrent (fx Emagine) eller specifik stakeholder (Procurement) → prioriteterne skal afspejle det. Eksempler: hvis stakeholder er Procurement → prioritet kan være 'Diversificering af leverandørbase' eller 'Reducere TCO på IT-konsulent-spend'. Hvis konkurrent er nævnt → prioritet kan være 'Få bedre service-niveau end nuværende leverandør'. PRIORITETER ER IKKE BARE 'læst fra årsrapport' — de er det sælger vil ARGUMENTERE for under mødet, baseret på brief + research kombineret.",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "title": {
-                            "type": "string",
-                            "description": "Kort titel, max 60 tegn. Fx 'Accelerere digital transformation'."
-                        },
-                        "description": {
-                            "type": "string",
-                            "description": "1-2 sætninger der uddyber prioriteten med specifik reference til hvad kunden selv har skrevet."
-                        },
-                    },
-                    "required": ["title", "description"],
-                },
-                "minItems": 3,
-                "maxItems": 3,
-            },
             "value_mappings": {
                 "type": "array",
                 "description": "Nøjagtigt 4 mappings. HVIS SÆLGER HAR ANGIVET EN KONKURRENT i brief: hver mapping skal differentiere Epico FRA den konkurrent (fx 'Hvor Emagine sender mange CV'er, sender Epico kun forhåndsscreenede der allerede har sagt ja'). HVIS STAKEHOLDER = PROCUREMENT: mappings handler om kontraktvilkår, SLA, fleksibilitet, prismodel. HVIS STAKEHOLDER = IT-LEDELSE: mappings handler om teknisk dybde og leverancetid. Brug sælgers brief som det primære filter — IKKE 'hvad ville være generisk relevant for branchen'.",
@@ -986,14 +962,6 @@ ANALYSIS_TOOL = {
                         },
                         "required": ["eyebrow", "heading"],
                     },
-                    "priorities": {
-                        "type": "object",
-                        "properties": {
-                            "eyebrow": {"type": "string", "description": "Max 40 tegn."},
-                            "heading": {"type": "string", "description": "Max 70 tegn. Overskrift for de strategiske prioriteter. Brug **stjerner**."},
-                        },
-                        "required": ["eyebrow", "heading"],
-                    },
                     "mapping": {
                         "type": "object",
                         "properties": {
@@ -1011,7 +979,7 @@ ANALYSIS_TOOL = {
                         "required": ["eyebrow", "heading"],
                     },
                 },
-                "required": ["research", "priorities", "mapping", "next_steps"],
+                "required": ["research", "mapping", "next_steps"],
             },
             "coverage_report": {
                 "type": "object",
@@ -1115,7 +1083,6 @@ ANALYSIS_TOOL = {
             "slide_headlines",
             "research_facts",
             "research_facts_alternates",
-            "strategic_priorities",
             "value_mappings",
             "next_steps",
             "case_recommendation",
@@ -1144,10 +1111,6 @@ For hver del af udkastet, spørg:
 - Citerer vi kilden specifikt nok? ('Årsrapport' → blød. 'Årsrapport 2024, s. 12' → konkret.)
 - Bringer hver fact NYHEDSVÆRDI for kunden, eller er det noget de selv ved?
 
-**Strategic priorities (slide 5):**
-- Er hver prioritet specifik for DENNE stakeholder, eller kunne den genbruges på enhver kunde?
-- Læser den som noget kunden selv ville sige, eller som corporate-snak?
-- Kobler den til konkrete observationer fra årsrapport/web/brief?
 
 **Value mappings (slide 6):**
 - Er udfordringen formuleret konkret nok? (Ikke 'behov for IT-konsulenter', men 'akut behov for Oracle-DBA til S/4HANA-migration i Q3')
@@ -1345,7 +1308,6 @@ def _build_system_prompt(
     dict_parts = []
     for key, field, hint in [
         ("research_facts", "research_facts", "format '[Label]: [Værdi] | [Kilde]' pr. linje"),
-        ("priorities", "strategic_priorities", "format '[Titel] — [beskrivelse]' pr. linje"),
         ("mappings", "value_mappings", "format '[Udfordring] => [Service] : [Løsning]' pr. linje"),
         ("next_steps", "next_steps", "format '[Titel] | [tidsramme] — [beskrivelse]' pr. linje"),
     ]:
@@ -1597,8 +1559,6 @@ def analyze_client(
         parts.append("## 📝 SÆLGER HAR DIKTERET SPECIFIKT INDHOLD TIL DISSE SLIDES\n")
         if slide_dictation.get("research_facts"):
             parts.append(f"**Slide 04 (research_facts)** — parse hver linje, format '[Label]: [Værdi] | [Kilde]':\n```\n{slide_dictation['research_facts']}\n```\n")
-        if slide_dictation.get("priorities"):
-            parts.append(f"**Slide 05 (strategic_priorities)** — én linje pr. prioritet, format '[Titel] — [beskrivelse]':\n```\n{slide_dictation['priorities']}\n```\n")
         if slide_dictation.get("mappings"):
             parts.append(f"**Slide 06 (value_mappings)** — én linje pr. mapping, format '[Udfordring] => [Service] : [Løsning]':\n```\n{slide_dictation['mappings']}\n```\n")
         if slide_dictation.get("next_steps"):

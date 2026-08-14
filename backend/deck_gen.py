@@ -33,7 +33,6 @@ _AGENDA_TIMINGS = {
 # den samme sætning. Falder tilbage til de generiske hvis AI'en ikke leverede.
 _HEADLINE_FALLBACKS = {
     "research": ("Vi har gjort hjemmearbejdet", "Dette ved vi om **{client}**"),
-    "priorities": ("Sådan læser vi jeres retning", "{n} strategiske prioriteter **vi vil tale ind i.**"),
     "mapping": ("Konkret kobling", "Jeres udfordring. **Vores håndtag.**"),
     "next_steps": ("Hvis vi er enige om retningen", "{n} konkrete **næste skridt.**"),
 }
@@ -43,7 +42,6 @@ def _slide_headlines(analysis: Dict[str, Any], client_name: str) -> Dict[str, Di
     """Saml overskrifter til kunde-slidesne, med fallback til de generiske."""
     generated = analysis.get("slide_headlines") or {}
     counts = {
-        "priorities": len(analysis.get("strategic_priorities") or []),
         "next_steps": len(analysis.get("next_steps") or []),
     }
 
@@ -118,7 +116,6 @@ def render_deck(
         },
         # Kunde-slides fra AI
         "research_facts": analysis.get("research_facts", []),
-        "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
@@ -184,7 +181,6 @@ def render_master_deck(
             "contact_person": meeting.get("contact_person") or "",
         },
         "research_facts": analysis.get("research_facts", []),
-        "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
@@ -226,7 +222,6 @@ def preview_slide_plan(
         {"id": "cover", "title": "Cover", "category": "kunde"},
         {"id": "agenda", "title": "Agenda", "category": "kunde"},
         {"id": "research", "title": "Research om kunden", "category": "kunde"},
-        {"id": "priorities", "title": "Strategiske prioriteter", "category": "kunde"},
         {"id": "mapping", "title": "Udfordring → løsning", "category": "kunde"},
     ]
     closing_slides = [

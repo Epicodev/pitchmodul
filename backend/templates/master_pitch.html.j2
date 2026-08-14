@@ -64,28 +64,7 @@ section[data-ai="dark"] .accent{color:#fff}
 </section>
 {% endif %}
 
-{# ---------- 3 · PRIORITETER — jeres retning, som vi læser den (AI) ---------- #}
-{% if strategic_priorities %}
-<section data-label="Jeres prioriteter" data-ai="light" style="background:#FFFCF2;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
-<div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | {{ client.name }}</div>
-<svg class="fx" aria-label="Epico" role="img" viewBox="0 0 778 1000" style="height:64px;position:absolute;right:140px;top:90px;z-index:5" fill="#690F23"><path d="M0 0H778V211H240V790H778V1000H0Z"></path><rect x="414" y="381" width="364" height="212"></rect></svg>
-<h2 class="fx" style="--d:.12s;color:#1B1B50;font-size:64px;line-height:1.06;letter-spacing:-.03em;font-weight:700;margin:0;max-width:1500px">{{ headlines.priorities.heading_html|safe }}</h2>
-<p class="fx" style="--d:.2s;color:#919199;font-size:27px;margin:18px 0 0">{{ headlines.priorities.eyebrow }}</p>
-<div style="margin-top:44px;max-width:1560px">
-{% for p in strategic_priorities %}
-<div class="fx" style="--d:{{ '%.2f'|format(0.26 + loop.index0 * 0.1) }}s;display:flex;gap:34px;align-items:baseline;border-top:1px solid #E4E1DC;{% if loop.last %}border-bottom:1px solid #E4E1DC;{% endif %}padding:26px 0">
-<span style="color:#690F23;font-size:34px;font-weight:700;letter-spacing:-.02em;flex-shrink:0">{{ '%02d'|format(loop.index) }}</span>
-<div>
-<div style="color:#1B1B50;font-size:29px;font-weight:700;letter-spacing:-.02em">{{ p.title }}</div>
-<div style="color:#919199;font-size:24px;line-height:1.45;margin-top:8px;max-width:1280px">{{ p.description }}</div>
-</div>
-</div>
-{% endfor %}
-</div>
-</section>
-{% endif %}
-
-{# ---------- 4 · UDFORDRING → LØSNING (AI) ---------- #}
+{# ---------- 3 · UDFORDRING → LØSNING (AI) ---------- #}
 {% if value_mappings %}
 {# Sliden er 1080px høj og kan ikke rulle. Fire mappings med lange AI-tekster
    løb 127px ud over kanten og hen over sidefoden. Vi skruer indholdet ned efter
@@ -115,12 +94,12 @@ section[data-ai="dark"] .accent{color:#fff}
 </section>
 {% endif %}
 
-{# ---------- 5 · MASTER-SLIDES — sælgerens udvalg, urørt ---------- #}
+{# ---------- 4 · MASTER-SLIDES — sælgerens udvalg, urørt ---------- #}
 {% for s in library_slides %}
 {{ s.html|safe }}
 {% endfor %}
 
-{# ---------- 5b · RELEVANT CASE — branche-case fra AI ---------- #}
+{# ---------- 4b · RELEVANT CASE — branche-case fra AI ---------- #}
 {% if case and case.headline %}
 <section data-label="Relevant case" data-ai="light" style="background:#fff;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
 <div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | Case · {{ industry_tag }}</div>
@@ -140,7 +119,7 @@ section[data-ai="dark"] .accent{color:#fff}
 </section>
 {% endif %}
 
-{# ---------- 6 · NÆSTE SKRIDT — masterens design, AI-indhold ---------- #}
+{# ---------- 5 · NÆSTE SKRIDT — masterens design, AI-indhold ---------- #}
 {% if next_steps %}
 <section data-label="Næste skridt" data-ai="light" style="background:#FFFCF2;padding:100px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
 <div class="fx" style="position:absolute;left:140px;bottom:56px;color:#919199;font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | Next step</div>
@@ -160,7 +139,7 @@ section[data-ai="dark"] .accent{color:#fff}
 </section>
 {% endif %}
 
-{# ---------- 6b · KONTAKT — jeres Epico-team (kun hvis udfyldt) ---------- #}
+{# ---------- 5b · KONTAKT — jeres Epico-team (kun hvis udfyldt) ---------- #}
 {% if team and (team.kam.filled or team.rm.filled) %}
 <section data-label="Kontakt" data-ai="dark" style="background:#1B1B50;padding:110px 140px;box-sizing:border-box;font-family:'DM Sans',sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:center">
 <div class="fx" style="position:absolute;left:140px;bottom:56px;color:rgba(255,255,255,.45);font-size:20px;font-weight:700;letter-spacing:.14em;z-index:5">Epico | Contact</div>
@@ -180,7 +159,7 @@ section[data-ai="dark"] .accent{color:#fff}
 </section>
 {% endif %}
 
-{# ---------- 7 · AFSLUTNING — masterens outro, urørt ---------- #}
+{# ---------- 6 · AFSLUTNING — masterens outro, urørt ---------- #}
 {{ outro_html|safe }}
 
 </deck-stage>

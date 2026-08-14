@@ -1060,7 +1060,6 @@ const deckRemovedMasterIds = new Set();
 const CLIENT_SLIDE_ID_RULES = [
   [/titel|cover|forside/i, 'cover'],
   [/research/i, 'research'],
-  [/prioritet/i, 'priorities'],
   [/udfordring|løsning|mapping/i, 'mapping'],
   [/case/i, 'case'],
   [/næste skridt/i, 'next-steps'],
@@ -1192,7 +1191,6 @@ function renderDeckSlideList() {
 // sælger kan fortryde uden at have mistet AI'ens tekst.
 const CLIENT_SLIDE_CONTENT_KEYS = {
   research: 'research_facts',
-  priorities: 'strategic_priorities',
   mapping: 'value_mappings',
   'next-steps': 'next_steps',
 };
@@ -1265,17 +1263,10 @@ function buildReviewUI() {
 
   // Path-setteren skriver direkte i objektet — findes grenen ikke, fejler den
   a.slide_headlines = a.slide_headlines || {};
-  ['research', 'priorities', 'mapping', 'next_steps'].forEach(k => {
+  ['research', 'mapping', 'next_steps'].forEach(k => {
     a.slide_headlines[k] = a.slide_headlines[k] || { eyebrow: '', heading: '' };
   });
 
-  const priorities = a.strategic_priorities.map((p, i) => `
-    <div class="review-item">
-      <span class="field-hint">Prioritet ${i + 1}</span>
-      <input class="editable" data-path="strategic_priorities.${i}.title" value="${escapeHtml(p.title)}" placeholder="Titel">
-      <textarea class="editable" data-path="strategic_priorities.${i}.description" rows="2" placeholder="Beskrivelse">${escapeHtml(p.description)}</textarea>
-    </div>
-  `).join('');
 
   const mappings = a.value_mappings.map((m, i) => `
     <div class="review-item">
@@ -1342,14 +1333,6 @@ function buildReviewUI() {
       </p>
     </div>`}
 
-    <div class="review-block">
-      <div class="review-block-head">
-        <h3>Strategiske prioriteter</h3>
-        <span class="slide-ref" hidden>Slide 05</span>
-      </div>
-      
-      ${headlineFields('priorities')}${priorities}
-    </div>
 
     <div class="review-block">
       <div class="review-block-head">

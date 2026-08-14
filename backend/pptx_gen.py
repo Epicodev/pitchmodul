@@ -482,44 +482,6 @@ def _slide_research(prs, ctx):
                   font_size=10, color=LIGHT_GREY, font_name=FONT_BODY)
 
 
-def _slide_priorities(prs, ctx):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    _set_slide_bg(slide, RAW_SILK)
-    _add_slide_header(slide, "Jeres prioriteter")
-
-    eyebrow, heading = _headline(
-        ctx, "priorities", "Sådan læser vi jeres retning",
-        f"{len(ctx.get('strategic_priorities') or [])} strategiske prioriteter vi vil tale ind i.")
-    _add_text(slide, MARGIN, Inches(1.4), Inches(6), Inches(0.4),
-              eyebrow, font_size=11, bold=True, color=RASPBERRY, font_name=FONT_BODY)
-    _add_text(slide, MARGIN, Inches(1.85), Inches(11), Inches(1.0),
-              heading, font_size=44, bold=True, color=BLACK_CURRANT,
-              font_name=FONT_DISPLAY, accent=RASPBERRY)
-
-    priorities = ctx.get("strategic_priorities", [])[:3]
-    y = Inches(3.4)
-    for i, p in enumerate(priorities, start=1):
-        _add_rect(slide, MARGIN, y, SLIDE_W - (MARGIN * 2), Inches(1.1), WHITE)
-        # Num
-        _add_text(slide, MARGIN + Inches(0.3), y + Inches(0.15),
-                  Inches(0.8), Inches(0.7),
-                  f"{i:02d}",
-                  font_size=42, bold=True, color=RASPBERRY,
-                  font_name=FONT_DISPLAY)
-        # Title
-        _add_text(slide, MARGIN + Inches(1.2), y + Inches(0.15),
-                  SLIDE_W - MARGIN - Inches(1.5), Inches(0.4),
-                  p.get("title", ""),
-                  font_size=18, bold=True, color=BLACK_CURRANT,
-                  font_name=FONT_BODY)
-        # Description
-        _add_text(slide, MARGIN + Inches(1.2), y + Inches(0.55),
-                  SLIDE_W - MARGIN - Inches(1.5), Inches(0.5),
-                  _clip(p.get("description", ""), 280),
-                  font_size=12, color=GREY, font_name=FONT_BODY)
-        y += Inches(1.18)
-
-
 def _slide_mapping(prs, ctx):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     _set_slide_bg(slide, RAW_SILK)
@@ -1014,7 +976,6 @@ def render_pptx(
             },
         },
         "research_facts": analysis.get("research_facts", []),
-        "strategic_priorities": analysis.get("strategic_priorities", []),
         "value_mappings": analysis.get("value_mappings", []),
         "next_steps": analysis.get("next_steps", []),
         "case": analysis.get("case_recommendation", {}),
@@ -1030,7 +991,6 @@ def render_pptx(
     _slide_cover(prs, ctx)
     _slide_agenda(prs, ctx)
     _slide_research(prs, ctx)
-    _slide_priorities(prs, ctx)
     _slide_mapping(prs, ctx)
 
     # DEL 2 — Epico-slides fra biblioteket
