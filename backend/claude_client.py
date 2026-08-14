@@ -356,23 +356,34 @@ def _build_pitch_contract(
 
 _BRIEF_QUESTIONS_TOOL = {
     "name": "deliver_brief_questions",
-    "description": "Returnér de spørgsmål der vil løfte pitchen mest.",
+    "description": "Returnér enten flere spørgsmål, eller besked om at du har nok — plus dit forslag til slides.",
     "input_schema": {
         "type": "object",
         "properties": {
+            "enough_context": {
+                "type": "boolean",
+                "description": (
+                    "Har du nu nok til at bygge et deck der føles lavet til DENNE kunde? "
+                    "Sæt true når du kan svare på: hvorfor tog de mødet, hvad gør ondt i dag, "
+                    "og hvad skal sælgeren overbevise dem om. Er ét af dem stadig sort, så sæt false "
+                    "og spørg.\n\n"
+                    "Vær ikke perfektionistisk. Der findes altid mere at vide, men sælgeren skal til "
+                    "møde — ikke igennem et interview. To gode runder er som regel nok."
+                ),
+            },
             "assessment": {
                 "type": "string",
                 "description": (
-                    "Én sætning, max 160 tegn, til sælgeren: hvad kan du allerede lave en god pitch på, "
-                    "og hvad er det svage punkt? Skriv direkte og uden smiger. "
-                    "Fx 'Du har stakeholder og konkurrent på plads — men intet om hvad der gør DEM utilfredse.'"
+                    "Én sætning, max 160 tegn, til sælgeren. Er der flere spørgsmål: hvad er hullet? "
+                    "Er du færdig: hvad har du nu nok til at bygge? Skriv direkte og uden smiger."
                 ),
             },
             "questions": {
                 "type": "array",
                 "description": (
-                    "2-3 spørgsmål. Ikke flere. Hvert spørgsmål skal kunne ændre pitchen konkret — "
-                    "kan du ikke pege på hvilket slide svaret ville flytte, så stil det ikke."
+                    "2-3 spørgsmål når `enough_context` er false. TOM liste når den er true.\n\n"
+                    "Hvert spørgsmål skal kunne ændre pitchen konkret — kan du ikke pege på hvilket "
+                    "slide svaret flytter, så stil det ikke. Spørg aldrig om noget der allerede er besvaret."
                 ),
                 "items": {
                     "type": "object",
@@ -380,66 +391,85 @@ _BRIEF_QUESTIONS_TOOL = {
                         "question": {
                             "type": "string",
                             "description": (
-                                "Spørgsmålet, som en kollega ville stille det. Max 120 tegn. "
-                                "Konkret og besvarligt på 20 sekunder. "
+                                "Spørgsmålet, som en kollega ville stille det. Max 120 tegn, "
+                                "besvarligt på 20 sekunder. "
                                 "God: 'Hvad var den udløsende årsag til at de tog mødet?' "
                                 "Dårlig: 'Kan du fortælle mere om kunden?'"
                             ),
                         },
-                        "why": {
-                            "type": "string",
-                            "description": "Max 90 tegn: hvad svaret ændrer i pitchen. Fx 'Bestemmer om vi åbner på pris eller på kapacitet.'",
-                        },
+                        "why": {"type": "string", "description": "Max 90 tegn: hvad svaret ændrer i pitchen."},
                         "field": {
                             "type": "string",
                             "enum": ["insider_insights", "personal_angle", "meeting_history", "pitch_focus", "exclusions"],
                             "description": "Hvilket brief-felt svaret hører hjemme i.",
                         },
-                        "example_answer": {
-                            "type": "string",
-                            "description": "Max 90 tegn. Et realistisk eksempelsvar der viser detaljeniveauet. Vises som placeholder.",
-                        },
+                        "example_answer": {"type": "string", "description": "Max 90 tegn. Realistisk eksempelsvar, vises som placeholder."},
                     },
                     "required": ["question", "why", "field", "example_answer"],
                 },
-                "minItems": 2,
                 "maxItems": 3,
             },
+            "recommended_slide_ids": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Kun når `enough_context` er true: hvilke slides fra masterdecket skal med. "
+                    "Brug id'erne fra listen i prompten (fx 'm09').\n\n"
+                    "Vælg ud fra hvad sælgeren har fortalt, ikke ud fra hvad der er pænt at have med. "
+                    "Handler mødet om at få folk hurtigt, er Solution-kapitlet støj. Er stakeholderen "
+                    "Procurement, betyder proces og kriterier mere end teknologi-dybde.\n\n"
+                    "**Kapitel-forsiderne hører med.** Tager du et slide fra et servicekapitel, så tag "
+                    "kapitlets forside med — den er den visuelle overgang, og uden den falder decket "
+                    "sammen i en række løse slides.\n\n"
+                    "Færre og skarpere slår flere og bredere. Et deck der siger én ting klart, "
+                    "vinder over et der siger fem ting."
+                ),
+            },
+            "recommendation_reason": {
+                "type": "string",
+                "description": (
+                    "Kun når du er færdig. Max 200 tegn: hvorfor netop de slides, i sælgerens sprog. "
+                    "Fx 'Mødet handler om hastighed og risiko, ikke teknologi — så Freelance-sporet "
+                    "og processen, uden Solution.'"
+                ),
+            },
         },
-        "required": ["assessment", "questions"],
+        "required": ["enough_context", "assessment", "questions"],
     },
 }
 
 
-_BRIEF_QUESTIONS_SYSTEM = """Du er en erfaren Epico-sælger der kigger en kollegas mødeforberedelse igennem, kort før de skal afsted.
+_BRIEF_QUESTIONS_SYSTEM = """Du er en erfaren Epico-sælger der hjælper en kollega med at forberede et kundemøde. I sidder sammen i ti minutter, ikke en time.
 
-Kollegaen har skrevet noget om kunden og mødet — måske meget, måske næsten intet. Din opgave er at stille de **2-3 spørgsmål der vil løfte pitchen mest**. Ikke en tjekliste. Ikke alt hvad man kunne spørge om. De to-tre der faktisk rykker.
+Din opgave har to dele: **stil de spørgsmål der mangler**, og **når du har nok, sig det og foreslå hvilke slides decket skal indeholde**.
 
-## Sådan vælger du
+## Hvornår er du færdig?
 
-Et godt spørgsmål opfylder alle fire:
+Du har nok når du kan svare på alle tre:
+1. Hvorfor tog kunden mødet — hvad udløste det?
+2. Hvad gør ondt hos dem i dag?
+3. Hvad skal sælgeren have dem til at tro på?
+
+Kan du svare på alle tre, sæt `enough_context: true`, send en tom `questions`-liste og læg dit slide-forslag ved. Kan du ikke, stil 2-3 spørgsmål der lukker hullet.
+
+**Vær ikke perfektionistisk.** Der er altid mere man kunne vide. Sælgeren skal til møde, ikke gennem et interview — to gode runder er som regel nok. Har du fået fornuftige svar én gang og kan besvare de tre spørgsmål ovenfor, så stop. Bliver du ved med at spørge om detaljer, holder sælgeren op med at svare, og så har du gjort det værre.
+
+## Hvad et godt spørgsmål er
 
 1. **Svaret ændrer pitchen.** Kan du ikke sige hvilket slide der bliver anderledes, så drop det.
-2. **Sælgeren kan svare på 20 sekunder.** Vi spørger om hvad de ved, ikke om hvad de skal undersøge.
-3. **Du kan ikke selv finde svaret.** Omsætning, branche, antal ansatte — det slår vi selv op. Spørg om det der kun findes i sælgerens hoved.
-4. **Det er ikke allerede besvaret.** Læs briefen ordentligt igennem først.
+2. **Sælgeren kan svare på 20 sekunder.** Vi spørger om hvad de ved, ikke hvad de skal undersøge.
+3. **Du kan ikke selv finde svaret.** Omsætning, branche, antal ansatte slår vi selv op. Spørg om det der kun findes i sælgerens hoved.
+4. **Det er ikke allerede besvaret.** Læs briefen ordentligt igennem først — også svar fra tidligere runder.
 
-## Hvad der typisk er værd at spørge om
+Værd at spørge om: den udløsende årsag · smerten hos nuværende leverandør · hvem der reelt beslutter · hvad der er gået galt før · hvad der ikke må nævnes.
 
-- **Den udløsende årsag.** Hvorfor tog de mødet lige nu? Det afgør hvad hele pitchen skal handle om.
-- **Smerten hos den nuværende leverandør.** Er der en konkurrent inde, er "hvad irriterer dem" mere værd end alt andet.
-- **Hvem der reelt beslutter.** Ofte ikke personen i mødet.
-- **Hvad der er gået galt før.** Både med os og med andre.
-- **Hvad der IKKE må nævnes.** Sælgere glemmer ofte at skrive det, men det redder møder.
+Spørg aldrig om: ting der står i CVR eller årsrapporten · brede spørgsmål ("fortæl mere om kunden") · ting sælgeren næppe ved.
 
-## Hvad du ikke skal spørge om
+## Slide-forslaget
 
-- Ting der står i CVR eller årsrapporten
-- Brede spørgsmål ("fortæl mere om kunden")
-- Ting sælger næppe ved ("hvad er deres IT-budget for 2027?")
-- Mere end tre spørgsmål — så bliver det et skema, og skemaer bliver ikke udfyldt
+Når du er færdig, vælger du hvilke slides fra masterdecket der skal med. Det er ikke pynt — det er redigering. Sælgeren kan altid selv klikke til og fra bagefter, men dit forslag er det han starter fra, og de fleste bliver ved det.
 
-Er briefen allerede stærk, så sig det i `assessment` og stil de to spørgsmål der ville gøre den skarpere endnu. Der er altid noget.
+Vælg ud fra hvad du nu ved om mødet. Et møde om at skaffe folk hurtigt har ikke brug for Solution-kapitlet. En Procurement-stakeholder har mere brug for proces og kriterier end for teknologi-dybde. Tag kapitel-forsiderne med når du tager slides fra kapitlet — de er den visuelle overgang.
 
 Returnér via `deliver_brief_questions`-værktøjet."""
 
@@ -452,6 +482,8 @@ def suggest_brief_questions(
     stakeholder_key: Optional[str] = None,
     pitch_length: Optional[str] = "medium",
     services_to_highlight: Optional[List[str]] = None,
+    slide_catalogue: Optional[List[Dict[str, Any]]] = None,
+    round_number: int = 1,
     api_key: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -503,8 +535,32 @@ def suggest_brief_questions(
     if tomme:
         parts.append(f"*Endnu tomme felter: {', '.join(tomme)}*\n")
 
+    if slide_catalogue:
+        parts.append("## Slides du kan vælge mellem\n")
+        chapter = None
+        for sl in slide_catalogue:
+            if sl.get("chapter") != chapter:
+                chapter = sl.get("chapter")
+                parts.append(f"\n**{chapter}**")
+            svc = f"  — kræver {sl['services']}" if sl.get("services") else ""
+            parts.append(f"- `{sl['id']}` {sl['title']}{svc}")
+        parts.append("")
+
     parts.append("---")
-    parts.append("Stil de 2-3 spørgsmål der vil løfte denne pitch mest. Returnér via `deliver_brief_questions`.")
+    if round_number >= 3:
+        # Tredje runde er sidste. Sælgeren skal videre, ikke interviewes færdig.
+        parts.append(
+            "**Dette er tredje og sidste runde.** Sæt `enough_context: true` uanset hvad, "
+            "send en tom spørgsmålsliste, og byg dit slide-forslag på det du har. "
+            "Mangler der noget, så nævn det kort i `assessment` — men stop med at spørge."
+        )
+    else:
+        parts.append(
+            f"Dette er runde {round_number}. Har du nok til at besvare de tre spørgsmål "
+            "(hvorfor mødet, hvad gør ondt, hvad skal de tro på), så sæt `enough_context: true` "
+            "og læg slide-forslaget ved. Ellers stil 2-3 spørgsmål."
+        )
+    parts.append("Returnér via `deliver_brief_questions`.")
 
     try:
         response = client.messages.create(

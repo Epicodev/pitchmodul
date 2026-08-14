@@ -248,6 +248,23 @@ async def _try_cvr(cvr_number: Optional[str], client_name: str):
         return None
 
 
+def _slide_catalogue(pitch_length: str, services: list) -> list:
+    """Master-slides i det format spørgsmåls-prompten forventer.
+
+    plan() giver rå kapitel-nøgler; AI'en skal se de læsbare navne, ellers
+    grupperer den forkert i sit forslag.
+    """
+    return [
+        {
+            "id": s["id"],
+            "title": s["title"],
+            "chapter": master_deck.CHAPTER_LABELS.get(s["category"], s["category"]),
+            "services": ", ".join(x.replace("Epico ", "") for x in s["services"]),
+        }
+        for s in master_deck.plan(pitch_length, services)
+    ]
+
+
 def _readable_api_error(e: Exception) -> str:
     """Oversæt Anthropic-fejl til noget en sælger kan handle på.
 
@@ -280,6 +297,7 @@ async def brief_questions(
     exclusions: Optional[str] = Form(None),
     pitch_focus: Optional[str] = Form(None),
     services_to_highlight: Optional[str] = Form(None),
+    round_number: Optional[int] = Form(1),
 ):
     """
     Omvendt brief: i stedet for at sælgeren skal gætte hvilke af tolv felter
@@ -313,6 +331,8 @@ async def brief_questions(
             stakeholder_key=meeting_stakeholder,
             pitch_length=pitch_length,
             services_to_highlight=services_list,
+            slide_catalogue=_slide_catalogue(pitch_length, services_list),
+            round_number=max(1, int(round_number or 1)),
         )
     except Exception as e:
         raise HTTPException(status_code=502, detail=_readable_api_error(e))

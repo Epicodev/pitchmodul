@@ -535,6 +535,94 @@ body.composer-body {
   color: var(--light-grey);
 }
 
+/* AI'en melder selv fra — tydelig afslutning på spørgerunderne */
+.brief-questions-done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 22px 24px;
+  background: var(--black-currant);
+}
+
+.brief-questions-done[hidden] { display: none; }
+
+.brief-questions-done-tag {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--black-currant);
+  background: var(--kiwi);
+  padding: 4px 10px;
+}
+
+.brief-questions-done-text {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: white;
+  margin: 0;
+  max-width: 720px;
+}
+
+.brief-questions-done-slides {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  max-width: 720px;
+  padding-left: 14px;
+  border-left: 2px solid var(--kiwi);
+}
+
+.brief-questions-done-slides[hidden] { display: none; }
+
+.brief-questions-done-next {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 4px 0 0;
+  max-width: 720px;
+}
+
+/* Vejen udenom — synlig, men aldrig det oplagte valg */
+.brief-questions-skip {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--alu-grey);
+}
+
+.brief-questions-skip[hidden] { display: none; }
+
+.brief-questions-skip-hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--light-grey);
+}
+
+.text-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--light-grey);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.text-link:hover { color: var(--black-currant); }
+
 /* ---------- AVANCERET ---------- */
 .advanced-fields {
   display: flex;
@@ -768,6 +856,43 @@ body.composer-body {
   text-align: center;
 }
 
+/* AI'ens forslag — gør det tydeligt hvem der satte fluebenene */
+.plan-ai-note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 20px;
+  background: var(--white);
+  border: 2px solid var(--kiwi);
+}
+
+.plan-ai-note-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: var(--kern-label);
+  text-transform: uppercase;
+  color: var(--black-currant);
+  background: var(--kiwi);
+  padding: 3px 9px;
+}
+
+.plan-ai-note-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--black-currant);
+  max-width: 760px;
+}
+
+.plan-ai-note-hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--light-grey);
+}
+
 .plan-summary {
   display: flex;
   align-items: baseline;
@@ -836,6 +961,14 @@ body.composer-body {
   padding: 5px 11px;
   background: var(--beige);
   color: var(--grey);
+}
+
+/* Fjernet i review-listen — bliver stående, så tallet ikke falder uforklaret */
+.plan-chip--off {
+  background: transparent;
+  border: 1px solid var(--alu-grey);
+  color: var(--light-grey);
+  text-decoration: line-through;
 }
 
 .plan-slide {
@@ -1080,6 +1213,13 @@ body.composer-body {
   font-size: 13px;
   color: var(--light-grey);
   line-height: 1.5;
+  padding-left: 14px;
+  border-left: 3px solid var(--alu-grey);
+}
+
+.form-actions-note.is-unlocked {
+  color: var(--grey);
+  border-left-color: var(--kiwi);
 }
 
 /* ---------- RESEARCH STATUS ---------- */
@@ -1256,6 +1396,115 @@ body.composer-body {
   font-size: 12px;
   color: var(--light-grey);
   letter-spacing: 0;
+}
+
+/* ---------- SLIDES I DET FÆRDIGE DECK (review) ---------- */
+.deck-list-intro {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--light-grey);
+  line-height: 1.5;
+  margin: -12px 0 20px;
+  max-width: 780px;
+}
+
+.deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deck-slide {
+  display: grid;
+  grid-template-columns: 40px 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--raw-silk);
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.deck-slide:hover {
+  background: var(--white);
+  border-color: var(--alu-grey);
+}
+
+.deck-slide-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: var(--kern-medium);
+  color: var(--light-grey);
+}
+
+.deck-slide-title {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--black-currant);
+}
+
+.deck-slide-kind {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: var(--light-grey);
+}
+
+.deck-slide-fixed {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: var(--grey);
+  background: var(--beige);
+  padding: 5px 10px;
+}
+
+.deck-slide-btn {
+  background: none;
+  border: 1px solid var(--alu-grey);
+  padding: 5px 12px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: var(--kern-uppercase);
+  text-transform: uppercase;
+  color: var(--light-grey);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.deck-slide-btn:hover {
+  color: var(--raspberry);
+  border-color: var(--raspberry);
+}
+
+.deck-slide.is-removed {
+  background: transparent;
+  border-color: var(--alu-grey);
+}
+
+.deck-slide.is-removed .deck-slide-title {
+  color: var(--light-grey);
+  text-decoration: line-through;
+}
+
+.deck-slide.is-removed .deck-slide-num { color: var(--alu-grey); }
+
+.deck-slide-btn.is-undo {
+  color: var(--black-currant);
+  border-color: var(--black-currant);
+}
+
+.deck-slide-btn.is-undo:hover {
+  color: var(--white);
+  background: var(--black-currant);
+  border-color: var(--black-currant);
 }
 
 /* ---------- DÆKNINGSRAPPORT (sådan brugte jeg din brief) ---------- */

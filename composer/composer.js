@@ -228,6 +228,9 @@ const briefQuestions = {
   answers: {},      // spørgsmåls-index → sælgers svar
   baselines: {},    // feltnavn → feltets tekst før AI-svarene blev føjet på
   syncing: false,   // sandt mens vi selv skriver i et brief-felt
+  round: 0,         // hvor mange runder AI'en har kørt (næste kald = round + 1)
+  enough: false,    // AI'en har meldt enough_context
+  unlocked: false,  // research-knappen er åbnet (af AI'en eller ved spring over)
 };
 
 function briefFieldEl(name) {
@@ -290,21 +293,81 @@ function updateBriefQuestionsBtn() {
 }
 
 // Første runde bor i knappen øverst; opfølgninger i knappen under kortene,
-// så sælger aldrig ser to knapper der gør det samme.
+// så sælger aldrig ser to knapper der gør det samme. Har AI'en meldt at den
+// har nok, forsvinder begge — så er samtalen slut og research er næste skridt.
 function updateBriefQuestionsUi() {
   const hasCards = briefQuestions.items.length > 0;
+  const done = briefQuestions.enough;
   const askBtn = $('#brief-questions-btn');
   const more = $('#brief-questions-more');
+  const skip = $('#brief-questions-skip');
   const title = $('#brief-questions-head .brief-questions-title');
   const sub = $('#brief-questions-head .brief-questions-sub');
 
-  if (askBtn) askBtn.hidden = hasCards;
-  if (more) more.hidden = !hasCards;
-  if (hasCards && title) title.textContent = 'Svar på det du kan.';
-  if (hasCards && sub) {
+  if (askBtn) askBtn.hidden = hasCards || done;
+  if (more) more.hidden = !hasCards || done;
+  // Vejen udenom skal kun stå der så længe den kan bruges til noget
+  if (skip) skip.hidden = briefQuestions.unlocked;
+
+  if (done && title) title.textContent = 'Vi er igennem spørgsmålene.';
+  if (done && sub) {
+    sub.textContent = 'Dine svar står i briefen — du kan se og rette dem under Avanceret.';
+  } else if (hasCards && title) {
+    title.textContent = 'Svar på det du kan.';
+  }
+  if (!done && hasCards && sub) {
     sub.textContent = 'Spring gerne et spørgsmål over. Alt du skriver havner i briefen — du kan se og rette det under Avanceret.';
   }
   updateBriefQuestionsBtn();
+}
+
+// Research-knappen er lukket indtil AI'en har sagt god for briefen — eller
+// indtil sælgeren aktivt vælger den fra. Én gang åben forbliver den åben:
+// retter han bagefter i felterne, skal han ikke igennem spørgsmålene igen.
+function unlockResearch(reason) {
+  const btn = $('#run-analysis-btn');
+  const note = $('#run-analysis-note');
+  briefQuestions.unlocked = true;
+
+  if (btn) {
+    btn.disabled = false;
+    btn.title = '';
+  }
+  if (note) {
+    note.textContent = reason === 'skipped'
+      ? 'Du sprang spørgsmålene over. Research kører på det du selv har skrevet — tjek slide-vælgeren ovenfor før du trykker.'
+      : 'AI\'en har nok om mødet. Tjek slide-vælgeren ovenfor, og kør så research.';
+    note.classList.add('is-unlocked');
+  }
+  const skip = $('#brief-questions-skip');
+  if (skip) skip.hidden = true;
+}
+
+// AI'en er færdig med at spørge: kortene bliver stående i DOM'en (så svarene
+// og append-logikken er urørte), men foldes væk bag afslutningen.
+function renderBriefQuestionsDone(data) {
+  briefQuestions.enough = true;
+
+  const body = $('#brief-questions-body');
+  const done = $('#brief-questions-done');
+  const text = $('#brief-questions-done-text');
+  const slides = $('#brief-questions-done-slides');
+
+  if (body) body.hidden = true;
+  if (text) {
+    text.textContent = data.assessment
+      ? String(data.assessment)
+      : 'Jeg har det jeg skal bruge for at bygge et deck der er lavet til denne kunde.';
+  }
+  if (slides) {
+    const reason = (data.recommendation_reason || '').trim();
+    slides.hidden = !reason;
+    slides.textContent = reason;
+  }
+  if (done) done.hidden = false;
+
+  unlockResearch('enough');
+  updateBriefQuestionsUi();
 }
 
 // Sælger skal kunne se at svarene faktisk landede et sted
@@ -425,6 +488,10 @@ async function askBriefQuestions(append = false) {
 
   const formData = new FormData();
   appendSharedBriefFields(formData, shared);
+  // Backend'en tvinger enough_context i tredje runde, så den skal vide hvor
+  // langt vi er. Tælleren rykker først når kaldet er lykkedes.
+  const roundNumber = briefQuestions.round + 1;
+  formData.append('round_number', String(roundNumber));
 
   try {
     const res = await fetch(`${API_BASE}/api/brief-questions`, {
@@ -444,7 +511,16 @@ async function askBriefQuestions(append = false) {
     }
 
     const data = await res.json();
+    briefQuestions.round = roundNumber;
     clearBriefQuestionsLoading();
+
+    if (data.enough_context) {
+      // AI'en er færdig: den sætter fluebenene i vælgeren og åbner research
+      renderBriefQuestionsDone(data);
+      await applyRecommendedSlides(data.recommended_slide_ids, data.recommendation_reason);
+      return;
+    }
+
     renderBriefQuestions(data, append);
   } catch (e) {
     clearBriefQuestionsLoading();
@@ -552,6 +628,13 @@ function setupTeam() {
 async function runResearch(e) {
   e.preventDefault();
 
+  // Enter i et tekstfelt kan submitte formularen uden om den låste knap
+  if (!briefQuestions.unlocked) {
+    const block = $('#brief-questions-block');
+    if (block) block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   const form = $('#brief-form');
   const formData = new FormData();
 
@@ -582,8 +665,8 @@ async function runResearch(e) {
   const dictMappings = form.dict_mappings.value.trim();
   const dictNextSteps = form.dict_next_steps.value.trim();
 
-  // Bibliotek-slides sælger har fravalgt i live-planen
-  const excludedSlideIds = Array.from(document.querySelectorAll('.plan-slide input[type="checkbox"]:not(:checked)')).map(c => c.value);
+  // Slides sælger har fravalgt — i live-planen og i review-listen
+  const excludedSlideIds = currentExcludedSlideIds();
 
   if (!clientName) {
     alert('Kundenavn er påkrævet.');
@@ -961,6 +1044,204 @@ function bindEditables(root) {
   });
 }
 
+// ---------- Slides i det færdige deck (review-fanen) ----------
+// Master-slides fravælges gennem slideOverrides — præcis som i brief-fanens
+// vælger. AI-kundeslides har ikke et flueben nogen steder, så de samles her og
+// rejser med i excluded_slide_ids.
+const clientSlideExclusions = new Set();
+
+// Master-slides fjernet HERFRA bliver stående som overstreget linje, så et
+// fejlklik kan fortrydes uden at sælger skal tilbage til brief-fanen.
+const deckRemovedMasterIds = new Set();
+
+// Backend'ens plan navngiver kundeslidesne, men leverer ikke altid et id.
+// Titlerne er faste, så vi kan oversætte dem til de id'er deck-generatoren
+// kender — og bruger slidens eget id når det er der.
+const CLIENT_SLIDE_ID_RULES = [
+  [/titel|cover|forside/i, 'cover'],
+  [/research/i, 'research'],
+  [/prioritet/i, 'priorities'],
+  [/udfordring|løsning|mapping/i, 'mapping'],
+  [/case/i, 'case'],
+  [/næste skridt/i, 'next-steps'],
+  [/kontakt/i, 'contact'],
+  [/afslut|outro/i, 'outro'],
+];
+
+// Forsiden og afslutningen bærer decket — dem må sælger ikke kunne skrælle af
+const FIXED_CLIENT_SLIDE_IDS = new Set(['cover', 'outro', 'closing', 'afslutning']);
+
+// Slide-planen lister case blandt de indledende kundeslides, men decket tegner
+// den efter master-slidesne. Listen skal vise deckets rækkefølge, ikke planens.
+const CLIENT_SLIDES_AFTER_LIBRARY = new Set([
+  'case', 'next-steps', 'contact', 'outro', 'closing', 'afslutning',
+]);
+
+function clientSlideId(slide) {
+  if (slide && slide.id) return String(slide.id);
+  const title = (slide && slide.title) || '';
+  const rule = CLIENT_SLIDE_ID_RULES.find(([re]) => re.test(title));
+  if (rule) return rule[1];
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'slide';
+}
+
+function deckSlideRows() {
+  const plan = _planForPreview;
+  if (!plan) return [];
+
+  const isOn = s => (s.id in slideOverrides) ? slideOverrides[s.id] : s.default_on;
+  const library = plan.library_slides || [];
+
+  // Er en fjernet master-slide tilvalgt igen i brief-fanen, skal linjen
+  // ikke blive ved med at hænge her
+  deckRemovedMasterIds.forEach(id => {
+    const s = library.find(x => x.id === id);
+    if (!s || isOn(s)) deckRemovedMasterIds.delete(id);
+  });
+
+  const clientRow = (s) => {
+    const id = clientSlideId(s);
+    return {
+      id,
+      title: s.title || id,
+      kind: 'client',
+      fixed: FIXED_CLIENT_SLIDE_IDS.has(id),
+      removed: clientSlideExclusions.has(id),
+    };
+  };
+
+  const masterRows = library
+    .filter(s => isOn(s) || deckRemovedMasterIds.has(s.id))
+    .map(s => ({ id: s.id, title: s.title, kind: 'library', fixed: false, removed: !isOn(s) }));
+
+  const clientRows = [...(plan.client_slides || []), ...(plan.closing_slides || [])].map(clientRow);
+  const before = clientRows.filter(r => !CLIENT_SLIDES_AFTER_LIBRARY.has(r.id));
+  const after = clientRows.filter(r => CLIENT_SLIDES_AFTER_LIBRARY.has(r.id));
+
+  // Kontakt-sliden står ikke i planen, men kommer med i decket så snart
+  // sælgeren har udfyldt et navn i sit team
+  const team = (state.brief && state.brief.team) || {};
+  const hasTeam = !!((team.kam || {}).name || (team.rm || {}).name);
+  if (hasTeam && !after.some(r => r.id === 'contact')) {
+    const outroAt = after.findIndex(r => FIXED_CLIENT_SLIDE_IDS.has(r.id));
+    const contact = {
+      id: 'contact', title: 'Kontakt', kind: 'client',
+      fixed: false, removed: clientSlideExclusions.has('contact'),
+    };
+    if (outroAt === -1) after.push(contact);
+    else after.splice(outroAt, 0, contact);
+  }
+
+  return [...before, ...masterRows, ...after];
+}
+
+function deckListMarkup() {
+  return `
+    <div class="review-block deck-list-block">
+      <div class="review-block-head">
+        <h3>Slides i det færdige deck</h3>
+        <span class="slide-ref"><span id="deck-list-count">—</span> slides</span>
+      </div>
+      <p class="deck-list-intro">
+        Rækkefølgen er deckets. Fjern det du ikke skal bruge — ændringen slår igennem
+        næste gang du genererer decket.
+      </p>
+      <div class="deck-list" id="deck-list"></div>
+    </div>
+  `;
+}
+
+function renderDeckSlideList() {
+  const host = $('#deck-list');
+  if (!host) return;
+
+  const rows = deckSlideRows();
+  if (!rows.length) {
+    host.innerHTML = `<div class="slide-plan-loading">Slide-planen er ikke indlæst.</div>`;
+    return;
+  }
+
+  let n = 0;
+  host.innerHTML = rows.map(r => {
+    const num = r.removed ? '—' : String(++n).padStart(2, '0');
+    const kind = r.kind === 'client' ? 'AI-kundeslide' : 'Masterdeck';
+    const action = r.fixed
+      ? `<span class="deck-slide-fixed">Altid med</span>`
+      : `<button type="button" class="deck-slide-btn${r.removed ? ' is-undo' : ''}"
+                 data-kind="${r.kind}" data-id="${escapeHtml(r.id)}">${r.removed ? 'Tag med igen' : 'Fjern'}</button>`;
+    return `
+      <div class="deck-slide${r.removed ? ' is-removed' : ''}${r.fixed ? ' deck-slide--fixed' : ''}">
+        <span class="deck-slide-num">${num}</span>
+        <span class="deck-slide-title">${escapeHtml(r.title)}</span>
+        <span class="deck-slide-kind">${kind}</span>
+        ${action}
+      </div>`;
+  }).join('');
+
+  const count = $('#deck-list-count');
+  if (count) count.textContent = String(n);
+
+  host.querySelectorAll('.deck-slide-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleDeckSlide(btn.dataset.kind, btn.dataset.id));
+  });
+}
+
+// Master-slides fjernes af backend'en ud fra id. AI-kundeslidesne har ikke et
+// id i deck-generatoren — de tegnes kun hvis der ER indhold til dem. Så en
+// fjernet kundeslide sendes med tomt indhold. state.analysis røres ikke, så
+// sælger kan fortryde uden at have mistet AI'ens tekst.
+const CLIENT_SLIDE_CONTENT_KEYS = {
+  research: 'research_facts',
+  priorities: 'strategic_priorities',
+  mapping: 'value_mappings',
+  'next-steps': 'next_steps',
+};
+
+function analysisForDeck() {
+  const a = state.analysis;
+  if (!a || !clientSlideExclusions.size) return a;
+
+  const copy = { ...a };
+  clientSlideExclusions.forEach(id => {
+    const key = CLIENT_SLIDE_CONTENT_KEYS[id];
+    if (key) copy[key] = [];
+    if (id === 'case') copy.case_recommendation = { ...(a.case_recommendation || {}), headline: '' };
+  });
+  return copy;
+}
+
+// Kontakt-sliden tegnes kun når et teammedlem er udfyldt
+function teamForDeck() {
+  const team = (state.brief && state.brief.team) || {};
+  return clientSlideExclusions.has('contact') ? { kam: {}, rm: {} } : team;
+}
+
+function toggleDeckSlide(kind, id) {
+  if (kind === 'client') {
+    if (clientSlideExclusions.has(id)) clientSlideExclusions.delete(id);
+    else clientSlideExclusions.add(id);
+    // Vælgeren i brief-fanen tæller de samme slides — gen-tegn den også
+    if (_planForPreview) renderSlidePlan(_planForPreview);
+    else renderDeckSlideList();
+    return;
+  }
+
+  const plan = _planForPreview;
+  const slide = plan && (plan.library_slides || []).find(s => s.id === id);
+  if (!slide) return;
+
+  const isOn = (slide.id in slideOverrides) ? slideOverrides[slide.id] : slide.default_on;
+  const next = !isOn;
+  if (next === slide.default_on) delete slideOverrides[slide.id];
+  else slideOverrides[slide.id] = next;
+
+  if (next) deckRemovedMasterIds.delete(id);
+  else deckRemovedMasterIds.add(id);
+
+  // Gen-tegner både brief-fanens vælger og denne liste
+  renderSlidePlan(plan);
+}
+
 // ---------- Build review UI ----------
 function buildReviewUI() {
   const a = state.analysis;
@@ -1019,6 +1300,8 @@ function buildReviewUI() {
   c.innerHTML = `
     ${coverageMarkup(a.coverage_report)}
 
+    ${deckListMarkup()}
+
     <div class="review-block">
       <div class="review-block-head">
         <h3>Research-fakta om ${escapeHtml(state.brief.client_name)}</h3>
@@ -1066,6 +1349,9 @@ function buildReviewUI() {
   // Fakta renderes for sig, så de kan gen-tegnes når sælger bytter en ud
   renderFacts();
 
+  // Slide-listen gen-tegnes hver gang sælger fjerner eller fortryder
+  renderDeckSlideList();
+
   // Foldbar dækningsrapport
   const covToggle = $('#coverage-toggle');
   const covBody = $('#coverage-body');
@@ -1091,17 +1377,19 @@ async function generateDeck() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         client_name: state.brief.client_name,
-        analysis: state.analysis,
+        analysis: analysisForDeck(),
         meeting: {
           date: state.brief.date,
           city: state.brief.city,
           contact_person: state.brief.contact_person,
         },
-        team: state.brief.team,
+        team: teamForDeck(),
         pitch_length: state.brief.pitch_length,
         services: state.brief.services_to_highlight,
         stakeholder: state.brief.meeting_stakeholder,
-        excluded_slide_ids: state.brief.excluded_slide_ids || [],
+        // Læses på ny her: sælger kan have fjernet slides i review-listen
+        // efter research kørte
+        excluded_slide_ids: currentExcludedSlideIds(),
         selected_slide_ids: currentSelectedSlideIds(),
       }),
     });
@@ -1149,17 +1437,17 @@ async function downloadPptx() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         client_name: state.brief.client_name,
-        analysis: state.analysis,
+        analysis: analysisForDeck(),
         meeting: {
           date: state.brief.date,
           city: state.brief.city,
           contact_person: state.brief.contact_person,
         },
-        team: state.brief.team,
+        team: teamForDeck(),
         pitch_length: state.brief.pitch_length,
         services: state.brief.services_to_highlight,
         stakeholder: state.brief.meeting_stakeholder,
-        excluded_slide_ids: state.brief.excluded_slide_ids || [],
+        excluded_slide_ids: currentExcludedSlideIds(),
       }),
     });
 
@@ -1230,13 +1518,64 @@ async function refreshSlidePlan() {
 // når længde eller services ændres. id → true (til) / false (fra).
 const slideOverrides = {};
 
-// De master-slides der er slået til lige nu (sendes til generate-deck)
+// AI'ens begrundelse for sit slide-forslag. Bliver stående i vælgeren, så det
+// er tydeligt hvem der satte fluebenene — også efter sælger selv har rettet.
+let aiSlideAdvice = '';
+
+// De master-slides der er slået til lige nu (sendes til generate-deck).
+//
+// Udregnes fra slideOverrides og planen — ikke fra afkrydsningsfelterne i DOM'en.
+// Review-fanens "fjern slide" skriver til slideOverrides, men tegner ikke
+// brief-fanens vælger om; læste vi DOM'en, ville et fravalg i review derfor
+// aldrig nå med i det genererede deck.
 function currentSelectedSlideIds() {
+  const plan = _planForPreview;
+  if (plan && Array.isArray(plan.library_slides)) {
+    return plan.library_slides
+      .filter(sl => (sl.id in slideOverrides) ? slideOverrides[sl.id] : sl.default_on)
+      .map(sl => sl.id);
+  }
+  // Planen er ikke hentet endnu — fald tilbage til det vælgeren viser
   const container = $('#slide-plan');
   if (!container) return null;
   const boxes = container.querySelectorAll('.plan-slide input[type="checkbox"]');
   if (!boxes.length) return null;
   return Array.from(boxes).filter(c => c.checked).map(c => c.value);
+}
+
+// Alt sælger har fravalgt: master-slides fra vælgeren + AI-kundeslides han har
+// fjernet i review-listen. Begge dele rejser i excluded_slide_ids.
+function currentExcludedSlideIds() {
+  const container = $('#slide-plan');
+  const master = container
+    ? Array.from(container.querySelectorAll('.plan-slide input[type="checkbox"]:not(:checked)')).map(c => c.value)
+    : [];
+  return master.concat(Array.from(clientSlideExclusions));
+}
+
+// AI'ens forslag sætter fluebenene. Vi skriver kun en override når valget
+// afviger fra forvalget — ellers ville et senere skift af mødelængde blive
+// spærret af overrides der bare gentog default_on.
+async function applyRecommendedSlides(ids, reason) {
+  if (!Array.isArray(ids) || !ids.length) return;
+  if (!_planForPreview) await refreshSlidePlan();
+
+  const plan = _planForPreview;
+  if (!plan || !Array.isArray(plan.library_slides)) return;
+
+  const wanted = new Set(ids.map(String));
+  const known = plan.library_slides.filter(s => wanted.has(s.id));
+  if (!known.length) return;   // ukendte id'er — rør ikke sælgers valg
+
+  plan.library_slides.forEach(s => {
+    const on = wanted.has(s.id);
+    if (on === s.default_on) delete slideOverrides[s.id];
+    else slideOverrides[s.id] = on;
+  });
+
+  aiSlideAdvice = (reason || '').trim()
+    || `AI'en foreslår ${known.length} slides fra masterdecket ud fra dine svar.`;
+  renderSlidePlan(plan);
 }
 
 // Vælgeren har to halvdele: en liste (hurtig at skimme, viser hvorfor noget
@@ -1275,8 +1614,13 @@ function renderSlidePlan(plan) {
   const on = plan.library_slides.filter(isOn);
   const off = plan.library_slides.filter(s => !isOn(s));
 
-  const fixed = [...plan.client_slides, ...plan.closing_slides]
-    .map(s => `<span class="plan-chip">${escapeHtml(s.title)}</span>`).join('');
+  // Kundeslides sælger har fjernet i review-listen tælles ikke med — men de
+  // bliver stående som overstreget chip, så tallet ikke bare falder uforklaret.
+  const fixedSlides = [...plan.client_slides, ...plan.closing_slides];
+  const fixed = fixedSlides.map(s => {
+    const off = clientSlideExclusions.has(clientSlideId(s));
+    return `<span class="plan-chip${off ? ' plan-chip--off' : ''}">${escapeHtml(s.title)}</span>`;
+  }).join('');
 
   const row = (s, checked) => `
     <label class="plan-slide">
@@ -1307,7 +1651,7 @@ function renderSlidePlan(plan) {
       ${slides.map(s => row(s, false)).join('')}
     </div>`).join('');
 
-  const fixedCount = plan.client_slides.length + plan.closing_slides.length;
+  const fixedCount = fixedSlides.filter(s => !clientSlideExclusions.has(clientSlideId(s))).length;
   const updateSummary = () => {
     const n = container.querySelectorAll('.plan-slide input:checked').length;
     $('#plan-count').textContent = fixedCount + n;
@@ -1316,6 +1660,13 @@ function renderSlidePlan(plan) {
   };
 
   container.innerHTML = `
+    ${aiSlideAdvice ? `
+      <div class="plan-ai-note">
+        <span class="plan-ai-note-label">AI'ens forslag</span>
+        <span class="plan-ai-note-text">${escapeHtml(aiSlideAdvice)}</span>
+        <span class="plan-ai-note-hint">Fluebenene er sat af AI'en — ret dem frit.</span>
+      </div>` : ''}
+
     <div class="plan-summary">
       <span class="plan-count" id="plan-count"></span>
       <span class="plan-count-label">slides i alt</span>
@@ -1379,6 +1730,9 @@ function renderSlidePlan(plan) {
   _planForPreview = plan;
   updateSummary();
   pushSelectionToPreview(plan);
+
+  // Review-listen viser de samme master-slides — hold de to i trit
+  if ($('#deck-list')) renderDeckSlideList();
 }
 
 // Miniaturerne melder klik tilbage hertil; composeren ejer state, så de to
@@ -1429,6 +1783,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (askBtn) askBtn.addEventListener('click', () => askBriefQuestions(false));
   if (askMoreBtn) askMoreBtn.addEventListener('click', () => askBriefQuestions(true));
   if (clientNameInput) clientNameInput.addEventListener('input', updateBriefQuestionsBtn);
+
+  // Vejen udenom: nogle sælgere kender kunden bedre end AI'en når til på tre
+  // runder, og en hård blokering ville gøre værktøjet til en tidsrøver.
+  const skipBtn = $('#brief-questions-skip-btn');
+  if (skipBtn) skipBtn.addEventListener('click', () => {
+    unlockResearch('skipped');
+    updateBriefQuestionsUi();
+    const actions = $('#run-analysis-btn');
+    if (actions) actions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
   updateBriefQuestionsUi();
 
   // Retter sælger selv i et brief-felt, må vores AI-svar ikke overskrive det

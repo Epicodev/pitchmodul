@@ -102,14 +102,14 @@
 
       <!-- 02 — OMVENDT BRIEF: AI spørger i stedet for blanke felter -->
       <fieldset class="form-block form-block--accent" id="brief-questions-block">
-        <legend><span class="legend-num">02</span>Lad AI stille spørgsmålene <span class="legend-hint">vinder ved uenighed</span></legend>
-        <p class="form-block-intro">AI'en læser det du har valgt ovenfor og stiller de 2-3 spørgsmål der ville løfte pitchen mest. Det du svarer behandles som <strong>evidens på lige fod med årsrapporten</strong> — og vinder hvis de to peger forskelligt. Et regnskab kan være 14 måneder gammelt; du talte måske med dem i sidste uge.</p>
+        <legend><span class="legend-num">02</span>Lad AI stille spørgsmålene <span class="legend-hint">næste skridt</span></legend>
+        <p class="form-block-intro">AI'en læser det du har valgt ovenfor og stiller de 2-3 spørgsmål der ville løfte pitchen mest. Det du svarer behandles som <strong>evidens på lige fod med årsrapporten</strong> — og vinder hvis de to peger forskelligt. Et regnskab kan være 14 måneder gammelt; du talte måske med dem i sidste uge. Når AI'en selv siger den har nok, låser den research op og foreslår hvilke slides du skal med.</p>
 
         <div class="brief-questions" id="brief-questions">
           <div class="brief-questions-head" id="brief-questions-head">
             <div class="brief-questions-copy">
-              <span class="brief-questions-title">Klar? Så spørger jeg.</span>
-              <span class="brief-questions-sub">Svar på det du kan — spring resten over. Dine svar skrives automatisk ind i de rigtige felter under Avanceret. Tager ca. 5 sekunder.</span>
+              <span class="brief-questions-title">Næste skridt: lad AI'en spørge.</span>
+              <span class="brief-questions-sub">Kunde, mødelængde og stakeholder er på plads. Nu spørger AI'en om resten — den siger selv til når den har nok. Hver runde tager ca. 5 sekunder.</span>
             </div>
             <button type="button" class="btn btn--primary" id="brief-questions-btn" disabled title="Udfyld kundenavn først">
               Stil mig spørgsmålene <span class="arrow">→</span>
@@ -119,10 +119,22 @@
           <div class="brief-questions-body" id="brief-questions-body" hidden></div>
 
           <div class="brief-questions-more" id="brief-questions-more" hidden>
-            <button type="button" class="btn btn--ghost btn--sm" id="brief-questions-more-btn">
-              Stil mig tre spørgsmål mere <span class="arrow">→</span>
+            <button type="button" class="btn btn--primary btn--sm" id="brief-questions-more-btn">
+              Jeg har svaret — spørg videre <span class="arrow">→</span>
             </button>
-            <span class="brief-questions-more-hint">AI'en læser dine svar med og finder de næste huller.</span>
+            <span class="brief-questions-more-hint">AI'en læser dine svar med og siger til når den har nok.</span>
+          </div>
+
+          <div class="brief-questions-done" id="brief-questions-done" hidden>
+            <span class="brief-questions-done-tag">AI'en har nok nu</span>
+            <p class="brief-questions-done-text" id="brief-questions-done-text"></p>
+            <p class="brief-questions-done-slides" id="brief-questions-done-slides" hidden></p>
+            <p class="brief-questions-done-next">Research er låst op nederst på siden. Slide-vælgeren er sat efter AI'ens forslag — ret gerne i den.</p>
+          </div>
+
+          <div class="brief-questions-skip" id="brief-questions-skip">
+            <button type="button" class="text-link" id="brief-questions-skip-btn">Spring spørgsmålene over</button>
+            <span class="brief-questions-skip-hint">Kender du kunden i forvejen, låser det research op med det samme.</span>
           </div>
         </div>
       </fieldset>
@@ -348,22 +360,23 @@
         </div>
       </fieldset>
 
-      <div class="form-actions">
-        <p class="form-actions-note">Du kan køre research så snart kundenavnet er udfyldt — resten er valgfrit.</p>
-        <button type="submit" class="btn btn--primary btn--lg" id="run-analysis-btn">
-          Kør AI-research <span class="arrow">→</span>
-        </button>
-      </div>
-
-      <!-- SLIDES I PITCHEN — rolig statuslinje under handlingen -->
+      <!-- SLIDES I PITCHEN — tag stilling FØR du kører research -->
       <div class="slide-plan-strip">
         <div class="slide-plan-strip-head">
           <span class="slide-plan-strip-title">Slides i pitchen</span>
-          <span class="slide-plan-strip-sub">Kunde-slides er altid med. Epico-slides følger mødelængde og valgte services — fravælg enkeltvis hvis du vil.</span>
+          <span class="slide-plan-strip-sub">Tag stilling her, før du kører research — AI'en skriver kundeslidesne med de valgte Epico-slides i baghovedet. Kunde-slides er altid med; Epico-slides følger mødelængde og valgte services, og kan fravælges enkeltvis.</span>
         </div>
         <div class="slide-plan" id="slide-plan">
           <div class="slide-plan-loading">Indlæser slide-plan…</div>
         </div>
+      </div>
+
+      <div class="form-actions">
+        <p class="form-actions-note" id="run-analysis-note">Kør spørgsmålene ovenfor først — AI'en låser research op når den selv siger den har nok om mødet.</p>
+        <button type="submit" class="btn btn--primary btn--lg" id="run-analysis-btn" disabled
+                title="Kør spørgsmålene ovenfor først — eller spring dem over">
+          Kør AI-research <span class="arrow">→</span>
+        </button>
       </div>
     </form>
   </section>
