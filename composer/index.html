@@ -466,6 +466,15 @@
       <h2 class="h2">Dit deck er klar.</h2>
     </div>
 
+    <div class="deck-viewer" id="deck-viewer" hidden>
+      <div class="deck-viewer-bar">
+        <span class="deck-viewer-hint">Bladr med piletasterne. Knappen fjerner det slide du står på — det kan altid hentes tilbage i trin 03.</span>
+        <span class="deck-viewer-status" id="deck-viewer-status" hidden></span>
+        <button type="button" class="btn btn--ghost" id="remove-current-slide">Fjern dette slide</button>
+      </div>
+      <iframe id="deck-frame" title="Pitch deck"></iframe>
+    </div>
+
     <div class="generated-actions" id="generated-actions">
       <a href="#" target="_blank" class="generated-card" id="open-deck-link">
         <div class="generated-icon">↗</div>

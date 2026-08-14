@@ -1098,7 +1098,12 @@ function bindEditables(root) {
 // Master-slides fravælges gennem slideOverrides — præcis som i brief-fanens
 // vælger. AI-kundeslides har ikke et flueben nogen steder, så de samles her og
 // rejser med i excluded_slide_ids.
-const clientSlideExclusions = new Set();
+// Research-slidet ("hvad vi ved om jer") er fravalgt som standard. AI'ens egen
+// vurdering af hvornår det passede viste sig for lempelig — den kunne altid
+// argumentere for at tage det med, og et slide med kundens underskud læser
+// akavet i et salgsmøde. Researchen kører stadig og føder de andre slides;
+// sælgeren tager slidet aktivt med i deck-listen når det fortjener pladsen.
+const clientSlideExclusions = new Set(['research']);
 
 // Master-slides fjernet HERFRA bliver stående som overstreget linje, så et
 // fejlklik kan fortrydes uden at sælger skal tilbage til brief-fanen.
@@ -1469,6 +1474,15 @@ async function generateDeck() {
     state.deckUrl = data.url;
 
     $('#open-deck-link').href = data.url;
+
+    const viewer = $('#deck-viewer');
+    const frame = $('#deck-frame');
+    if (viewer && frame) {
+      viewer.hidden = false;
+      frame.src = data.url + (_pendingDeckHash ? `#${_pendingDeckHash}` : '');
+      _pendingDeckHash = null;
+    }
+
     enableTab('generate');
     completeTab('review');
     setActiveTab('generate');
@@ -1479,6 +1493,72 @@ async function generateDeck() {
     btn.disabled = false;
     btn.innerHTML = 'Generer deck <span class="arrow">→</span>';
   }
+}
+
+// ---------- Indlejret deck-visning ----------
+// Decket vises i en iframe på samme origin, så vi kan læse hvilket slide der
+// er aktivt (vieweren sætter data-deck-active) og fjerne det med samme
+// mekanik som deck-listen i review. Positionen overlever regenereringen,
+// fordi vieweren læser #N fra URL'en ved load.
+let _pendingDeckHash = null;
+let _lastDeckRemoval = null;
+
+function currentDeckSlide() {
+  const frame = $('#deck-frame');
+  const doc = frame && frame.contentDocument;
+  if (!doc) return null;
+  const sections = [...doc.querySelectorAll('section[data-slide-id]')];
+  const idx = sections.findIndex(sec => sec.hasAttribute('data-deck-active'));
+  if (idx < 0) return null;
+  const sec = sections[idx];
+  return {
+    id: sec.dataset.slideId,
+    index: idx + 1,
+    title: sec.dataset.label || sec.dataset.slideId,
+  };
+}
+
+function deckViewerStatus(html) {
+  const el = $('#deck-viewer-status');
+  if (!el) return;
+  el.hidden = !html;
+  el.innerHTML = html || '';
+}
+
+async function removeCurrentDeckSlide() {
+  const cur = currentDeckSlide();
+  if (!cur || !cur.id) {
+    deckViewerStatus('Kunne ikke aflæse hvilket slide der vises — bladr ét frem og prøv igen.');
+    return;
+  }
+  if (FIXED_CLIENT_SLIDE_IDS.has(cur.id)) {
+    deckViewerStatus('Titel og afslutning er altid med.');
+    return;
+  }
+
+  const isLibrary = !!(_planForPreview && (_planForPreview.library_slides || []).some(sl => sl.id === cur.id));
+  const kind = isLibrary ? 'library' : 'client';
+
+  toggleDeckSlide(kind, cur.id);
+  _lastDeckRemoval = { kind, id: cur.id, title: cur.title };
+  // Samme index efter regenerering = det næste slide i rækken, hvilket er
+  // præcis hvor man står efter at have fjernet noget
+  _pendingDeckHash = Math.max(1, cur.index);
+  await generateDeck();
+  deckViewerStatus(`«${escapeHtml(cur.title)}» fjernet <button type="button" class="text-link" id="undo-deck-removal">Fortryd</button>`);
+  const undo = $('#undo-deck-removal');
+  if (undo) undo.addEventListener('click', undoDeckRemoval);
+}
+
+async function undoDeckRemoval() {
+  if (!_lastDeckRemoval) return;
+  const { kind, id } = _lastDeckRemoval;
+  _lastDeckRemoval = null;
+  toggleDeckSlide(kind, id);
+  const cur = currentDeckSlide();
+  _pendingDeckHash = cur ? cur.index : null;
+  await generateDeck();
+  deckViewerStatus('');
 }
 
 // ---------- Download ----------
@@ -1874,6 +1954,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#back-to-brief').addEventListener('click', () => setActiveTab('brief'));
   $('#generate-deck-btn').addEventListener('click', generateDeck);
+  const rmBtn = $('#remove-current-slide');
+  if (rmBtn) rmBtn.addEventListener('click', removeCurrentDeckSlide);
   $('#download-deck-btn').addEventListener('click', downloadDeck);
   const pptxBtn = $('#download-pptx-btn');
   if (pptxBtn) pptxBtn.addEventListener('click', downloadPptx);

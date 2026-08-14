@@ -796,15 +796,13 @@ ANALYSIS_TOOL = {
             "research_facts": {
                 "type": "array",
                 "description": (
-                    "**Returnér en TOM liste hvis researchen ikke tjener sælgerens vinkel.**\n\n"
-                    "Research-slidet er ikke obligatorisk. Det skal kun med når det du fandt "
-                    "faktisk understøtter det møde sælgeren skal til. Fandt du fire pæne fakta "
-                    "om kundens IT-setup, men mødet handler om at skaffe en ML-profil hurtigt, "
-                    "så er slidet en omvej — så viser vi at vi har googlet, ikke at vi har forstået.\n\n"
-                    "Tom liste er et gyldigt og ofte rigtigt svar. Et deck uden research-slide er "
-                    "bedre end et med et slide der ikke betyder noget. Nævn det kort i "
-                    "`coverage_report` når du udelader det, så sælgeren ved hvorfor.\n\n"
-                    "Tager du det med, gælder følgende:\n\n"
+                    "**Research-slidet er som udgangspunkt fravalgt af sælgeren** — han tager det "
+                    "aktivt med i review når det fortjener pladsen. Dine fakta er råstoffet til det "
+                    "valg: levér dem når du har fundet noget reelt, også selvom du er i tvivl om "
+                    "slidet skal med. Uden fakta har sælgeren intet at vælge til.\n\n"
+                    "Returnér kun en tom liste når researchen reelt intet fandt ud over generisk "
+                    "firmabaggrund (omsætning, medarbejdertal, branche) — det ved kunden selv, og "
+                    "det er ikke et slide værd. Nævn det i `coverage_report` når listen er tom.\n\n"
                     "Fakta om kunden der beviser at vi har gjort hjemmearbejdet. "
                     "**RELEVANS-TESTEN — hver fact skal bestå BEGGE dele:**\n"
                     "1) **Ikke-indlysende for modtageren.** Kunden kender sin egen omsætning. "
@@ -1428,22 +1426,15 @@ Hvis sælger har angivet en konkurrent i sit brief (fx "de bruger ProData", "de 
 
 Hvis ingen konkurrent er nævnt — så er det ikke en konkurrence-pitch. **Nævn ikke konkurrenter på fri hånd.** Drop helt "alternativ-til"-vinklen og fokusér på Epico's egne styrker.
 
-## ⚖️ RESEARCH-SLIDET SKAL FORTJENE SIN PLADS
+## ⚖️ RESEARCH-FAKTA ER RÅSTOF — SÆLGEREN VÆLGER SLIDET
 
-Slidet "hvad vi ved om jer" er ikke obligatorisk. Spørg dig selv, før du fylder det:
+Slidet "hvad vi ved om jer" er som udgangspunkt fravalgt. Sælgeren tager det aktivt med i review, hvis dine fakta fortjener det. Din opgave er derfor ikke at afgøre om slidet skal med — det er at levere fakta der er værd at vælge.
 
-**Ville sælgeren selv sige det her højt i mødet?** Ikke "er det korrekt" eller "er det imponerende at vi fandt det" — men ville en erfaren sælger bruge mødetid på det.
+Det ændrer hvad et godt fact er:
 
-Tag det med når researchen har fundet noget der **ændrer samtalen**: et hul de selv har erkendt, en beslutning de lige har truffet, et tal der gør sælgerens argument uafviseligt.
-
-Lad det være når:
-- Du kun har generisk firmabaggrund — omsætning, medarbejdertal, branche. Det ved de selv.
-- Fakta peger et andet sted hen end sælgerens vinkel. Fire pæne observationer om deres IT-landskab hjælper ikke på et møde om at skaffe én profil hurtigt.
-- Du fandt intet ud over hvad sælgeren allerede skrev i sin brief.
-
-**Et deck uden research-slide er bedre end et med et slide der ikke betyder noget.** Udelader du det, så skriv kort hvorfor i `coverage_report.dropped` — sælgeren skal kunne se at det var en beslutning, ikke en fejl.
-
-Men lad være med at udelade det af dovenskab. Har du reelt fundet noget der flytter mødet, så er det ét af de stærkeste slides i decket.
+- **Sig-det-højt-testen gælder stadig.** "Resultat før skat: -104 mio." er ikke noget en sælger lægger op på et lærred foran kunden, uanset hvor korrekt det er. Følsomme tal (underskud, fyringer, ledelseskriser) hører til i `why_it_matters` som kontekst for sælgeren — ikke i `value`, som vises på sliden.
+- **Fund der ændrer samtalen** — et hul kunden selv har erkendt, en beslutning de lige har truffet, en investering der kræver kapacitet — er guld. Levér dem.
+- **Generisk firmabaggrund er ikke et fact værd.** Kan du kun finde omsætning og medarbejdertal, så levér en tom liste og skriv hvorfor i `coverage_report`.
 
 ## 🎯 KURATIONS-PRINCIP
 
