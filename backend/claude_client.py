@@ -418,6 +418,11 @@ _BRIEF_QUESTIONS_TOOL = {
                     "Vælg ud fra hvad sælgeren har fortalt, ikke ud fra hvad der er pænt at have med. "
                     "Handler mødet om at få folk hurtigt, er Solution-kapitlet støj. Er stakeholderen "
                     "Procurement, betyder proces og kriterier mere end teknologi-dybde.\n\n"
+                    "**Firmahistorien er sekundær når sælgeren har givet reelt input.** Kundeslidesne "
+                    "har allerede argumenteret — så fra 'Historien om Epico' tages højst ét-to slides "
+                    "som troværdighed (fx 'Epico i tal'). Hele kapitlet hører kun med når sælgeren "
+                    "ikke vidste ret meget om kunden. 'Hvad vi gør' er undtagelsen: den er broen ind "
+                    "i service-delen og skal næsten altid med.\n\n"
                     "**Kapitel-forsiderne hører med.** Tager du et slide fra et servicekapitel, så tag "
                     "kapitlets forside med — den er den visuelle overgang, og uden den falder decket "
                     "sammen i en række løse slides.\n\n"
@@ -469,7 +474,14 @@ Spørg aldrig om: ting der står i CVR eller årsrapporten · brede spørgsmål 
 
 Når du er færdig, vælger du hvilke slides fra masterdecket der skal med. Det er ikke pynt — det er redigering. Sælgeren kan altid selv klikke til og fra bagefter, men dit forslag er det han starter fra, og de fleste bliver ved det.
 
-Vælg ud fra hvad du nu ved om mødet. Et møde om at skaffe folk hurtigt har ikke brug for Solution-kapitlet. En Procurement-stakeholder har mere brug for proces og kriterier end for teknologi-dybde. Tag kapitel-forsiderne med når du tager slides fra kapitlet — de er den visuelle overgang.
+**Decket går fra kundens udfordringer direkte til services.** Kundeslidesne har allerede fortalt hvorfor mødet finder sted og hvad der gør ondt — så efter dem kommer "Hvad vi gør" (service-overblikket) og de valgte servicekapitler. Firmahistorien ("Historien om Epico": Udfordringen, Fleksibel bemanding, Det rette match, Processen, Hvem er vi, Epico i tal) ligger bagefter som sekundært stof.
+
+Det styrer dit valg:
+
+- **Godt input fra sælgeren** (du ved hvorfor mødet finder sted og hvad der gør ondt): vælg servicekapitlerne og spring det meste af firmahistorien over. Tag højst ét-to story-slides med som troværdighed — "Epico i tal" ved first touch, "Hvem er vi" hvis kunden slet ikke kender os. Resten er at fortælle kunden noget, kundeslidesne allerede har vist.
+- **Tyndt input** (sælgeren sprang spørgsmålene over eller vidste ikke meget): firmahistorien ER decket. Tag den med — det er den situation den findes til.
+
+Et møde om at skaffe folk hurtigt har ikke brug for Solution-kapitlet. En Procurement-stakeholder har mere brug for proces og kriterier end for teknologi-dybde. Tag kapitel-forsiderne med når du tager slides fra kapitlet — de er den visuelle overgang. "Hvad vi gør" skal næsten altid med: den er broen fra kundens udfordringer ind i service-delen.
 
 Returnér via `deliver_brief_questions`-værktøjet."""
 

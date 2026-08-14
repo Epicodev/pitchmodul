@@ -251,9 +251,7 @@ def thumbnails_html(lang: Optional[str] = None) -> str:
     data = _load(lang)
 
     cards = []
-    for s in MANIFEST:
-        if s.reserved:
-            continue
+    for s in deck_ordered([m for m in MANIFEST if not m.reserved]):
         # data-deck-active får fx-animationerne til at vise deres slut-tilstand
         # i stedet for at stå usynlige og vente på at sliden bliver fremvist.
         cards.append(
@@ -353,8 +351,8 @@ def slides_following(ids: Optional[List[str]]) -> List[Dict[str, str]]:
         return []
     chosen = set(ids)
     out = []
-    for s in MANIFEST:
-        if s.reserved or s.id not in chosen:
+    for s in deck_ordered([m for m in MANIFEST if not m.reserved]):
+        if s.id not in chosen:
             continue
         out.append({
             "label": s.label,
@@ -362,6 +360,37 @@ def slides_following(ids: Optional[List[str]]) -> List[Dict[str, str]]:
             "services": ", ".join(s.services) if s.services else "",
         })
     return out
+
+
+# ─── Deckets rækkefølge ──────────────────────────────────────────────
+# Efter kundens udfordringer går decket direkte til de valgte services.
+# Overtalelsen er allerede sket på kundeslidesne — sælgeren har fortalt hvorfor
+# mødet finder sted og hvad der gør ondt — så "hvem er Epico" skal ikke stå
+# mellem problemet og svaret. Historien om Epico kommer bagefter som sekundært
+# stof; den bærer kun decket når der ikke er noget kundeinput at bygge på.
+#
+# "Hvad vi gør" (m09) er undtagelsen: den er service-overblikket med
+# overgangsslides og åbner Epico-delen som bro fra kundens udfordringer.
+
+_DECK_CHAPTER_ORDER = [
+    "freelance", "kompetencer", "search", "nextgen",
+    "solution", "oracle", "mainframe", "public",
+    "story", "closing",
+]
+
+
+def _deck_sort_key(s: MasterSlide) -> tuple:
+    if s.num == 9:  # Hvad vi gør — broen ind i service-delen
+        return (-1, s.num)
+    try:
+        rank = _DECK_CHAPTER_ORDER.index(s.chapter)
+    except ValueError:
+        rank = len(_DECK_CHAPTER_ORDER)
+    return (rank, s.num)
+
+
+def deck_ordered(slides: List[MasterSlide]) -> List[MasterSlide]:
+    return sorted(slides, key=_deck_sort_key)
 
 
 def default_slide_ids(
@@ -396,9 +425,7 @@ def plan(
     defaults = set(default_slide_ids(pitch_length, services))
     chosen = set(services or [])
     out = []
-    for s in MANIFEST:
-        if s.reserved:
-            continue
+    for s in deck_ordered([m for m in MANIFEST if not m.reserved]):
         d = s.to_plan_dict()
         d["default_on"] = s.id in defaults
 
@@ -434,8 +461,8 @@ def select_slides(
         chosen -= set(excluded_slide_ids or [])
     data = _load(lang)
     out = []
-    for s in MANIFEST:
-        if s.reserved or s.id not in chosen:
+    for s in deck_ordered([m for m in MANIFEST if not m.reserved]):
+        if s.id not in chosen:
             continue
         out.append({"id": s.id, "title": s.label, "html": data["slides"][s.num]})
     return out
