@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 import master_deck
+from claude_client import _strip_long_dashes
 from slide_library import select_slides, bold_to_accent
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -37,10 +38,10 @@ _T = {
         "prepared_for": "udarbejdet til",
         "source": "Kilde",
         "map_left": "Jeres udfordring",
-        "map_right": "Vores håndtag",
+        "map_right": "Vores approach",
         "case_blocks": ["Situation", "Det gjorde vi", "Resultat", "Værdi for jer"],
         "contact_heading": "Jeres team hos Epico",
-        "contact_sub": "Spørgsmål eller præciseringer? Skriv eller ring direkte — vi vender tilbage samme dag.",
+        "contact_sub": "Spørgsmål eller præciseringer? Skriv eller ring direkte. Vi vender tilbage samme dag.",
         "label_title": "Titel",
         "label_mapping": "Udfordring → løsning",
         "label_case": "Relevant case",
@@ -57,7 +58,7 @@ _T = {
         "map_right": "Our approach",
         "case_blocks": ["Situation", "What we did", "Result", "Value for you"],
         "contact_heading": "Your team at Epico",
-        "contact_sub": "Questions or details to clarify? Call or write directly — we reply the same day.",
+        "contact_sub": "Questions or details to clarify? Call or write directly. We reply the same day.",
         "label_title": "Title",
         "label_mapping": "Challenge → solution",
         "label_case": "Relevant case",
@@ -74,7 +75,7 @@ _T = {
 _HEADLINE_FALLBACKS = {
     "da": {
         "research": ("Vi har gjort hjemmearbejdet", "Dette ved vi om **{client}**"),
-        "mapping": ("Konkret kobling", "Jeres udfordring. **Vores håndtag.**"),
+        "mapping": ("Konkret kobling", "Jeres udfordring. **Vores approach.**"),
         "next_steps": ("Hvis vi er enige om retningen", "{n} konkrete **næste skridt.**"),
     },
     "en": {
@@ -215,6 +216,10 @@ def render_master_deck(
     team = team or {}
     lang = master_deck.resolve_lang(lang)
     t = _T[lang]
+    # AI-output renses allerede i claude_client, men sælgeren kan redigere
+    # teksterne i composeren bagefter — det her er garantien for at ingen
+    # tankestreger når det færdige deck, uanset hvor teksten kom fra.
+    analysis = _strip_long_dashes(analysis)
 
     # Uden kundeindhold er decket en ren master-pitch — så skal det følge
     # masterens egen fortælling (historien først), ikke den skræddersyede orden.

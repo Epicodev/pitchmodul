@@ -6,6 +6,7 @@ til de 5 klient-specifikke slides i pitch decket.
 import os
 import json
 import copy
+import re
 from typing import Optional, Dict, Any, List
 from anthropic import Anthropic
 
@@ -127,7 +128,7 @@ def refine_slide(
 
     for block in response.content:
         if block.type == "tool_use" and block.name == "refine_slide":
-            return block.input.get("refined_content")
+            return _strip_long_dashes(block.input.get("refined_content"))
 
     return current_content  # Fallback
 
@@ -144,7 +145,7 @@ _BRIEF_CONTRACT_TOOL = {
             },
             "tone_directive": {
                 "type": "string",
-                "description": "Kort beskrivelse af tonen baseret på stakeholder + længde. Max 150 tegn. Eksempel: 'Procurement-tone: TCO, SLA, kontraktvilkår — drop strategisk/visionært sprog.'",
+                "description": "Kort beskrivelse af tonen baseret på stakeholder + længde. Max 150 tegn. Eksempel: 'Procurement-tone: TCO, SLA, kontraktvilkår. Drop strategisk/visionært sprog.'",
             },
             "must_include": {
                 "type": "array",
@@ -585,7 +586,7 @@ def suggest_brief_questions(
         )
         for block in response.content:
             if block.type == "tool_use" and block.name == "deliver_brief_questions":
-                return block.input
+                return _strip_long_dashes(block.input)
     except Exception as e:
         # Kaster videre — kalderen skal kunne vise sælgeren HVORFOR det fejlede.
         # "Prøv igen" hjælper ikke hvis problemet er en tom API-konto.
@@ -1228,15 +1229,37 @@ def _format_master_slides(master_slides: Optional[List[Dict[str, str]]]) -> str:
 
 
 _LANGUAGE_RULES = {
-    "da": "Skriv på dansk — også når kilderne er på engelsk.",
+    "da": (
+        "Skriv på dansk, også når kilderne er på engelsk. "
+        "Brug ALDRIG tankestreger (— eller –) i teksten: omskriv med komma, punktum eller kolon."
+    ),
     "en": (
         "Write in English. The master deck this pitch is built on is in English, "
         "and a deck that switches language halfway through reads as careless. "
         "Danish source material (annual reports, press releases, the seller's brief) "
-        "should be translated, not quoted verbatim — except for proper nouns and "
-        "official figures."
+        "should be translated, not quoted verbatim, except for proper nouns and "
+        "official figures. "
+        "NEVER use em or en dashes (— –) in the text: rephrase with a comma, period or colon."
     ),
 }
+
+
+def _strip_long_dashes(value):
+    """Fjern tankestreger fra AI-tekst — Benjamins krav, de er no-go i decks.
+
+    Prompten forbyder dem, men modellen glemmer det indimellem, så det her er
+    garantien. En tankestreg brugt som pause bliver til komma; en tæt streg
+    (intervaller som 2023–2025) bliver til almindelig bindestreg.
+    """
+    if isinstance(value, str):
+        v = re.sub(r"(^|\n)\s*[—–]\s*", r"\1", value)
+        v = re.sub(r"\s+[—–]+\s+", ", ", v)
+        return v.replace("—", "-").replace("–", "-")
+    if isinstance(value, list):
+        return [_strip_long_dashes(x) for x in value]
+    if isinstance(value, dict):
+        return {k: _strip_long_dashes(x) for k, x in value.items()}
+    return value
 
 
 def _language_rule(lang: Optional[str]) -> str:
@@ -1681,7 +1704,7 @@ def analyze_client(
             pitch_length=pitch_length,
             api_key=api_key,
         )
-        return refined
+        return _strip_long_dashes(refined)
     except Exception:
         # Hvis critique fejler, fald tilbage til initial analyse
-        return initial_analysis
+        return _strip_long_dashes(initial_analysis)
