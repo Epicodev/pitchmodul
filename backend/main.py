@@ -346,6 +346,7 @@ async def start_research(
     # Datakilder
     enable_web_search: Optional[str] = Form("true"),
     enable_website_crawl: Optional[str] = Form("true"),
+    selected_slide_ids: Optional[str] = Form(None),  # komma-separeret
     annual_report: Optional[UploadFile] = File(None),
 ):
     """Start en research-kørsel og svar med det samme.
@@ -377,7 +378,7 @@ async def start_research(
         dict_research_facts=dict_research_facts, dict_priorities=dict_priorities,
         dict_mappings=dict_mappings, dict_next_steps=dict_next_steps,
         enable_web_search=enable_web_search, enable_website_crawl=enable_website_crawl,
-        pdf_bytes=pdf_bytes,
+        selected_slide_ids=selected_slide_ids, pdf_bytes=pdf_bytes,
     ))
     return {"job_id": job_id, "status": "running", "step": "cvr"}
 
@@ -409,7 +410,7 @@ async def _do_research(
     meeting_stage, meeting_stakeholder, meeting_history, personal_angle,
     insider_insights, exclusions, pitch_focus, services_to_highlight,
     dict_research_facts, dict_priorities, dict_mappings, dict_next_steps,
-    enable_web_search, enable_website_crawl, pdf_bytes,
+    enable_web_search, enable_website_crawl, selected_slide_ids, pdf_bytes,
 ):
     """Selve kørslen. Rækkefølgen er bevidst: pitch-kontrakten bygges på sælgers
     brief og CVR alene, og dét er kontrakten der bestemmer hvad der bliver søgt
@@ -452,6 +453,13 @@ async def _do_research(
             "mappings": dict_mappings,
             "next_steps": dict_next_steps,
         }
+
+        # AI'en skal vide hvilke master-slides der følger, så den kan pege på dem
+        # i stedet for at genforklare dem
+        picked = [x.strip() for x in (selected_slide_ids or "").split(",") if x.strip()]
+        if not picked:
+            picked = master_deck.default_slide_ids(pitch_length, services_list)
+        master_slides = master_deck.slides_following(picked)
 
         # ── Kontrakt FØR research ──
         pitch_contract = await run_in_threadpool(
@@ -508,6 +516,7 @@ async def _do_research(
             stakeholder_key=meeting_stakeholder,
             pitch_length=pitch_length,
             pitch_contract=pitch_contract,
+            master_slides=master_slides,
         )
 
         _job_step(job_id, "done")

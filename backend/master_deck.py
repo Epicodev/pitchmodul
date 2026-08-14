@@ -297,6 +297,29 @@ new ResizeObserver(() => parent.postMessage(
 </script></body></html>"""
 
 
+
+def slides_following(ids: Optional[List[str]]) -> List[Dict[str, str]]:
+    """Hvilke master-slides kommer efter kundeslidesne — til AI-prompten.
+
+    AI'en skriver kundeslidesne uden at kunne se resten af decket. Uden den her
+    liste genforklarer den services som masteren allerede forklarer bedre og
+    pænere tre slides senere.
+    """
+    if not ids:
+        return []
+    chosen = set(ids)
+    out = []
+    for s in MANIFEST:
+        if s.reserved or s.id not in chosen:
+            continue
+        out.append({
+            "label": s.label,
+            "chapter": CHAPTER_LABELS.get(s.chapter, s.chapter),
+            "services": ", ".join(s.services) if s.services else "",
+        })
+    return out
+
+
 def default_slide_ids(
     pitch_length: str = "medium",
     services: Optional[List[str]] = None,

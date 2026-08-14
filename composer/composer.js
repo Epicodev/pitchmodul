@@ -639,6 +639,13 @@ async function runResearch(e) {
   if (dictNextSteps) formData.append('dict_next_steps', dictNextSteps);
   if (pdfFile) formData.append('annual_report', pdfFile);
 
+  // AI'en skal vide hvilke master-slides der følger efter kundeslidesne, så den
+  // kan pege på dem i stedet for at genforklare dem. Uden det skriver den i
+  // blinde og gentager fx hele Freelance-argumentet tre slides før jeres egen
+  // Freelance-slide siger det samme.
+  const picked = currentSelectedSlideIds();
+  if (picked && picked.length) formData.append('selected_slide_ids', picked.join(','));
+
   // Skift til research tab
   enableTab('research');
   setActiveTab('research');

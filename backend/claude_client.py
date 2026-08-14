@@ -854,7 +854,20 @@ ANALYSIS_TOOL = {
                         },
                         "solution": {
                             "type": "string",
-                            "description": "Hvordan løser denne service udfordringen — konkret formulering."
+                            "description": (
+                                "ÉN sætning, max 140 tegn: hvorfor netop denne service løser netop "
+                                "denne udfordring.\n\n"
+                                "**Forklar ikke servicen.** Epicos eget slide om den kommer senere i "
+                                "decket, med design, tal og beviser. Skriver du det samme her, hører "
+                                "kunden det to gange, og din version er den svageste.\n\n"
+                                "Dårlig (genforklarer): 'Epicos database indeholder +13.000 tech-profiler, "
+                                "herunder passive kandidater der ikke er synlige på jobportaler. Vi leverer "
+                                "forhåndsscreenede CV'er inden for 48 timer — ingen annonceringsrunde.'\n"
+                                "God (kobler): 'De profiler I mangler, søger ikke aktivt — dem har vi "
+                                "allerede kontakt til.'\n\n"
+                                "Testen: kunne sætningen stå i et hvilket som helst Epico-deck? Så er den "
+                                "forkert. Den skal kun give mening for DENNE kunde."
+                            )
                         },
                     },
                     "required": ["challenge", "epico_service", "solution"],
@@ -1135,6 +1148,46 @@ _PITCH_LENGTH_DESCRIPTIONS = {
 
 
 
+def _format_master_slides(master_slides: Optional[List[Dict[str, str]]]) -> str:
+    """Fortæl AI'en hvilke master-slides der følger — og at de ikke skal genskrives.
+
+    Uden det her skriver AI'en som om kundeslidesne er hele pitchen. Så forklarer
+    den fx hele Freelance-tilbuddet i `value_mappings.solution`, og tre slides
+    senere siger Epicos egen Freelance-slide det samme igen — pænere, med design,
+    og på engelsk. To parallelle argumenter der aldrig mødes.
+    """
+    if not master_slides:
+        return ""
+
+    lines = []
+    seen_chapter = None
+    for sl in master_slides:
+        if sl["chapter"] != seen_chapter:
+            lines.append(f"\n**{sl['chapter']}**")
+            seen_chapter = sl["chapter"]
+        tag = f"  ({sl['services']})" if sl.get("services") else ""
+        lines.append(f"- {sl['label']}{tag}")
+
+    return (
+        "## 📎 DETTE FØLGER EFTER DINE SLIDES\n\n"
+        "Dine kundeslides er de første i decket. Bagefter kommer disse slides fra "
+        "Epicos eget salgsdeck — færdigdesignede, med billeder, tal og animationer:\n"
+        + "\n".join(lines)
+        + "\n\n**Hvad det betyder for det du skriver:**\n"
+        "- **Forklar ikke en service som et af disse slides forklarer.** Nævner du "
+        "Epico Freelance, så sig hvorfor den løser DENNE kundes problem — ikke hvad "
+        "den er, hvor mange CV'er vi har, eller hvordan screeningen foregår. Det står "
+        "på slidet der kommer.\n"
+        "- **Din opgave er koblingen, ikke katalogen.** Kunden har et konkret problem; "
+        "du navngiver det og navngiver svaret. Slidet bagefter leverer beviset.\n"
+        "- **Gentag ikke Epico-nøgletal** (+13.000 CV'er, 48 timer, +500 konsulenter) "
+        "medmindre tallet ER pointen for netop denne kunde. Ellers hører de det to gange, "
+        "og anden gang virker svagere.\n"
+        "- Skriver du noget der lige så godt kunne stå i et generisk Epico-deck, så har "
+        "du skrevet det forkerte slide."
+    )
+
+
 def _build_system_prompt(
     pitch_focus: Optional[str] = None,
     services_to_highlight: Optional[List[str]] = None,
@@ -1142,6 +1195,7 @@ def _build_system_prompt(
     slide_dictation: Optional[Dict[str, Optional[str]]] = None,
     stakeholder_key: Optional[str] = None,
     pitch_length: Optional[str] = "medium",
+    master_slides: Optional[List[Dict[str, str]]] = None,
 ) -> str:
     # Sælger-direktiver — disse er styrende
     directives = []
@@ -1273,6 +1327,10 @@ def _build_system_prompt(
             "ikke bakker op."
         )
 
+    master_block = _format_master_slides(master_slides)
+    if master_block:
+        directives.append(master_block)
+
     # Hierarkiet — eksplicit, så modellen ikke selv skal gætte
     if directives:
         directives.append(
@@ -1391,6 +1449,7 @@ def analyze_client(
     stakeholder_key: Optional[str] = None,
     pitch_length: Optional[str] = "medium",
     pitch_contract: Optional[Dict[str, Any]] = None,
+    master_slides: Optional[List[Dict[str, str]]] = None,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -1528,6 +1587,7 @@ def analyze_client(
             slide_dictation=slide_dictation,
             stakeholder_key=stakeholder_key,
             pitch_length=pitch_length,
+            master_slides=master_slides,
         ),
         tools=[analysis_tool],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},
