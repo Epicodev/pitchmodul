@@ -47,7 +47,7 @@
     <div class="panel-intro">
       <span class="eyebrow">Trin 01</span>
       <h2 class="h2">Brief om kunden &amp; mødet.</h2>
-      <p class="body-lg" style="max-width:800px;margin-top:16px;">Start med tre ting: hvem kunden er, hvor lang tid I har, og hvem du sidder overfor. Resten spørger AI'en dig om — du skal ikke selv gætte hvad der er værd at skrive.</p>
+      <p class="body-lg" style="max-width:800px;margin-top:16px;">Start med tre ting: hvem kunden er, hvor lang tid I har, og hvem du sidder overfor. Resten spørger AI'en dig om. Du skal ikke selv gætte hvad der er værd at skrive.</p>
     </div>
 
     <form class="form-grid" id="brief-form">
@@ -63,7 +63,7 @@
             <input type="text" name="client_name" placeholder="fx LEGO, Mærsk, Nordea" required>
           </label>
           <label class="field">
-            <span class="field-label">CVR-nummer <span class="hint">(valgfrit — vi finder det selv)</span></span>
+            <span class="field-label">CVR-nummer <span class="hint">(valgfrit, vi finder det selv)</span></span>
             <div class="field-with-action">
               <input type="text" name="cvr_number" placeholder="8 cifre" pattern="\d{8}">
               <button type="button" class="btn btn--ghost btn--sm" id="cvr-lookup-btn">Slå op →</button>
@@ -89,7 +89,7 @@
             <span class="field-label">Hvilket deck? <span class="hint">(du kan altid falde tilbage på masterdecket)</span></span>
             <div class="chip-group">
               <label class="chip"><input type="radio" name="deck_mode" value="tailored" checked><span>Skræddersyet med AI</span></label>
-              <label class="chip"><input type="radio" name="deck_mode" value="master"><span>Kun masterdeck — jeg vælger selv slides</span></label>
+              <label class="chip"><input type="radio" name="deck_mode" value="master"><span>Kun masterdeck, jeg vælger selv slides</span></label>
             </div>
           </div>
         </div>
@@ -122,13 +122,13 @@
       <!-- 02 — OMVENDT BRIEF: AI spørger i stedet for blanke felter -->
       <fieldset class="form-block form-block--accent" id="brief-questions-block">
         <legend><span class="legend-num">02</span>Lad AI stille spørgsmålene <span class="legend-hint">næste skridt</span></legend>
-        <p class="form-block-intro">AI'en læser det du har valgt ovenfor og stiller de 2-3 spørgsmål der ville løfte pitchen mest. Det du svarer behandles som <strong>evidens på lige fod med årsrapporten</strong> — og vinder hvis de to peger forskelligt. Et regnskab kan være 14 måneder gammelt; du talte måske med dem i sidste uge. Når AI'en selv siger den har nok, låser den research op og foreslår hvilke slides du skal med.</p>
+        <p class="form-block-intro">AI'en læser det du har valgt ovenfor og stiller de 2-3 spørgsmål der ville løfte pitchen mest. Det du svarer behandles som <strong>evidens på lige fod med årsrapporten</strong>, og vinder hvis de to peger forskelligt. Et regnskab kan være 14 måneder gammelt; du talte måske med dem i sidste uge. Når AI'en selv siger den har nok, låser den research op og foreslår hvilke slides du skal med.</p>
 
         <div class="brief-questions" id="brief-questions">
           <div class="brief-questions-head" id="brief-questions-head">
             <div class="brief-questions-copy">
               <span class="brief-questions-title">Næste skridt: lad AI'en spørge.</span>
-              <span class="brief-questions-sub">Kunde, mødelængde og stakeholder er på plads. Nu spørger AI'en om resten — den siger selv til når den har nok. Hver runde tager ca. 5 sekunder.</span>
+              <span class="brief-questions-sub">Kunde, mødelængde og stakeholder er på plads. Nu spørger AI'en om resten. Den siger selv til når den har nok. Hver runde tager ca. 5 sekunder.</span>
             </div>
             <button type="button" class="btn btn--primary" id="brief-questions-btn" disabled title="Udfyld kundenavn først">
               Stil mig spørgsmålene <span class="arrow">→</span>
@@ -139,7 +139,7 @@
 
           <div class="brief-questions-more" id="brief-questions-more" hidden>
             <button type="button" class="btn btn--primary btn--sm" id="brief-questions-more-btn">
-              Jeg har svaret — spørg videre <span class="arrow">→</span>
+              Jeg har svaret, spørg videre <span class="arrow">→</span>
             </button>
             <span class="brief-questions-more-hint">AI'en læser dine svar med og siger til når den har nok.</span>
           </div>
@@ -148,7 +148,7 @@
             <span class="brief-questions-done-tag">AI'en har nok nu</span>
             <p class="brief-questions-done-text" id="brief-questions-done-text"></p>
             <p class="brief-questions-done-slides" id="brief-questions-done-slides" hidden></p>
-            <p class="brief-questions-done-next">Research er låst op nederst på siden. Slide-vælgeren er sat efter AI'ens forslag — ret gerne i den.</p>
+            <p class="brief-questions-done-next">Research er låst op nederst på siden. Slide-vælgeren er sat efter AI'ens forslag, ret gerne i den.</p>
           </div>
 
           <div class="brief-questions-skip" id="brief-questions-skip">
@@ -166,14 +166,14 @@
           <span class="advanced-note" id="advanced-note" hidden>Dine svar er skrevet ind her</span>
           <button type="button" class="collapse-btn" id="advanced-toggle">Vis felter ↓</button>
         </legend>
-        <p class="form-block-intro">Du behøver ikke røre noget herinde. Alt kan udfyldes af spørgsmålene ovenfor — men vil du selv skrive, diktere slides eller uploade årsrapporten, så er felterne her.</p>
+        <p class="form-block-intro">Du behøver ikke røre noget herinde. Alt kan udfyldes af spørgsmålene ovenfor, men vil du selv skrive, diktere slides eller uploade årsrapporten, så er felterne her.</p>
 
         <div class="advanced-fields" id="advanced-fields" hidden>
 
           <!-- Din viden om kunden — samme felter som spørgsmålene skriver i -->
           <div class="advanced-group">
             <h4 class="advanced-group-title">Din viden om kunden</h4>
-            <p class="advanced-group-intro">Det er de her felter spørgsmålene ovenfor skriver i — og det du skriver her vinder over årsrapporten, hvis de to peger forskelligt.</p>
+            <p class="advanced-group-intro">Det er de her felter spørgsmålene ovenfor skriver i, og det du skriver her vinder over årsrapporten, hvis de to peger forskelligt.</p>
 
             <div class="form-row">
               <div class="field">
@@ -190,7 +190,7 @@
             <div class="form-row">
               <label class="field">
                 <span class="field-label">Mødehistorik <span class="hint">(hvis ikke first touch)</span></span>
-                <textarea name="meeting_history" rows="3" placeholder='fx "Vi mødtes med Lars i januar — han nævnte at deres CISO opsagde sin stilling, og at de er pressede på NIS2."'></textarea>
+                <textarea name="meeting_history" rows="3" placeholder='fx "Vi mødtes med Lars i januar. Han nævnte at deres CISO opsagde sin stilling, og at de er pressede på NIS2."'></textarea>
               </label>
             </div>
 
@@ -201,14 +201,14 @@
               </label>
               <label class="field">
                 <span class="field-label">Konkurrent-situation &amp; insider</span>
-                <textarea name="insider_insights" rows="3" placeholder='fx "De bruger Emagine i dag som primær leverandør — vi skal positionere os som alternativ/komplement. Insider: deres aftale udløber i Q3."'></textarea>
+                <textarea name="insider_insights" rows="3" placeholder='fx "De bruger Emagine i dag som primær leverandør. Vi skal positionere os som alternativ/komplement. Insider: deres aftale udløber i Q3."'></textarea>
               </label>
             </div>
 
             <div class="form-row">
               <label class="field">
                 <span class="field-label">Eksklusioner <span class="hint">(hvad må vi IKKE tale om?)</span></span>
-                <textarea name="exclusions" rows="3" placeholder='fx "Undgå at nævne Nordea direkte — konkurrentforhold. Tal heller ikke om deres aktiekurs."'></textarea>
+                <textarea name="exclusions" rows="3" placeholder='fx "Undgå at nævne Nordea direkte: konkurrentforhold. Tal heller ikke om deres aktiekurs."'></textarea>
               </label>
             </div>
           </div>
@@ -267,7 +267,7 @@
               Sælger-styrede slides
               <button type="button" class="collapse-btn" id="dictation-toggle">Vis felter ↓</button>
             </h4>
-            <p class="advanced-group-intro">Vil du selv skrive præcis hvad der står på en slide? Udfyld feltet — så bruger AI'en din tekst i stedet for at gætte. Lad felter være tomme hvis AI'en skal bestemme.</p>
+            <p class="advanced-group-intro">Vil du selv skrive præcis hvad der står på en slide? Udfyld feltet, så bruger AI'en din tekst i stedet for at gætte. Lad felter være tomme hvis AI'en skal bestemme.</p>
 
             <div class="dictation-fields" id="dictation-fields" hidden>
               <div class="form-row">
@@ -279,7 +279,7 @@
               <div class="form-row">
                 <label class="field">
                   <span class="field-label">Strategiske prioriteter <span class="hint">(3 prioriteter)</span></span>
-                  <textarea name="dict_priorities" rows="4" placeholder="Skriv 3 prioriteter, hver på sin egen linje. Hver linje: [Titel] — [kort beskrivelse]&#10;&#10;Eksempel:&#10;NIS2-compliance — De skal kunne dokumentere SOC og hændelsesrespons inden Q3.&#10;CISO-rekruttering — Deres nuværende er opsagt, ny skal findes hurtigt."></textarea>
+                  <textarea name="dict_priorities" rows="4" placeholder="Skriv 3 prioriteter, hver på sin egen linje. Hver linje: [Titel]: [kort beskrivelse]&#10;&#10;Eksempel:&#10;NIS2-compliance: De skal kunne dokumentere SOC og hændelsesrespons inden Q3.&#10;CISO-rekruttering: Deres nuværende er opsagt, ny skal findes hurtigt."></textarea>
                 </label>
               </div>
               <div class="form-row">
@@ -291,7 +291,7 @@
               <div class="form-row">
                 <label class="field">
                   <span class="field-label">Næste skridt <span class="hint">(3 actions)</span></span>
-                  <textarea name="dict_next_steps" rows="4" placeholder="Skriv 3 næste skridt. Hver linje: [Titel] | [tidsramme] — [beskrivelse]&#10;&#10;Eksempel:&#10;Workshop med IT-ledelse | 14 dage — 2-timers session i jeres lokaler.&#10;Pilot på 1-2 CISO-shortlists | 21 dage — uden binding."></textarea>
+                  <textarea name="dict_next_steps" rows="4" placeholder="Skriv 3 næste skridt. Hver linje: [Titel] | [tidsramme]: [beskrivelse]&#10;&#10;Eksempel:&#10;Workshop med IT-ledelse | 14 dage: 2-timers session i jeres lokaler.&#10;Pilot på 1-2 CISO-shortlists | 21 dage: uden binding."></textarea>
                 </label>
               </div>
             </div>
@@ -383,7 +383,7 @@
       <div class="slide-plan-strip">
         <div class="slide-plan-strip-head">
           <span class="slide-plan-strip-title">Slides i pitchen</span>
-          <span class="slide-plan-strip-sub">Tag stilling her, før du kører research — AI'en skriver kundeslidesne med de valgte Epico-slides i baghovedet. Kunde-slides er altid med; Epico-slides følger mødelængde og valgte services, og kan fravælges enkeltvis.</span>
+          <span class="slide-plan-strip-sub">Tag stilling her, før du kører research: AI'en skriver kundeslidesne med de valgte Epico-slides i baghovedet. Kunde-slides er altid med; Epico-slides følger mødelængde og valgte services, og kan fravælges enkeltvis.</span>
         </div>
         <div class="slide-plan" id="slide-plan">
           <div class="slide-plan-loading">Indlæser slide-plan…</div>
@@ -391,9 +391,9 @@
       </div>
 
       <div class="form-actions">
-        <p class="form-actions-note" id="run-analysis-note">Kør spørgsmålene ovenfor først — AI'en låser research op når den selv siger den har nok om mødet.</p>
+        <p class="form-actions-note" id="run-analysis-note">Kør spørgsmålene ovenfor først. AI'en låser research op når den selv siger den har nok om mødet.</p>
         <button type="submit" class="btn btn--primary btn--lg" id="run-analysis-btn" disabled
-                title="Kør spørgsmålene ovenfor først — eller spring dem over">
+                title="Kør spørgsmålene ovenfor først, eller spring dem over">
           Kør AI-research <span class="arrow">→</span>
         </button>
         <button type="button" class="btn btn--primary" id="master-generate-btn" hidden disabled title="Udfyld kundenavn først">
@@ -455,7 +455,7 @@
     <div class="panel-intro">
       <span class="eyebrow">Trin 03</span>
       <h2 class="h2">Review &amp; finpuds.</h2>
-      <p class="body-lg" style="max-width:800px;margin-top:16px;">Alle felter er redigerbare. AI'en har sit bedste bud — men du kender kunden bedre.</p>
+      <p class="body-lg" style="max-width:800px;margin-top:16px;">Alle felter er redigerbare. AI'en har sit bedste bud, men du kender kunden bedre.</p>
     </div>
 
     <div class="review-container" id="review-container">
@@ -481,8 +481,9 @@
 
     <div class="deck-viewer" id="deck-viewer" hidden>
       <div class="deck-viewer-bar">
-        <span class="deck-viewer-hint">Bladr med piletasterne. Knappen fjerner det slide du står på — det kan altid hentes tilbage i trin 03.</span>
+        <span class="deck-viewer-hint" id="deck-viewer-hint">Bladr med piletasterne. Knappen fjerner det slide du står på. Det kan altid hentes tilbage i trin 03.</span>
         <span class="deck-viewer-status" id="deck-viewer-status" hidden></span>
+        <button type="button" class="btn btn--ghost" id="edit-deck-text">Rediger tekst</button>
         <button type="button" class="btn btn--ghost" id="remove-current-slide">Fjern dette slide</button>
       </div>
       <iframe id="deck-frame" title="Pitch deck"></iframe>
@@ -503,14 +504,14 @@
         <div class="generated-icon">↓</div>
         <div>
           <div class="generated-title">Download som PowerPoint</div>
-          <div class="generated-desc">.pptx fil — editerbar i PowerPoint / Keynote</div>
+          <div class="generated-desc">.pptx fil, editerbar i PowerPoint / Keynote</div>
         </div>
       </button>
       <button class="generated-card" id="download-deck-btn">
         <div class="generated-icon">↓</div>
         <div>
           <div class="generated-title">Download HTML</div>
-          <div class="generated-desc">Standalone HTML — kan deles eller præsenteres i browser</div>
+          <div class="generated-desc">Standalone HTML, kan deles eller præsenteres i browser</div>
         </div>
       </button>
       <button class="generated-card" id="restart-btn">

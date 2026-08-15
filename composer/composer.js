@@ -98,8 +98,8 @@ async function lookupCVR() {
     result.innerHTML = `
       <div class="cvr-name">${data.name || query}</div>
       <div class="cvr-meta">
-        CVR ${data.cvr || '—'} ·
-        ${data.industry_desc || '—'} ·
+        CVR ${data.cvr || '-'} ·
+        ${data.industry_desc || '-'} ·
         ${data.employees ? data.employees + ' ansatte' : 'ansatte ukendt'}
         ${data.address ? '<br>' + data.address : ''}
       </div>
@@ -311,12 +311,12 @@ function updateBriefQuestionsUi() {
 
   if (done && title) title.textContent = 'Vi er igennem spørgsmålene.';
   if (done && sub) {
-    sub.textContent = 'Dine svar står i briefen — du kan se og rette dem under Avanceret.';
+    sub.textContent = 'Dine svar står i briefen. Du kan se og rette dem under Avanceret.';
   } else if (hasCards && title) {
     title.textContent = 'Svar på det du kan.';
   }
   if (!done && hasCards && sub) {
-    sub.textContent = 'Spring gerne et spørgsmål over. Alt du skriver havner i briefen — du kan se og rette det under Avanceret.';
+    sub.textContent = 'Spring gerne et spørgsmål over. Alt du skriver havner i briefen. Du kan se og rette det under Avanceret.';
   }
   updateBriefQuestionsBtn();
 }
@@ -335,7 +335,7 @@ function unlockResearch(reason) {
   }
   if (note) {
     note.textContent = reason === 'skipped'
-      ? 'Du sprang spørgsmålene over. Research kører på det du selv har skrevet — tjek slide-vælgeren ovenfor før du trykker.'
+      ? 'Du sprang spørgsmålene over. Research kører på det du selv har skrevet. Tjek slide-vælgeren ovenfor før du trykker.'
       : 'AI\'en har nok om mødet. Tjek slide-vælgeren ovenfor, og kør så research.';
     note.classList.add('is-unlocked');
   }
@@ -482,7 +482,7 @@ async function askBriefQuestions(append = false) {
   btn.disabled = true;
   btn.innerHTML = 'Læser din brief... <span class="arrow">⟳</span>';
   briefQuestionsMessage(
-    `<div class="brief-questions-loading" id="brief-questions-loading">AI'en læser det du har skrevet og finder de spørgsmål der rykker mest — det tager ca. 5 sekunder.</div>`,
+    `<div class="brief-questions-loading" id="brief-questions-loading">AI'en læser det du har skrevet og finder de spørgsmål der rykker mest. Det tager ca. 5 sekunder.</div>`,
     append,
   );
 
@@ -633,7 +633,7 @@ function renderTeamSummary() {
 
   if (!kam && !rm) {
     summary.innerHTML = open
-      ? `<span class="team-summary-line">Udfyld navn på KAM og RM — de huskes til næste gang</span>
+      ? `<span class="team-summary-line">Udfyld navn på KAM og RM, de huskes til næste gang</span>
          <span class="team-summary-action">${action}</span>`
       : `<span class="team-summary-line team-summary-line--empty">Udfyld dit team <span class="arrow">→</span></span>`;
     return;
@@ -641,9 +641,9 @@ function renderTeamSummary() {
 
   summary.innerHTML = `
     <span class="team-summary-line">
-      <span class="team-summary-role">KAM:</span> ${escapeHtml(kam || '—')}
+      <span class="team-summary-role">KAM:</span> ${escapeHtml(kam || '-')}
       <span class="team-summary-dot">·</span>
-      <span class="team-summary-role">RM:</span> ${escapeHtml(rm || '—')}
+      <span class="team-summary-role">RM:</span> ${escapeHtml(rm || '-')}
     </span>
     <span class="team-summary-action">${action}</span>
   `;
@@ -820,7 +820,7 @@ async function runResearch(e) {
     summary.innerHTML = `
       <h3>${data.client_name}</h3>
       <p class="summary-text" style="color:var(--light-grey);">
-        Branche: <strong style="color:var(--black-currant);">${state.analysis.industry_tag || '—'}</strong>
+        Branche: <strong style="color:var(--black-currant);">${state.analysis.industry_tag || '-'}</strong>
         ${data.pdf_pages_parsed ? ` · ${data.pdf_pages_parsed} sider læst fra årsrapport` : ''}
         ${data.cvr_data ? ` · CVR ${data.cvr_data.cvr}` : ''}
       </p>
@@ -840,7 +840,7 @@ async function runResearch(e) {
   } catch (e) {
     // Her fanges kun rigtige netværksfejl — svar med fejlkode håndteres ovenfor
     setStepError('claude', 'Forbindelsen til serveren blev afbrudt. '
-      + 'Tager analysen over et par minutter, kan den blive lukket ned undervejs — '
+      + 'Tager analysen over et par minutter, kan den blive lukket ned undervejs, '
       + 'prøv en kortere pitch-længde.');
   }
 }
@@ -884,7 +884,7 @@ async function pollResearch(jobId) {
     try {
       const res = await fetch(`${API_BASE}/api/research/${encodeURIComponent(jobId)}`);
       if (res.status === 404) {
-        setStepError('claude', 'Kørslen findes ikke længere — serveren er formentlig '
+        setStepError('claude', 'Kørslen findes ikke længere. Serveren er formentlig '
           + 'genstartet undervejs. Kør research igen.');
         return null;
       }
@@ -895,7 +895,7 @@ async function pollResearch(jobId) {
       // Et enkelt mislykket opslag er ikke værd at afbryde en 5-minutters kørsel for
       if (++misses < 5) continue;
       setStepError('claude', 'Mistede forbindelsen til serveren undervejs. '
-        + 'Kørslen er muligvis stadig i gang — prøv igen om lidt.');
+        + 'Kørslen er muligvis stadig i gang. Prøv igen om lidt.');
       return null;
     }
 
@@ -1021,7 +1021,7 @@ function factsMarkup() {
         </div>` : ''}
       ${alts.length ? `
         <div class="fact-alternates" data-alts="${i}" hidden>
-          <div class="fact-alt-head">Byt ud med et af disse — den nuværende ryger tilbage i puljen</div>
+          <div class="fact-alt-head">Byt ud med et af disse. Den nuværende ryger tilbage i puljen</div>
           <div class="fact-alt-list">
             ${alts.map((alt, j) => `
               <button type="button" class="fact-alt" data-fact="${i}" data-alt="${j}">
@@ -1194,10 +1194,10 @@ function deckListMarkup() {
     <div class="review-block deck-list-block">
       <div class="review-block-head">
         <h3>Slides i det færdige deck</h3>
-        <span class="slide-ref"><span id="deck-list-count">—</span> slides</span>
+        <span class="slide-ref"><span id="deck-list-count">-</span> slides</span>
       </div>
       <p class="deck-list-intro">
-        Rækkefølgen er deckets. Fjern det du ikke skal bruge — ændringen slår igennem
+        Rækkefølgen er deckets. Fjern det du ikke skal bruge. Ændringen slår igennem
         næste gang du genererer decket.
       </p>
       <div class="deck-list" id="deck-list"></div>
@@ -1217,7 +1217,7 @@ function renderDeckSlideList() {
 
   let n = 0;
   host.innerHTML = rows.map(r => {
-    const num = r.removed ? '—' : String(++n).padStart(2, '0');
+    const num = r.removed ? '-' : String(++n).padStart(2, '0');
     const kind = r.kind === 'client' ? 'AI-kundeslide' : 'Masterdeck';
     const action = r.fixed
       ? `<span class="deck-slide-fixed">Altid med</span>`
@@ -1304,7 +1304,7 @@ function headlineFields(key) {
   const h = (state.analysis.slide_headlines || {})[key] || {};
   return `
     <div class="review-item review-item--headline">
-      <span class="field-hint">Overskrift på sliden <em>— **stjerner** fremhæver et ord</em></span>
+      <span class="field-hint">Overskrift på sliden <em>(**stjerner** fremhæver et ord)</em></span>
       <input class="editable" data-path="slide_headlines.${key}.eyebrow"
              value="${escapeHtml(h.eyebrow || '')}" placeholder="Lille tekst over overskriften">
       <input class="editable" data-path="slide_headlines.${key}.heading"
@@ -1472,6 +1472,17 @@ async function generateDeck() {
 
     const data = await res.json();
     state.deckUrl = data.url;
+    state.deckFilename = data.filename;
+
+    // Tekstredigeringer hører til det deck de blev lavet i. Ved fjern/fortryd
+    // af slides bevares de (indholdet er det samme), men genereres decket om
+    // med nyt indhold, starter man forfra.
+    if (_preserveDeckEdits) {
+      _preserveDeckEdits = false;
+    } else {
+      _deckTextEdits = {};
+      _deckEditsDirty = false;
+    }
 
     $('#open-deck-link').href = data.url;
 
@@ -1555,6 +1566,107 @@ async function generateMasterOnlyDeck() {
 let _pendingDeckHash = null;
 let _lastDeckRemoval = null;
 
+// ---------- Tekstredigering direkte i decket ----------
+// Sælgeren kan slå redigering til og skrive eller slette direkte på sliden.
+// Hver redigeret slides indhold huskes pr. slide-id, skrives automatisk
+// tilbage til den genererede fil på serveren, og genanvendes når decket
+// regenereres (fx efter "Fjern dette slide"), så intet arbejde går tabt.
+let _deckEditMode = false;
+let _deckTextEdits = {};      // slideId -> redigeret innerHTML
+let _deckEditsDirty = false;
+let _deckSaveTimer = null;
+let _preserveDeckEdits = false;
+
+function deckDoc() {
+  const frame = $('#deck-frame');
+  return frame && frame.contentDocument;
+}
+
+function setDeckEditable(on) {
+  const doc = deckDoc();
+  if (!doc) return;
+  doc.querySelectorAll('section[data-slide-id]').forEach(sec => {
+    if (on) {
+      sec.setAttribute('contenteditable', 'true');
+      sec.setAttribute('spellcheck', 'false');
+    } else {
+      sec.removeAttribute('contenteditable');
+      sec.removeAttribute('spellcheck');
+    }
+  });
+}
+
+function wireDeckFrame() {
+  const doc = deckDoc();
+  if (!doc) return;
+
+  // Genanvend tidligere redigeringer på det nyrenderede deck og gem dem i
+  // den nye fil (filnavnet skifter ved hver regenerering)
+  let reapplied = false;
+  Object.entries(_deckTextEdits).forEach(([id, html]) => {
+    const sec = doc.querySelector(`section[data-slide-id="${id}"]`);
+    if (sec && sec.innerHTML !== html) {
+      sec.innerHTML = html;
+      reapplied = true;
+    }
+  });
+  if (reapplied) {
+    _deckEditsDirty = true;
+    scheduleDeckSave();
+  }
+
+  setDeckEditable(_deckEditMode);
+
+  doc.addEventListener('input', e => {
+    const sec = e.target && e.target.closest && e.target.closest('section[data-slide-id]');
+    if (!sec) return;
+    _deckTextEdits[sec.dataset.slideId] = sec.innerHTML;
+    _deckEditsDirty = true;
+    scheduleDeckSave();
+  });
+}
+
+function scheduleDeckSave() {
+  clearTimeout(_deckSaveTimer);
+  _deckSaveTimer = setTimeout(saveDeckEdits, 600);
+}
+
+async function saveDeckEdits() {
+  clearTimeout(_deckSaveTimer);
+  _deckSaveTimer = null;
+  if (!_deckEditsDirty || !state.deckFilename || !Object.keys(_deckTextEdits).length) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/update-deck-slides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: state.deckFilename, edits: _deckTextEdits }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _deckEditsDirty = false;
+  } catch (e) {
+    // Stille ved succes, tydelig ved fejl: sælgeren skal vide hvis
+    // ændringerne IKKE er i den fil der downloades
+    deckViewerStatus(`Kunne ikke gemme tekstændringer: ${escapeHtml(e.message)}`);
+  }
+}
+
+function toggleDeckEditMode() {
+  _deckEditMode = !_deckEditMode;
+  const btn = $('#edit-deck-text');
+  const hint = $('#deck-viewer-hint');
+  if (btn) {
+    btn.textContent = _deckEditMode ? 'Færdig med at redigere' : 'Rediger tekst';
+    btn.classList.toggle('is-on', _deckEditMode);
+  }
+  if (hint) {
+    hint.textContent = _deckEditMode
+      ? 'Klik i teksten på sliden og skriv eller slet. Ændringerne gemmes automatisk.'
+      : 'Bladr med piletasterne. Knappen fjerner det slide du står på. Det kan altid hentes tilbage i trin 03.';
+  }
+  setDeckEditable(_deckEditMode);
+  if (!_deckEditMode) saveDeckEdits();
+}
+
 function currentDeckSlide() {
   const frame = $('#deck-frame');
   const doc = frame && frame.contentDocument;
@@ -1580,7 +1692,7 @@ function deckViewerStatus(html) {
 async function removeCurrentDeckSlide() {
   const cur = currentDeckSlide();
   if (!cur || !cur.id) {
-    deckViewerStatus('Kunne ikke aflæse hvilket slide der vises — bladr ét frem og prøv igen.');
+    deckViewerStatus('Kunne ikke aflæse hvilket slide der vises. Bladr ét frem og prøv igen.');
     return;
   }
   if (FIXED_CLIENT_SLIDE_IDS.has(cur.id)) {
@@ -1596,6 +1708,7 @@ async function removeCurrentDeckSlide() {
   // Samme index efter regenerering = det næste slide i rækken, hvilket er
   // præcis hvor man står efter at have fjernet noget
   _pendingDeckHash = Math.max(1, cur.index);
+  _preserveDeckEdits = true;
   await generateDeck();
   deckViewerStatus(`«${escapeHtml(cur.title)}» fjernet <button type="button" class="text-link" id="undo-deck-removal">Fortryd</button>`);
   const undo = $('#undo-deck-removal');
@@ -1609,6 +1722,7 @@ async function undoDeckRemoval() {
   toggleDeckSlide(kind, id);
   const cur = currentDeckSlide();
   _pendingDeckHash = cur ? cur.index : null;
+  _preserveDeckEdits = true;
   await generateDeck();
   deckViewerStatus('');
 }
@@ -1616,6 +1730,8 @@ async function undoDeckRemoval() {
 // ---------- Download ----------
 async function downloadDeck() {
   if (!state.deckUrl) return;
+  // Sørg for at eventuelle uskrevne tekstredigeringer er i filen først
+  await saveDeckEdits();
   const a = document.createElement('a');
   a.href = state.deckUrl;
   a.download = `epico-pitch-${state.brief.client_name.toLowerCase().replace(/\s+/g, '-')}.html`;
@@ -1865,7 +1981,7 @@ function renderSlidePlan(plan) {
       <div class="plan-ai-note">
         <span class="plan-ai-note-label">AI'ens forslag</span>
         <span class="plan-ai-note-text">${escapeHtml(aiSlideAdvice)}</span>
-        <span class="plan-ai-note-hint">Fluebenene er sat af AI'en — ret dem frit.</span>
+        <span class="plan-ai-note-hint">Fluebenene er sat af AI'en, ret dem frit.</span>
       </div>` : ''}
 
     <div class="plan-summary">
@@ -2008,6 +2124,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#generate-deck-btn').addEventListener('click', generateDeck);
   const rmBtn = $('#remove-current-slide');
   if (rmBtn) rmBtn.addEventListener('click', removeCurrentDeckSlide);
+  const editBtn = $('#edit-deck-text');
+  if (editBtn) editBtn.addEventListener('click', toggleDeckEditMode);
+  const deckFrame = $('#deck-frame');
+  if (deckFrame) deckFrame.addEventListener('load', wireDeckFrame);
 
   // Deck-tilstand: masterdeck som fallback uden AI
   $$('input[name="deck_mode"]').forEach(r => r.addEventListener('change', applyDeckMode));

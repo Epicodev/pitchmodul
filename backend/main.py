@@ -9,6 +9,7 @@ Endpoints:
   POST /api/generate-deck     Render slutdeck ud fra struktureret data
 """
 import os
+import re
 import json
 import hashlib
 import time
@@ -33,6 +34,7 @@ from claude_client import (
     refine_slide,
     build_pitch_contract,
     suggest_brief_questions,
+    _strip_long_dashes,
 )
 import master_deck
 from deck_gen import render_deck, render_master_deck, preview_slide_plan
@@ -616,6 +618,48 @@ async def generate_deck(req: GenerateDeckRequest):
         "filename": filename,
         "url": f"/generated/{filename}",
     }
+
+
+class UpdateDeckSlidesRequest(BaseModel):
+    filename: str
+    edits: Dict[str, str]
+
+
+@app.post("/api/update-deck-slides")
+async def update_deck_slides(req: UpdateDeckSlidesRequest):
+    """Skriv sælgerens tekstredigeringer ind i den genererede deck-fil.
+
+    Composeren lader sælgeren redigere slide-tekst direkte i deck-visningen.
+    Her persisteres ændringerne i selve HTML-filen, så download og deling
+    matcher det sælgeren ser — også efter decket er regenereret.
+    """
+    name = Path(req.filename).name
+    if name != req.filename or not name.endswith(".html"):
+        raise HTTPException(status_code=400, detail="Ugyldigt filnavn.")
+    path = GENERATED_DIR / name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Decket findes ikke længere. Generer det igen.")
+
+    html = path.read_text(encoding="utf-8")
+    updated = 0
+    for slide_id, inner in req.edits.items():
+        if not re.fullmatch(r"[\w-]+", slide_id):
+            continue
+        # Redigeringsattributter må ikke ende i filen, og tankestreger er
+        # bandlyst i deck-tekst uanset om de er tastet ind manuelt
+        inner = re.sub(r'\s+(?:contenteditable|spellcheck)="[^"]*"', "", inner)
+        inner = _strip_long_dashes(inner)
+        pattern = re.compile(
+            rf'(<section[^>]*data-slide-id="{re.escape(slide_id)}"[^>]*>).*?(</section>)',
+            re.S,
+        )
+        html, n = pattern.subn(
+            lambda m, inner=inner: m.group(1) + inner + m.group(2), html, count=1
+        )
+        updated += n
+
+    path.write_text(html, encoding="utf-8")
+    return {"updated": updated}
 
 
 class RefineSlideRequest(BaseModel):
