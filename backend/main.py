@@ -668,6 +668,7 @@ class RefineSlideRequest(BaseModel):
     directive: str
     client_name: Optional[str] = None
     stakeholder_key: Optional[str] = None
+    lang: Optional[str] = None
 
 
 @app.post("/api/refine-slide")
@@ -681,6 +682,7 @@ async def refine_slide_endpoint(req: RefineSlideRequest):
             directive=req.directive,
             client_name=req.client_name,
             stakeholder_key=req.stakeholder_key,
+            lang=master_deck.resolve_lang(req.lang),
         )
         return {"refined_content": refined}
     except Exception as e:

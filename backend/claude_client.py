@@ -83,6 +83,7 @@ def refine_slide(
     directive: str,
     client_name: Optional[str] = None,
     stakeholder_key: Optional[str] = None,
+    lang: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> Any:
     """
@@ -120,7 +121,7 @@ def refine_slide(
     response = client.messages.create(
         model=MODEL,
         max_tokens=4000,
-        system=_SLIDE_REFINE_SYSTEM_PROMPT,
+        system=_SLIDE_REFINE_SYSTEM_PROMPT + "\n\n## SPROG\n" + language_rule,
         tools=[_REFINE_TOOL],
         tool_choice={"type": "tool", "name": "refine_slide"},
         messages=[{"role": "user", "content": user_message}],
@@ -654,6 +655,7 @@ def _critique_and_refine(
     stakeholder_key: Optional[str] = None,
     pitch_contract: Optional[Dict[str, Any]] = None,
     pitch_length: Optional[str] = "medium",
+    lang: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -719,10 +721,13 @@ Returnér forbedret JSON via `deliver_pitch_research`.""")
     # Brug samme dynamiske schema som Stage 1 — pitch_length skal respekteres
     analysis_tool = _build_analysis_tool(pitch_length or "medium")
 
+    # Sprogreglen skal med her også: critique omskriver teksten, og uden
+    # reglen falder den tilbage til dansk — så et engelsk udkast fra Stage 1
+    # kom retur på dansk, og det var critique-versionen der endte i decket.
     response = client.messages.create(
         model=MODEL,
         max_tokens=8000,
-        system=_CRITIQUE_SYSTEM_PROMPT,
+        system=_CRITIQUE_SYSTEM_PROMPT + "\n\n## SPROG\n" + _language_rule(lang),
         tools=[analysis_tool],
         tool_choice={"type": "tool", "name": "deliver_pitch_research"},
         messages=[{"role": "user", "content": user_message}],
@@ -1702,6 +1707,7 @@ def analyze_client(
             stakeholder_key=stakeholder_key,
             pitch_contract=pitch_contract,
             pitch_length=pitch_length,
+            lang=lang,
             api_key=api_key,
         )
         return _strip_long_dashes(refined)
