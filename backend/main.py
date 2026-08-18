@@ -70,6 +70,22 @@ app.mount("/generated", StaticFiles(directory=str(GENERATED_DIR)), name="generat
 app.mount("/composer-assets", StaticFiles(directory=str(FRONTEND_DIR / "composer")), name="composer_assets")
 
 
+@app.middleware("http")
+async def _fresh_ui_after_deploy(request, call_next):
+    """UI-filer skal revalideres ved hver visning (Cache-Control: no-cache).
+
+    Uden cache-headers gætter browseren sig til friskheden og kan holde fast
+    i gammel CSS/JS længe efter en deploy — sælgeren ser så hverken nye
+    features eller designrettelser. no-cache betyder ikke "cache aldrig",
+    men "spørg serveren først": uændrede filer svarer 304 og koster intet.
+    """
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.startswith(("/static", "/composer-assets")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 # ---------- Models ----------
 class CVRLookupRequest(BaseModel):
     query: str

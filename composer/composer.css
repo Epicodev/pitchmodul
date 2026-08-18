@@ -146,13 +146,16 @@ body.composer-body {
 }
 
 .tab.is-active {
-  background: var(--black-currant);
+  background: var(--red);
 }
 
-.tab.is-active .tab-num { color: var(--kiwi); }
+.tab.is-active .tab-num { color: rgba(255,255,255,0.55); }
 .tab.is-active .tab-label { color: white; }
 
-.tab.is-complete .tab-num { color: var(--kiwi); }
+.tab.is-complete { background: var(--black-currant); }
+.tab.is-complete:hover:not(:disabled) { background: var(--black-currant); }
+.tab.is-complete .tab-num { color: rgba(255,255,255,0.5); }
+.tab.is-complete .tab-label { color: white; }
 
 /* ---------- TAB PANELS ---------- */
 .tab-panel { display: none; }
@@ -235,7 +238,7 @@ body.composer-body {
   color: var(--grey);
 }
 
-.field-label .required { color: var(--raspberry); }
+.field-label .required { color: var(--red); }
 .field-label .hint {
   font-weight: 400;
   text-transform: none;
@@ -279,7 +282,7 @@ body.composer-body {
   margin-top: 8px;
   padding: 16px 20px;
   background: var(--light-silk);
-  border-left: 3px solid var(--kiwi);
+  border-left: 3px solid var(--red);
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--grey);
@@ -455,7 +458,7 @@ body.composer-body {
   color: var(--black-currant);
   line-height: 1.5;
   padding-left: 16px;
-  border-left: 3px solid var(--kiwi);
+  border-left: 3px solid var(--red);
   margin-bottom: 20px;
   max-width: 800px;
 }
@@ -504,7 +507,7 @@ body.composer-body {
 
 .brief-question-target strong {
   font-weight: 700;
-  color: var(--raspberry);
+  color: var(--red);
 }
 
 /* Hver runde spørgsmål lægges under den forrige */
@@ -667,8 +670,8 @@ body.composer-body {
   font-size: 11px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--black-currant);
-  background: var(--kiwi);
+  color: white;
+  background: var(--red);
   padding: 4px 10px;
 }
 
@@ -700,7 +703,7 @@ body.composer-body {
 
 .collapse-btn.is-expanded {
   background: var(--black-currant);
-  color: var(--kiwi);
+  color: var(--red);
 }
 
 .dictation-fields[hidden] { display: none; }
@@ -719,7 +722,7 @@ body.composer-body {
 /* ---------- ACCENT FORM BLOCK (pitch-vinkel) ---------- */
 .form-block--accent {
   background: var(--light-silk);
-  border-left: 4px solid var(--kiwi);
+  border-left: 4px solid var(--red);
   position: relative;
 }
 
@@ -729,7 +732,7 @@ body.composer-body {
   top: 32px;
   right: 32px;
   font-size: 24px;
-  color: var(--kiwi);
+  color: var(--red);
   opacity: 0.5;
 }
 
@@ -739,8 +742,8 @@ body.composer-body {
   font-size: 11px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--kiwi);
-  background: var(--black-currant);
+  color: white;
+  background: var(--red);
   padding: 4px 10px;
   margin-left: 8px;
 }
@@ -780,18 +783,18 @@ body.composer-body {
 }
 
 .chip:hover span {
-  border-color: var(--black-currant);
+  border-color: var(--red);
 }
 
 .chip input:checked + span {
   background: var(--black-currant);
   border-color: var(--black-currant);
-  color: var(--kiwi);
+  color: white;
 }
 
 .chip input:checked + span::before {
   content: "✓ ";
-  color: var(--kiwi);
+  color: white;
 }
 
 /* ---------- RADIOS ---------- */
@@ -864,7 +867,7 @@ body.composer-body {
   gap: 8px;
   padding: 16px 20px;
   background: var(--white);
-  border: 2px solid var(--kiwi);
+  border: 2px solid var(--red);
 }
 
 .plan-ai-note-label {
@@ -873,8 +876,8 @@ body.composer-body {
   font-size: 10px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--black-currant);
-  background: var(--kiwi);
+  color: white;
+  background: var(--red);
   padding: 3px 9px;
 }
 
@@ -908,7 +911,7 @@ body.composer-body {
   font-size: 40px;
   line-height: 1;
   letter-spacing: var(--kern-tight);
-  color: var(--kiwi);
+  color: var(--red);
 }
 
 .plan-count-label {
@@ -939,7 +942,7 @@ body.composer-body {
   font-size: 10px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
   margin-bottom: 6px;
 }
 
@@ -992,7 +995,7 @@ body.composer-body {
   height: 16px;
   margin: 0;
   flex-shrink: 0;
-  accent-color: var(--kiwi);
+  accent-color: var(--black-currant);
   cursor: pointer;
 }
 
@@ -1014,7 +1017,7 @@ body.composer-body {
   font-weight: 700;
   letter-spacing: var(--kern-uppercase);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
   background: rgba(224, 30, 55, 0.08);
   padding: 3px 8px;
 }
@@ -1056,7 +1059,7 @@ body.composer-body {
 .slide-plan-strip .plan-summary {
   background: var(--raw-silk);
   color: var(--grey);
-  border-left: 3px solid var(--kiwi);
+  border-left: 3px solid var(--red);
   padding: 14px 20px;
 }
 
@@ -1130,7 +1133,7 @@ body.composer-body {
   font-size: 11px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
 }
 
 .team-fields { margin-top: 28px; }
@@ -1148,7 +1151,7 @@ body.composer-body {
   font-size: 13px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
   margin: 0 0 20px;
 }
 
@@ -1173,8 +1176,8 @@ body.composer-body {
 .btn[hidden] { display: none; }
 
 .btn--primary {
-  background: var(--kiwi);
-  color: var(--black-currant);
+  background: var(--red);
+  color: white;
 }
 
 .btn--ghost {
@@ -1225,7 +1228,7 @@ body.composer-body {
 
 .form-actions-note.is-unlocked {
   color: var(--grey);
-  border-left-color: var(--kiwi);
+  border-left-color: var(--red);
 }
 
 /* ---------- RESEARCH STATUS ---------- */
@@ -1267,11 +1270,11 @@ body.composer-body {
   opacity: 0;
 }
 
-.status-step.is-active .step-marker { color: var(--raspberry); }
+.status-step.is-active .step-marker { color: var(--red); }
 .status-step.is-active .step-text { color: var(--black-currant); font-weight: 500; }
 .status-step.is-active .step-spinner {
   opacity: 1;
-  border-top-color: var(--raspberry);
+  border-top-color: var(--red);
   animation: spin 0.8s linear infinite;
 }
 
@@ -1293,7 +1296,7 @@ body.composer-body {
   margin-top: 48px;
   padding: 32px 40px;
   background: var(--white);
-  border-left: 4px solid var(--kiwi);
+  border-left: 4px solid var(--red);
 }
 
 .research-summary h3 {
@@ -1345,7 +1348,7 @@ body.composer-body {
   font-size: 11px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
 }
 
 .review-item {
@@ -1486,8 +1489,8 @@ body.composer-body {
 }
 
 .deck-slide-btn:hover {
-  color: var(--raspberry);
-  border-color: var(--raspberry);
+  color: var(--red);
+  border-color: var(--red);
 }
 
 .deck-slide.is-removed {
@@ -1561,7 +1564,7 @@ body.composer-body {
   margin-top: 18px;
   padding: 14px 18px;
   background: rgba(76, 225, 127, 0.1);
-  border-left: 3px solid var(--kiwi);
+  border-left: 3px solid var(--red);
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.5;
@@ -1574,7 +1577,7 @@ body.composer-body {
   font-size: 10px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--kiwi);
+  color: var(--red);
   margin-bottom: 6px;
 }
 
@@ -1584,7 +1587,7 @@ body.composer-body {
   font-size: 10px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
   margin-bottom: 12px;
 }
 
@@ -1709,7 +1712,7 @@ body.composer-body {
 
 .fact-swap-btn.is-open {
   background: var(--black-currant);
-  color: var(--kiwi);
+  color: var(--red);
 }
 
 .fact-why {
@@ -1744,7 +1747,7 @@ body.composer-body {
   font-size: 10px;
   letter-spacing: var(--kern-label);
   text-transform: uppercase;
-  color: var(--raspberry);
+  color: var(--red);
   margin-bottom: 12px;
 }
 
@@ -1829,8 +1832,8 @@ body.composer-body {
 .generated-icon {
   width: 64px;
   height: 64px;
-  background: var(--kiwi);
-  color: var(--black-currant);
+  background: var(--red);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1922,7 +1925,7 @@ body.composer-body {
 .plan-more[open] > .plan-more-toggle::before { content: "−"; }
 
 .plan-more-hint {
-  color: var(--raspberry);
+  color: var(--red);
   font-weight: 700;
   font-size: 11px;
   letter-spacing: var(--kern-uppercase);
@@ -1969,7 +1972,7 @@ body.composer-body {
 /* ── Redigerbar slide-overskrift i review ──────────────────────────── */
 
 .review-item--headline {
-  border-left: 3px solid var(--kiwi);
+  border-left: 3px solid var(--red);
   padding-left: 14px;
 }
 
@@ -2041,3 +2044,25 @@ body.composer-body {
   border: 0;
   background: #690F23;
 }
+
+
+/* ---------- DECK-IDIOM: detaljer der binder composeren til masterdesignet ---------- */
+
+/* Trin-eyebrow og fremhævet ord i overskrifter følger deckets bordeaux */
+.panel-intro .eyebrow { color: var(--red); }
+.h2 em.h2-accent { color: var(--red); font-style: normal; }
+
+/* Primærknap: bordeaux som deckets CTA-flader, navy ved hover */
+.btn--primary:hover:not(:disabled) { background: var(--black-currant); color: white; }
+
+/* Panelerne glider ind som deckets fx-animationer */
+.tab-panel.is-active { animation: panel-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-panel.is-active { animation: none; }
+}
+
+::selection { background: var(--black-currant); color: white; }
