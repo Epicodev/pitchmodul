@@ -11,16 +11,18 @@ Endpoints:
 import os
 import re
 import json
+import hmac
 import hashlib
 import time
 import uuid
 import asyncio
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import Depends, FastAPI, UploadFile, File, Form, Header, HTTPException, Request
+from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -728,6 +730,239 @@ async def generate_deck_pptx(req: GenerateDeckRequest):
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ==================== AGENT-API ====================
+# Sikret under-API på /agent til eksterne assistenter (Copilot Studio,
+# ChatGPT Actions, MCP-klienter). Holdes adskilt fra /api, så composerens
+# egen UI kan blive ved med at kalde frit, mens alt hvad assistenter kan nå
+# kræver API-nøgle. Under-app'en genererer sin egen OpenAPI-beskrivelse på
+# /agent/openapi.json — det er den fil Copilot Studio importerer.
+
+_AGENT_KEY_ENV = "PITCH_AGENT_API_KEY"
+
+
+def _public_base(request: Request) -> str:
+    """Absolut base-URL til links i svar. Assistenten viser URL'en til
+    sælgeren, så den skal kunne åbnes udefra — ikke være relativ."""
+    env = os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+    if env:
+        return env if env.startswith("http") else f"https://{env}"
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    return f"{scheme}://{request.url.netloc}"
+
+
+async def _require_agent_key(x_api_key: Optional[str] = Header(None, alias="X-Api-Key")):
+    expected = os.environ.get(_AGENT_KEY_ENV)
+    if not expected:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Agent-API'et er ikke aktiveret. Sæt miljøvariablen {_AGENT_KEY_ENV} på serveren.",
+        )
+    if not x_api_key or not hmac.compare_digest(x_api_key, expected):
+        raise HTTPException(status_code=401, detail="Ugyldig eller manglende API-nøgle (header X-Api-Key).")
+
+
+agent_app = FastAPI(
+    title="Epico Pitch Composer – Agent API",
+    version="1.0.0",
+    description=(
+        "API til at generere Epico pitch decks fra en assistent (Copilot, ChatGPT m.fl.). "
+        "To veje: (1) hurtigt masterdeck med kundens navn på coveret via /master-deck, "
+        "(2) skræddersyet deck: start research med /research, følg status på /research/{job_id} "
+        "(tager 4-5 minutter), og generér decket med /deck-from-research når researchen er færdig. "
+        "Svar altid sælgeren med deck-linket."
+    ),
+    dependencies=[Depends(_require_agent_key)],
+)
+
+
+class AgentMasterDeckRequest(BaseModel):
+    client_name: str
+    lang: Optional[str] = "da"
+    pitch_length: Optional[str] = "medium"
+    services: Optional[List[str]] = None
+    selected_slide_ids: Optional[List[str]] = None
+    contact_person: Optional[str] = None
+    date: Optional[str] = None
+
+
+class AgentResearchRequest(BaseModel):
+    client_name: str
+    lang: Optional[str] = "da"
+    brief: Optional[str] = None
+    stakeholder: Optional[str] = None
+    pitch_length: Optional[str] = "medium"
+    services: Optional[List[str]] = None
+    cvr_number: Optional[str] = None
+
+
+class AgentDeckFromResearchRequest(BaseModel):
+    job_id: str
+    selected_slide_ids: Optional[List[str]] = None
+    contact_person: Optional[str] = None
+
+
+@agent_app.get("/catalogue", summary="Hent gyldige værdier: sprog, services, stakeholdere og slides")
+async def agent_catalogue(lang: Optional[str] = None):
+    """Slå op hvad der kan vælges, før du kalder de andre endpoints.
+    Brug service-navnene ordret i `services` og slide-id'erne i
+    `selected_slide_ids`. Udelades `selected_slide_ids` vælger systemet
+    selv slides ud fra mødelængde og services."""
+    lang = master_deck.resolve_lang(lang)
+    return {
+        "languages": master_deck.available_languages(),
+        "default_language": master_deck.resolve_lang(None),
+        "pitch_lengths": ["short", "medium", "long"],
+        "services": [
+            "Epico Freelance", "Epico Projektansættelser", "Epico NextGen",
+            "Epico Search", "Epico Solution", "Epico Public",
+        ],
+        "stakeholders": [
+            "procurement", "it-leader", "tech-lead", "hr-leader",
+            "cfo", "executive", "business-leader",
+        ],
+        "slides": [
+            {"id": s.id, "label": s.label, "chapter": s.chapter}
+            for s in master_deck.MANIFEST if not s.reserved
+        ],
+    }
+
+
+@agent_app.post("/master-deck", summary="Generér et masterdeck med kundens navn — klar med det samme")
+async def agent_master_deck(req: AgentMasterDeckRequest, request: Request):
+    """Den hurtige vej uden AI-research: Epicos masterpræsentation med kundens
+    navn på coveret, filtreret på mødelængde og services. Svar sælgeren med
+    `deck_url` som et klikbart link."""
+    result = await generate_deck(GenerateDeckRequest(
+        client_name=req.client_name,
+        analysis={},
+        meeting={"contact_person": req.contact_person or "", "date": req.date or ""},
+        pitch_length=req.pitch_length or "medium",
+        services=req.services,
+        selected_slide_ids=req.selected_slide_ids,
+        lang=req.lang,
+    ))
+    return {
+        "deck_url": f"{_public_base(request)}{result['url']}",
+        "filename": result["filename"],
+    }
+
+
+@agent_app.post("/research", summary="Start AI-research på en kunde (tager 4-5 minutter)")
+async def agent_research(req: AgentResearchRequest):
+    """Starter den skræddersyede vej: CVR-opslag, web-research og AI-analyse.
+    Svarer med et `job_id` med det samme. Følg fremdriften med
+    GET /research/{job_id}, og kald /deck-from-research når status er 'done'.
+    Skriv i `brief` hvad sælgeren ved og vil med mødet — det styrer hele pitchen."""
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise HTTPException(status_code=503, detail="ANTHROPIC_API_KEY er ikke sat på serveren.")
+
+    lang = master_deck.resolve_lang(req.lang)
+    job_id = _new_job()
+    asyncio.create_task(_do_research(
+        job_id,
+        client_name=req.client_name, cvr_number=req.cvr_number,
+        pitch_length=req.pitch_length or "medium",
+        meeting_stage=None, meeting_stakeholder=req.stakeholder,
+        meeting_history=None, personal_angle=None,
+        insider_insights=None, exclusions=None,
+        pitch_focus=req.brief,
+        services_to_highlight=",".join(req.services) if req.services else None,
+        dict_research_facts=None, dict_priorities=None,
+        dict_mappings=None, dict_next_steps=None,
+        enable_web_search="true", enable_website_crawl="true",
+        selected_slide_ids=None, lang=lang, pdf_bytes=None,
+    ))
+    # Gem agentens valg på jobbet, så deck-genereringen bruger samme sprog
+    # og services uden at assistenten skal sende dem igen
+    _RESEARCH_JOBS[job_id]["agent_params"] = {
+        "lang": lang,
+        "pitch_length": req.pitch_length or "medium",
+        "services": req.services,
+        "stakeholder": req.stakeholder,
+    }
+    return {"job_id": job_id, "status": "running",
+            "hint": "Spørg på /research/{job_id} — typisk færdig efter 4-5 minutter."}
+
+
+@agent_app.get("/research/{job_id}", summary="Status på en research-kørsel")
+async def agent_research_status(job_id: str):
+    """Status er 'running', 'done' eller 'error'. Ved 'done' er analysen klar,
+    og decket kan genereres med /deck-from-research."""
+    job = _RESEARCH_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Kørslen findes ikke. Serveren er muligvis genstartet — start research igen.")
+    out = {"status": job["status"], "step": job["step"]}
+    if job["status"] == "error":
+        out["detail"] = job["error"]
+    if job["status"] == "done":
+        analysis = (job.get("result") or {}).get("analysis") or {}
+        out["summary"] = {
+            "client_name": (job.get("result") or {}).get("client_name"),
+            "industry": analysis.get("industry_tag"),
+            "research_facts": len(analysis.get("research_facts") or []),
+            "value_mappings": len(analysis.get("value_mappings") or []),
+            "next_steps": len(analysis.get("next_steps") or []),
+        }
+    return out
+
+
+@agent_app.post("/deck-from-research", summary="Generér det skræddersyede deck fra en færdig research")
+async def agent_deck_from_research(req: AgentDeckFromResearchRequest, request: Request):
+    """Kald denne når /research/{job_id} melder status 'done'. Bygger decket
+    med AI-kundeslides plus de relevante masterslides, og svarer med
+    `deck_url` som sælgeren kan åbne og præsentere direkte."""
+    job = _RESEARCH_JOBS.get(req.job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Kørslen findes ikke. Serveren er muligvis genstartet — start research igen.")
+    if job["status"] == "running":
+        raise HTTPException(status_code=409, detail="Researchen kører stadig — prøv igen om lidt.")
+    if job["status"] == "error":
+        raise HTTPException(status_code=409, detail=f"Researchen fejlede: {job.get('error')}")
+
+    params = job.get("agent_params") or {}
+    result_data = job.get("result") or {}
+    resolved = await generate_deck(GenerateDeckRequest(
+        client_name=result_data.get("client_name") or "Kunden",
+        analysis=result_data.get("analysis") or {},
+        meeting={"contact_person": req.contact_person or ""},
+        pitch_length=params.get("pitch_length") or "medium",
+        services=params.get("services"),
+        stakeholder=params.get("stakeholder"),
+        selected_slide_ids=req.selected_slide_ids,
+        lang=params.get("lang"),
+    ))
+    return {
+        "deck_url": f"{_public_base(request)}{resolved['url']}",
+        "filename": resolved["filename"],
+    }
+
+
+def _agent_openapi():
+    """OpenAPI-beskrivelsen Copilot Studio importerer: deklarerer API-nøglen
+    som securityScheme og den offentlige server-URL, så importen kan sætte
+    auth og adresse op uden håndarbejde."""
+    if agent_app.openapi_schema:
+        return agent_app.openapi_schema
+    schema = get_openapi(
+        title=agent_app.title, version=agent_app.version,
+        description=agent_app.description, routes=agent_app.routes,
+    )
+    schema.setdefault("components", {}).setdefault("securitySchemes", {})["ApiKey"] = {
+        "type": "apiKey", "in": "header", "name": "X-Api-Key",
+    }
+    schema["security"] = [{"ApiKey": []}]
+    env = os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+    if env:
+        base = env if env.startswith("http") else f"https://{env}"
+        schema["servers"] = [{"url": f"{base}/agent"}]
+    agent_app.openapi_schema = schema
+    return schema
+
+
+agent_app.openapi = _agent_openapi
+app.mount("/agent", agent_app)
 
 
 if __name__ == "__main__":
