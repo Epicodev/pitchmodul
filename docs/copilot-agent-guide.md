@@ -100,6 +100,10 @@ Agenten starter research og beder dig vente. Spørg "er den færdig?" efter 5 mi
 | Endpoint | Metode | Formål |
 |---|---|---|
 | `/agent/catalogue` | GET | Gyldige sprog, services, stakeholdere og slides |
+| `/agent/plan` | GET | Slide-plan (forvalg, kapitler) for `pitch_length` og `services` |
+| `/agent/slides/{id}/thumbnail` | GET | Miniature af en masterslide, JPEG 640x360 |
+| `/agent/slides/{id}/preview` | GET | Én masterslide som selvstændig HTML-side |
+| `/agent/deck/pdf` | POST | Masterdeck som PDF, én side per slide (kræver Chromium) |
 | `/agent/master-deck` | POST | Hurtigt masterdeck med kundens navn (klar med det samme) |
 | `/agent/research` | POST | Start AI-research (4-5 min, svarer med job_id) |
 | `/agent/research/{job_id}` | GET | Status på research |

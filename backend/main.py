@@ -7,6 +7,14 @@ Endpoints:
   POST /api/cvr-lookup        Slå CVR op på navn eller nummer
   POST /api/research          Kør fuld AI-analyse (CVR + PDF + Claude)
   POST /api/generate-deck     Render slutdeck ud fra struktureret data
+
+Agent-API (X-Api-Key), bruges af Copilot og Epico Engage:
+  GET  /agent/catalogue                    Sprog, services, kapitler, plan og import-info
+  GET  /agent/plan                         Slide-plan for en længde + services
+  GET  /agent/slides/{id}/thumbnail        JPEG 640x360 (lang cache)
+  GET  /agent/slides/{id}/preview          Én slide som selvstændig HTML-side
+  POST /agent/master-deck                  Masterdeck med kundens navn (+ html)
+  POST /agent/deck/pdf                     Samme deck som PDF (kræver Chromium)
 """
 import os
 import re
@@ -15,6 +23,7 @@ import hmac
 import hashlib
 import time
 import uuid
+import secrets
 import asyncio
 from pathlib import Path
 from typing import Optional, Dict, Any, List
@@ -39,6 +48,7 @@ from claude_client import (
     _strip_long_dashes,
 )
 import master_deck
+from chromium import ChromiumUnavailable, render_pdf
 from deck_gen import render_deck, render_master_deck, preview_slide_plan
 from slide_library import library_summary, reload_library
 from pptx_gen import render_pptx
@@ -55,6 +65,33 @@ FRONTEND_DIR = BASE_DIR.parent  # epico-pitch-deck/
 GENERATED_DIR = BASE_DIR / "generated"
 GENERATED_DIR.mkdir(exist_ok=True)
 
+# Genererede decks ligger på /generated uden nøgle, så filnavnet skal være
+# ugætteligt (secrets.token_hex), og gamle filer skal væk igen. 24 timer er
+# rigeligt til at præsentere og downloade; Engage gemmer selv det den bruger.
+_GENERATED_TTL_SECONDS = 24 * 3600
+
+
+def _cleanup_generated() -> int:
+    """Slet genererede filer ældre end 24 timer. Kaldes ved opstart og ved hver generering."""
+    now = time.time()
+    removed = 0
+    for f in GENERATED_DIR.iterdir():
+        try:
+            if f.is_file() and now - f.stat().st_mtime > _GENERATED_TTL_SECONDS:
+                f.unlink()
+                removed += 1
+        except OSError:
+            pass
+    return removed
+
+
+def _safe_name(client_name: str) -> str:
+    """Kundenavn som filnavns-led: kun bogstaver og tal, resten bliver underscore."""
+    return "".join(c if c.isalnum() else "_" for c in client_name).lower() or "deck"
+
+
+_cleanup_generated()
+
 
 app = FastAPI(title="Epico Pitch Deck Composer", version="1.0.0")
 
@@ -65,8 +102,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Server frontend statisk
-app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+# /static serverede tidligere hele repo-roden, inkl. backend/ med kildekode og
+# knowledge/. Nu serveres kun de filer composeren faktisk bruger (whitelist).
+# Composerens egne filer ligger på /composer-assets, master-slides inlines.
+_PUBLIC_FILES = {
+    "styles.css": FRONTEND_DIR / "styles.css",  # brand-tokens, bruges af composer/index.html
+}
+
+
+@app.get("/static/{path:path}", include_in_schema=False)
+async def static_whitelist(path: str):
+    target = _PUBLIC_FILES.get(path)
+    if target is None or not target.is_file():
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(str(target))
+
+
 app.mount("/generated", StaticFiles(directory=str(GENERATED_DIR)), name="generated")
 # Composer-mappens egne assets (composer.css, composer.js)
 app.mount("/composer-assets", StaticFiles(directory=str(FRONTEND_DIR / "composer")), name="composer_assets")
@@ -623,11 +674,11 @@ async def generate_deck(req: GenerateDeckRequest):
         lang=lang,
     )
 
-    # Gem til disk — sproget med i navnet, så et DA- og EN-deck genereret i
-    # samme sekund ikke overskriver hinanden
-    safe_name = "".join(c if c.isalnum() else "_" for c in req.client_name).lower()
+    # Gem til disk. Sproget er med i navnet, og det tilfældige led gør at URL'en
+    # på /generated ikke kan gættes ud fra kundenavn og tidspunkt.
+    _cleanup_generated()
     timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    filename = f"{safe_name}-{lang}-{timestamp}.html"
+    filename = f"{_safe_name(req.client_name)}-{lang}-{timestamp}-{secrets.token_hex(8)}.html"
     out_path = GENERATED_DIR / filename
     out_path.write_text(html, encoding="utf-8")
 
@@ -721,9 +772,8 @@ async def generate_deck_pptx(req: GenerateDeckRequest):
         excluded_slide_ids=req.excluded_slide_ids,
     )
 
-    safe_name = "".join(c if c.isalnum() else "_" for c in req.client_name).lower()
     timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    filename = f"epico-pitch-{safe_name}-{timestamp}.pptx"
+    filename = f"epico-pitch-{_safe_name(req.client_name)}-{timestamp}.pptx"
 
     return Response(
         content=pptx_bytes,
@@ -785,6 +835,8 @@ class AgentMasterDeckRequest(BaseModel):
     selected_slide_ids: Optional[List[str]] = None
     contact_person: Optional[str] = None
     date: Optional[str] = None
+    # Engage gemmer selv decket og skal ikke stole på filer på vores disk
+    include_html: bool = False
 
 
 class AgentResearchRequest(BaseModel):
@@ -801,23 +853,75 @@ class AgentDeckFromResearchRequest(BaseModel):
     job_id: str
     selected_slide_ids: Optional[List[str]] = None
     contact_person: Optional[str] = None
+    include_html: bool = False
 
 
-@agent_app.get("/catalogue", summary="Hent gyldige værdier: sprog, services, stakeholdere og slides")
-async def agent_catalogue(lang: Optional[str] = None):
+_PITCH_LENGTHS = ["short", "medium", "long"]
+_SERVICES = [
+    "Epico Freelance", "Epico Projektansættelser", "Epico NextGen",
+    "Epico Search", "Epico Solution", "Epico Public",
+]
+
+
+def _service_list(services: Optional[str]) -> Optional[List[str]]:
+    """Komma-separeret query-param til liste. None hvis tom."""
+    if not services:
+        return None
+    return [s.strip() for s in services.split(",") if s.strip()] or None
+
+
+def _plan_payload(lang: Optional[str], pitch_length: str, services: Optional[str]) -> Dict[str, Any]:
+    """Det Engage skal bruge til sin Slides-fane: alle valgbare slides med
+    forvalg og grund, kapitler i deck-rækkefølge, og hvad der kan vælges."""
+    if pitch_length not in _PITCH_LENGTHS:
+        raise HTTPException(status_code=400, detail=f"pitch_length skal være en af {_PITCH_LENGTHS}.")
+    lang = master_deck.resolve_lang(lang)
+    service_list = _service_list(services)
+    slides = [
+        {
+            "id": d["id"],
+            "title": d["title"],
+            "chapter": d["category"],
+            "chapter_label": master_deck.CHAPTER_LABELS.get(d["category"], d["category"]),
+            "default_on": d["default_on"],
+            "off_reason": d["off_reason"],
+            "unlock_services": d.get("unlock_services", []),
+            "lengths": d["lengths"],
+            "services": d["services"],
+        }
+        for d in master_deck.plan(pitch_length, service_list)
+    ]
+    return {
+        "lang": lang,
+        "pitch_length": pitch_length,
+        "services": service_list or [],
+        "pitch_lengths": list(_PITCH_LENGTHS),
+        "available_services": list(_SERVICES),
+        "chapters": master_deck.deck_chapters(),
+        "slides": slides,
+    }
+
+
+@agent_app.get("/catalogue", summary="Hent gyldige værdier: sprog, services, stakeholdere, slides og plan")
+async def agent_catalogue(
+    lang: Optional[str] = None,
+    pitch_length: str = "medium",
+    services: Optional[str] = None,
+):
     """Slå op hvad der kan vælges, før du kalder de andre endpoints.
     Brug service-navnene ordret i `services` og slide-id'erne i
     `selected_slide_ids`. Udelades `selected_slide_ids` vælger systemet
-    selv slides ud fra mødelængde og services."""
-    lang = master_deck.resolve_lang(lang)
+    selv slides ud fra mødelængde og services.
+
+    `plan` viser forvalget for `pitch_length` og `services` (komma-separeret),
+    med kapitler i deck-rækkefølge. `source` fortæller hvilken masterfil der
+    er importeret og hvornår."""
+    plan = _plan_payload(lang, pitch_length, services)
     return {
         "languages": master_deck.available_languages(),
         "default_language": master_deck.resolve_lang(None),
-        "pitch_lengths": ["short", "medium", "long"],
-        "services": [
-            "Epico Freelance", "Epico Projektansættelser", "Epico NextGen",
-            "Epico Search", "Epico Solution", "Epico Public",
-        ],
+        "pitch_lengths": list(_PITCH_LENGTHS),
+        "services": list(_SERVICES),
         "stakeholders": [
             "procurement", "it-leader", "tech-lead", "hr-leader",
             "cfo", "executive", "business-leader",
@@ -826,7 +930,58 @@ async def agent_catalogue(lang: Optional[str] = None):
             {"id": s.id, "label": s.label, "chapter": s.chapter}
             for s in master_deck.MANIFEST if not s.reserved
         ],
+        "chapters": plan["chapters"],
+        "plan": plan["slides"],
+        "source": master_deck.source_info(plan["lang"]),
     }
+
+
+@agent_app.get("/plan", summary="Slide-plan for en mødelængde og et sæt services")
+async def agent_plan(
+    lang: Optional[str] = None,
+    pitch_length: str = "medium",
+    services: Optional[str] = None,
+):
+    """Samme som `plan` i /catalogue, men uden resten: per slide `id`, `title`,
+    `chapter`, `chapter_label`, `default_on`, `off_reason` (null, "length"
+    eller "service"), `unlock_services`, `lengths` og `services`.
+    `services` gives komma-separeret, fx `Epico Freelance,Epico Search`."""
+    return _plan_payload(lang, pitch_length, services)
+
+
+@agent_app.get("/slides/{slide_id}/thumbnail", summary="Miniature af en masterslide (JPEG 640x360)")
+async def agent_slide_thumbnail(slide_id: str, request: Request, lang: Optional[str] = None):
+    """Miniaturerne er renderet på forhånd (render_thumbs.py) og ændrer sig kun
+    ved ny import, så de må caches et døgn. ETag gør gentagne hentninger til
+    et 304 uden krop."""
+    num = master_deck.slide_num(slide_id)
+    if num is None:
+        raise HTTPException(status_code=404, detail="Ukendt slide-id.")
+    path = master_deck.thumb_path(num, lang)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Miniaturen findes ikke. Kør render_thumbs.py efter import.")
+    data = path.read_bytes()
+    etag = '"' + hashlib.sha256(data).hexdigest()[:16] + '"'
+    headers = {"ETag": etag, "Cache-Control": "public, max-age=86400"}
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    return Response(content=data, media_type="image/jpeg", headers=headers)
+
+
+@agent_app.get("/slides/{slide_id}/preview", response_class=HTMLResponse,
+               summary="Én masterslide som selvstændig HTML-side")
+async def agent_slide_preview(slide_id: str, lang: Optional[str] = None):
+    """Sliden i fuld opløsning, skaleret til vinduets bredde, med masterens
+    fonte og animationer inlinet. Til stor forhåndsvisning i Engage (iframe)."""
+    num = master_deck.slide_num(slide_id)
+    if num is None:
+        raise HTTPException(status_code=404, detail="Ukendt slide-id.")
+    lang = master_deck.resolve_lang(lang)
+    if not master_deck.deck_available(lang):
+        raise HTTPException(status_code=503, detail="Masterdecket er ikke indlæst.")
+    html = master_deck.single_slide_html(num, lang)
+    etag = '"' + hashlib.sha256(html.encode()).hexdigest()[:16] + '"'
+    return HTMLResponse(html, headers={"ETag": etag, "Cache-Control": "private, max-age=3600"})
 
 
 @agent_app.post("/master-deck", summary="Generér et masterdeck med kundens navn — klar med det samme")
@@ -843,10 +998,40 @@ async def agent_master_deck(req: AgentMasterDeckRequest, request: Request):
         selected_slide_ids=req.selected_slide_ids,
         lang=req.lang,
     ))
-    return {
+    out = {
         "deck_url": f"{_public_base(request)}{result['url']}",
         "filename": result["filename"],
     }
+    if req.include_html:
+        out["html"] = result["html"]
+    return out
+
+
+@agent_app.post("/deck/pdf", summary="Masterdeck som PDF, én side per slide (1920x1080)")
+async def agent_deck_pdf(req: AgentMasterDeckRequest):
+    """Samme felter som /master-deck, men svaret er selve PDF-filen
+    (application/pdf, Content-Disposition attachment). Kræver Chromium på
+    serveren; mangler den, svares 503."""
+    lang = master_deck.resolve_lang(req.lang)
+    html = render_master_deck(
+        client_name=req.client_name,
+        analysis={},
+        meeting={"contact_person": req.contact_person or "", "date": req.date or ""},
+        pitch_length=req.pitch_length or "medium",
+        services=req.services,
+        selected_slide_ids=req.selected_slide_ids,
+        lang=lang,
+    )
+    try:
+        pdf = await render_pdf(master_deck.print_html(html))
+    except ChromiumUnavailable:
+        raise HTTPException(status_code=503, detail="PDF kræver Chromium på serveren")
+    filename = f"{_safe_name(req.client_name)}-{lang}.pdf"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @agent_app.post("/research", summary="Start AI-research på en kunde (tager 4-5 minutter)")
@@ -933,10 +1118,13 @@ async def agent_deck_from_research(req: AgentDeckFromResearchRequest, request: R
         selected_slide_ids=req.selected_slide_ids,
         lang=params.get("lang"),
     ))
-    return {
+    out = {
         "deck_url": f"{_public_base(request)}{resolved['url']}",
         "filename": resolved["filename"],
     }
+    if req.include_html:
+        out["html"] = resolved["html"]
+    return out
 
 
 def _agent_openapi():

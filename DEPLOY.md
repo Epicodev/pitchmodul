@@ -21,7 +21,7 @@ git push -u origin main
 1. Gå til [railway.com](https://railway.com) og log ind
 2. Klik **"New Project"** → **"Deploy from GitHub repo"**
 3. Vælg `Epicodev/pitchmodul`
-4. Railway begynder automatisk at builde (Nixpacks finder Python + requirements.txt)
+4. Railway begynder automatisk at builde ud fra `Dockerfile` i roden (se afsnittet om Chromium nedenfor)
 
 ## 3. Sæt miljøvariabler
 
@@ -41,7 +41,50 @@ Test:
 - `https://[din-url]/api/health` → skal returnere `{"status":"ok","anthropic_key_set":true,...}`
 - `https://[din-url]/` → skal vise composer-UI'en
 
-## 5. (Valgfrit) Custom domain
+## 5. Chromium, Docker og rollback til Nixpacks
+
+PDF (`POST /agent/deck/pdf`) og miniaturer (`render_thumbs.py`) renderes med
+Playwright/Chromium. Chromium findes ikke i Nixpacks' standard-image, derfor
+bygger Railway nu fra `Dockerfile` i roden (`railway.toml`: `builder = "DOCKERFILE"`).
+Basisimaget er `mcr.microsoft.com/playwright/python:v1.63.0-jammy`, og
+`playwright==1.63.0` i `requirements.txt` skal matche tag'et. Opgraderes den ene,
+opgraderes den anden.
+
+Healthcheck (`/api/health`) og start-kommando er de samme som foer.
+
+### Rul tilbage til Nixpacks hvis Docker-buildet fejler
+
+1. Ret `railway.toml`:
+
+   ```toml
+   [build]
+   builder = "NIXPACKS"
+   ```
+
+   (fjern eller udkommentér `dockerfilePath`). Resten af filen er uaendret.
+2. Push til `main`. Railway bygger igen med Nixpacks som foer.
+3. Konsekvens: `POST /agent/deck/pdf` svarer `503 {"detail": "PDF kræver Chromium på serveren"}`.
+   Alt andet virker, ogsaa miniaturerne, fordi de er renderet paa forhaand og
+   ligger i repoet (`backend/master_deck/{da,en}/thumbs/`).
+
+Vil man beholde Nixpacks permanent, kan `playwright` blive staaende i
+`requirements.txt`; pakken installeres fint uden browser, og importen sker
+foerst inde i PDF-kaldet.
+
+### Miniaturer lokalt (efter ny masterfil)
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt
+.venv/bin/playwright install chromium
+cd backend && ../.venv/bin/python import_master.py "/sti/til/Epico Salgsdeck DK.html" --lang=da
+```
+
+`import_master.py` renderer miniaturerne som sidste trin. Mangler Chromium,
+skriver den en advarsel, og `python render_thumbs.py --lang=da` kan koeres
+bagefter. Miniaturerne committes sammen med de nye slides.
+
+## 6. (Valgfrit) Custom domain
 
 I Railway → Settings → Networking → Custom Domain.
 Pege fx `pitch.epico.dk` til Railway's CNAME.
@@ -52,8 +95,9 @@ Pege fx `pitch.epico.dk` til Railway's CNAME.
 
 ```
 /
-├── Procfile                  Fortæller Railway hvordan appen startes
-├── railway.toml              Healthcheck + restart policy
+├── Dockerfile                Playwright-image med Chromium (builder på Railway)
+├── Procfile                  Start-kommando (bruges kun ved Nixpacks)
+├── railway.toml              Builder, healthcheck + restart policy
 ├── requirements.txt          Python deps (Nixpacks finder denne automatisk)
 ├── runtime.txt               Python 3.12
 ├── .gitignore                Holder venv/, .env, generated/ ude af repo

@@ -11,6 +11,7 @@ styrer kun forvalget.
 from __future__ import annotations
 
 import base64
+import json
 from html import escape as html_escape
 import re
 from dataclasses import dataclass, field
@@ -55,6 +56,7 @@ class MasterSlide:
             "title": self.label,
             "category": self.chapter,
             "services": self.services,
+            "lengths": list(self.lengths),
         }
 
 
@@ -364,6 +366,133 @@ new ResizeObserver(() => parent.postMessage(
 </script></body></html>"""
 
 
+def source_info(lang: Optional[str] = None) -> Dict[str, Any]:
+    """Metadata om importen (fra source.json): fil, dato og antal slides.
+
+    Engage viser det under "Masterdeck" i admin, saa det er tydeligt hvilken
+    masterfil miniaturer og katalog stammer fra.
+    """
+    path = lang_dir(resolve_lang(lang)) / "source.json"
+    if not path.exists():
+        return {}
+    try:
+        info = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {
+        "source_file": info.get("source_file"),
+        "imported_at": info.get("imported_at"),
+        "slide_count": info.get("slide_count"),
+    }
+
+
+def slide_num(slide_id: str) -> Optional[int]:
+    """Slaa "m07" op til 7. None hvis id'et ikke findes i MANIFEST."""
+    m = re.fullmatch(r"m(\d{2})", slide_id or "")
+    if not m:
+        return None
+    num = int(m.group(1))
+    return num if any(s.num == num for s in MANIFEST) else None
+
+
+def thumb_path(num: int, lang: Optional[str] = None) -> Path:
+    """Stien til slidens miniature (render_thumbs.py lægger dem her)."""
+    return lang_dir(resolve_lang(lang)) / "thumbs" / f"m{num:02d}.jpg"
+
+
+# ─── Enkelt-slide-sider: forhaandsvisning, miniaturer og PDF ─────────
+# Samme .stage-moenster som thumbnails_html: sliden ligger i sin designstoerrelse
+# (1920x1080) og skaleres ned med en transform. data-deck-active taender
+# fx-animationerne, og FREEZE_ANIMATIONS_CSS springer dem til slutbilledet.
+
+# Samme greb som masterens egen print-regel i runtime.js: en stor negativ
+# delay og en forsvindende varighed lander alle animationer i slutbilledet,
+# saa hverken miniature eller PDF fanger en halv indflyvning.
+FREEZE_ANIMATIONS_CSS = """
+*, *::before, *::after {
+  animation-delay: -99s !important; animation-duration: .001s !important;
+  animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+  animation-play-state: running !important; transition-duration: 0s !important;
+}
+"""
+
+_STAGE_CSS = """
+* { box-sizing: border-box; }
+.stage {
+  position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+  transform-origin: top left; pointer-events: none; overflow: hidden;
+}
+.stage > section { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+"""
+
+
+def single_slide_html(num: int, lang: Optional[str] = None, *, freeze: bool = False) -> str:
+    """Én masterslide som selvstændig side, skaleret til vinduets bredde.
+
+    Bruges af /agent/slides/{id}/preview (levende, med animationer) og af
+    render_thumbs.py (freeze=True, saa skaermbilledet er slutbilledet).
+    Assets er inlinet, saa siden kan vises hvor som helst uden at hente noget.
+    """
+    lang = resolve_lang(lang)
+    data = _load(lang)
+    section = data["slides"][num]
+    extra = FREEZE_ANIMATIONS_CSS if freeze else ""
+    html = f"""<!DOCTYPE html>
+<html lang="{lang}"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+{data['head_css']}
+{_STAGE_CSS}
+html, body {{ margin: 0; background: transparent; }}
+.frame {{ position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; }}
+{extra}
+</style></head>
+<body><div class="frame"><div class="stage" data-deck-active>{section}</div></div>
+<script>
+function fit() {{
+  var f = document.querySelector('.frame');
+  var st = f.querySelector('.stage');
+  st.style.transform = 'scale(' + (f.clientWidth / 1920) + ')';
+}}
+addEventListener('resize', fit);
+fit();
+</script></body></html>"""
+    return inline_assets(html, lang)
+
+
+def print_html(deck_html: str) -> str:
+    """Byg et print-dokument af et faerdigt deck: én 1920x1080-side per slide.
+
+    Decket fra render_master_deck er allerede selvbaerende (assets inlinet), saa
+    vi genbruger dets <style>-blokke og loefter hver <section> ud af
+    <deck-stage> og ind i sin egen side. Vieweren (runtime.js) er ikke med;
+    den er kun til fremvisning i browseren.
+    """
+    head = deck_html.split("<deck-stage", 1)[0]
+    styles = "\n".join(re.findall(r"<style>(.*?)</style>", head, re.S))
+    sections = re.findall(r"<section .*?</section>", deck_html, re.S)
+    pages = "".join(
+        f'<div class="page"><div class="stage" data-deck-active>{s}</div></div>'
+        for s in sections
+    )
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+{styles}
+{_STAGE_CSS}
+{FREEZE_ANIMATIONS_CSS}
+@page {{ size: 1920px 1080px; margin: 0; }}
+html, body {{ margin: 0; padding: 0; background: #fff; }}
+.page {{
+  position: relative; width: 1920px; height: 1080px; overflow: hidden;
+  break-after: page; page-break-after: always;
+}}
+.page:last-child {{ break-after: auto; page-break-after: auto; }}
+* {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+</style></head>
+<body>{pages}</body></html>"""
+
+
 
 def slides_following(ids: Optional[List[str]]) -> List[Dict[str, str]]:
     """Hvilke master-slides kommer efter kundeslidesne — til AI-prompten.
@@ -416,6 +545,20 @@ def _deck_sort_key(s: MasterSlide) -> tuple:
 
 def deck_ordered(slides: List[MasterSlide]) -> List[MasterSlide]:
     return sorted(slides, key=_deck_sort_key)
+
+
+def deck_chapters() -> List[Dict[str, str]]:
+    """Kapitlerne i deck-raekkefoelge, kun dem der faktisk har valgbare slides.
+
+    "Hvad vi goer" (m07) staar foerst i decket selv om den hoerer til "story";
+    kapitellisten er til gruppering i en vaelger, ikke til at genskabe
+    raekkefoelgen slide for slide (den ligger i plan()).
+    """
+    present = {m.chapter for m in MANIFEST if not m.reserved}
+    return [
+        {"id": c, "label": CHAPTER_LABELS.get(c, c)}
+        for c in _DECK_CHAPTER_ORDER if c in present
+    ]
 
 
 def default_slide_ids(

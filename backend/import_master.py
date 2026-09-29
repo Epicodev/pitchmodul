@@ -9,6 +9,7 @@ så composeren kan plukke slides fra den:
       assets/<uuid>.<ext>    billeder + fonte, refereret ved uuid i markup
       head.css               @font-face + animations-CSS fra filens <head>
       runtime.js             deck-stage vieweren (navigation, rail, print)
+      thumbs/mNN.jpg         miniaturer 640x360 (renderes med Chromium)
       source.json            metadata om importen
 
 Brug:  python import_master.py "/sti/til/Epico Salgsdeck.html"
@@ -16,6 +17,10 @@ Brug:  python import_master.py "/sti/til/Epico Salgsdeck.html"
 Kør den igen når der kommer en ny masterfil — alt overskrives. Slide-
 metadata (kapitler/services/længder) ligger i master_deck.py's MANIFEST
 og skal kun justeres hvis der kommer nye slides til eller labels ændres.
+
+Miniaturerne kræver Playwright med Chromium (pip install playwright &&
+playwright install chromium). Mangler det, springes trinnet over med en
+advarsel, og de kan laves bagefter med:  python render_thumbs.py --lang=da
 """
 from __future__ import annotations
 
@@ -27,6 +32,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import master_deck
 from master_deck import MANIFEST
 
 DECK_DIR = Path(__file__).parent / "master_deck"
@@ -134,7 +140,26 @@ def import_master(source: Path, lang: str) -> dict:
     (out / "source.json").write_text(
         json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    # Miniaturer: den nye masterfil skal slaa igennem i cachen foer de renderes.
+    # Gamle miniaturer ryddes af render_thumbs, saa der aldrig ligger et billede
+    # af en slide der ikke findes laengere.
+    master_deck.clear_cache()
+    info["thumbnails"] = _render_thumbnails(lang)
     return info
+
+
+def _render_thumbnails(lang: str) -> int:
+    """Render miniaturer efter importen. 0 hvis Chromium ikke er tilgaengelig."""
+    from chromium import ChromiumUnavailable
+    from render_thumbs import render_thumbs
+
+    try:
+        return render_thumbs(lang)
+    except ChromiumUnavailable as e:
+        print(f"ADVARSEL: miniaturer blev ikke renderet ({e}).")
+        print(f"Koer bagefter:  python render_thumbs.py --lang={lang}")
+        return 0
 
 
 if __name__ == "__main__":
@@ -151,7 +176,8 @@ if __name__ == "__main__":
 
     result = import_master(Path(args[0]), lang)
     print(f"Importeret til master_deck/{lang}/: "
-          f"{result['slide_count']} slides, {len(result['assets'])} assets")
+          f"{result['slide_count']} slides, {len(result['assets'])} assets, "
+          f"{result['thumbnails']} miniaturer")
 
     expected = len([s for s in MANIFEST])
     if result["slide_count"] != expected:

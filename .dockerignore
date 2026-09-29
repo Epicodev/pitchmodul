@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+backend/venv
+backend/generated
+backend/__pycache__
+**/__pycache__
+.env
+backend/.env
+.pytest_cache
+.DS_Store
