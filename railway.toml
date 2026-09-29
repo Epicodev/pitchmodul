@@ -1,7 +1,8 @@
 [build]
 # Nixpacks igen: Docker-builds fejlede fire gange paa Railway efter image-push uden runtime-log.
 # Miniaturer, plan, preview og include_html virker uden Chromium (miniaturerne er committet).
-# PDF svarer 503 indtil Chromium er paa serveren; Dockerfile ligger klar til naeste forsoeg.
+# PDF svarer 503 indtil Chromium er paa serveren. Dockerfile.chromium ligger klar; den hedder ikke
+# Dockerfile, fordi Railway ellers bruger den automatisk uanset builder-valget her.
 builder = "NIXPACKS"
 
 [deploy]

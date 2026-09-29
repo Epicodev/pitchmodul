@@ -21,7 +21,7 @@ git push -u origin main
 1. Gå til [railway.com](https://railway.com) og log ind
 2. Klik **"New Project"** → **"Deploy from GitHub repo"**
 3. Vælg `Epicodev/pitchmodul`
-4. Railway begynder automatisk at builde ud fra `Dockerfile` i roden (se afsnittet om Chromium nedenfor)
+4. Railway begynder automatisk at builde ud fra `Dockerfile.chromium` i roden (se afsnittet om Chromium nedenfor)
 
 ## 3. Sæt miljøvariabler
 
@@ -45,7 +45,7 @@ Test:
 
 PDF (`POST /agent/deck/pdf`) og miniaturer (`render_thumbs.py`) renderes med
 Playwright/Chromium. Chromium findes ikke i Nixpacks' standard-image, derfor
-bygger Railway nu fra `Dockerfile` i roden (`railway.toml`: `builder = "DOCKERFILE"`).
+bygger Railway nu fra `Dockerfile.chromium` i roden (`railway.toml`: `builder = "DOCKERFILE"`).
 Basisimaget er `mcr.microsoft.com/playwright/python:v1.63.0-jammy`, og
 `playwright==1.63.0` i `requirements.txt` skal matche tag'et. Opgraderes den ene,
 opgraderes den anden.
@@ -95,7 +95,7 @@ Pege fx `pitch.epico.dk` til Railway's CNAME.
 
 ```
 /
-├── Dockerfile                Playwright-image med Chromium (builder på Railway)
+├── Dockerfile.chromium                Playwright-image med Chromium (builder på Railway)
 ├── Procfile                  Start-kommando (bruges kun ved Nixpacks)
 ├── railway.toml              Builder, healthcheck + restart policy
 ├── requirements.txt          Python deps (Nixpacks finder denne automatisk)
