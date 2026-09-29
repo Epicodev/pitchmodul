@@ -1,8 +1,11 @@
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+# Nixpacks igen: Docker-builds fejlede fire gange paa Railway efter image-push uden runtime-log.
+# Miniaturer, plan, preview og include_html virker uden Chromium (miniaturerne er committet).
+# PDF svarer 503 indtil Chromium er paa serveren; Dockerfile ligger klar til naeste forsoeg.
+builder = "NIXPACKS"
 
 [deploy]
+startCommand = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 180
 restartPolicyType = "ON_FAILURE"
